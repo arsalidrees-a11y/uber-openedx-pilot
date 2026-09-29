@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.DS_Store
+
+# Personal editor and Claude Code overrides, not team config.
+.claude/settings.local.json
+
+# Confidential client material must never be committed.
+*.pdf
+# Uber Move is licensed exclusively to Uber. SETUP.md says where to get it.
+public/fonts/
+tokens/incoming.json
+.vercel
+
+# Official Uber icon source files, like the fonts: licensed to Uber, keep out of git.
+Icons/
+
+# Official Uber icon source files, like the fonts: licensed to Uber, keep out of git.
+Icons/
+
+# Official Uber icon source files, like the fonts: licensed to Uber, keep out of git.
+Icons/
+
+# Official Uber icon source files, like the fonts: licensed to Uber, keep out of git.
+Icons/

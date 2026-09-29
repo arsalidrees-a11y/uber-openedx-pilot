@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "purpose": "Every Uber Move face the kit declares with @font-face. scripts/build-tokens.mjs fails if a Figma text style names a family and weight that is not listed here.",
+    "files": "public/fonts/, copied to dist/fonts/ by Vite. The directory is gitignored: the fonts are licensed exclusively to Uber, so they stay out of the repository like the other client material.",
+    "source": [
+      "Uber Move and Uber Move Text: official UberMove_English package, webfonts/*.woff2, Version 1.003, received 2026-09-28.",
+      "Uber Move Mono: official UberMove_Monospace package, webfonts/*.woff2, Version 1.003, received 2026-09-28. It replaced the 1.001 desktop copies; 1.003 adds two glyphs (U+25A0, U+25CF) and drops none.",
+      "Each woff2 has the same character set as the OTF and TTF in its package. The 1.003 OTFs are what is installed on the design machine."
+    ],
+    "licence": "Name table ID 13 on every file: 'This custom font has been licensed exclusively to Uber.' Confirm web-embedding rights before deploying these files anywhere public.",
+    "weights": "Uber Move Mono files report usWeightClass 432 and 568. They are declared at 400 and 500, the weights the Figma text styles were pinned to on 2026-09-14.",
+    "local": "The PostScript name only, and only as a fallback after the file. On 2026-09-28 a local() lookup by full name (\"Uber Move Mono Medium\") resolved to stale cached font data right after the installed copy was replaced, and rendered Mono Medium as garbage. The PostScript-name lookup and the woff2 file were both correct."
+  },
+  "base": "/fonts/",
+  "faces": [
+    { "family": "Uber Move",      "weight": 300, "file": "UberMove-Light.woff2",      "local": "UberMove-Light" },
+    { "family": "Uber Move",      "weight": 400, "file": "UberMove-Regular.woff2",    "local": "UberMove-Regular" },
+    { "family": "Uber Move",      "weight": 500, "file": "UberMove-Medium.woff2",     "local": "UberMove-Medium" },
+    { "family": "Uber Move",      "weight": 700, "file": "UberMove-Bold.woff2",       "local": "UberMove-Bold" },
+    { "family": "Uber Move Text", "weight": 300, "file": "UberMoveText-Light.woff2",  "local": "UberMoveText-Light" },
+    { "family": "Uber Move Text", "weight": 400, "file": "UberMoveText-Regular.woff2", "local": "UberMoveText-Regular" },
+    { "family": "Uber Move Text", "weight": 500, "file": "UberMoveText-Medium.woff2", "local": "UberMoveText-Medium" },
+    { "family": "Uber Move Text", "weight": 700, "file": "UberMoveText-Bold.woff2",   "local": "UberMoveText-Bold" },
+    { "family": "Uber Move Mono", "weight": 400, "file": "UberMoveMono-Regular.woff2", "local": "UberMoveMono-Regular" },
+    { "family": "Uber Move Mono", "weight": 500, "file": "UberMoveMono-Medium.woff2", "local": "UberMoveMono-Medium" }
+  ]
+}

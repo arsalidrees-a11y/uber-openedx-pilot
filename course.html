@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- THESIS: An operational learning tool inside the Uber app: direct, calm, precise, and recognizably Uber.
+OWN-WORLD: Uber black and white, quiet gray fields, blue for direction, and green only for verified mastery.
+STORY: Discover assigned learning, see a clear course path, practise one decision at a time, and finish with measurable proof of learning.
+FIRST VIEWPORT: A modern learning home where the next action and one account-level progress system are immediately legible.
+FORM: A 390px mobile WebView with editorial hierarchy, flat section structure, restrained cards, and shared interaction grammar across video, choice, matching, sorting, feedback, and recovery. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>US mandatory safety education</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+  <link rel="stylesheet" href="course/course.css">
+  <script type="module" src="course/course.js"></script>
+  <script>
+    if (new URLSearchParams(location.search).get('capture') === '1') {
+      const capture = document.createElement('script');
+      capture.src = 'https://mcp.figma.com/mcp/html-to-design/capture.js';
+      capture.async = true;
+      document.head.appendChild(capture);
+    }
+  </script>
+</head>
+<body>
+  <div class="review-bar"><a href="index.html">Component gallery</a><span>US mandatory course / interactive Version B</span><button id="review-toggle" class="text-button" aria-expanded="false">Review states</button></div>
+  <div class="workspace">
+    <aside id="review-panel" hidden aria-label="Prototype review controls"></aside>
+    <main id="course" class="course-shell" aria-label="Interactive reference course"></main>
+  </div>
+  <noscript>This interactive prototype requires JavaScript.</noscript>
+</body>
+</html>

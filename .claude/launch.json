@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "uber-learn",
+      "//": "Works whether the project root is Desktop/Uber or uber-learn itself: it steps into uber-learn if that directory exists, and otherwise stays put.",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd uber-learn 2>/dev/null; exec npm run dev -- --port 5180 --strictPort"
+      ],
+      "port": 5180
+    }
+  ]
+}

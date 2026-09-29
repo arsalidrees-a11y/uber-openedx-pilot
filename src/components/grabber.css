@@ -1,0 +1,6 @@
+/* Grabber - List. The affordance that says "drag me", on Sort rows and Match
+   cards. The Sheet grabber left with the bottom sheet. */
+.u-grabber--list {
+  width: 24px; height: 24px; display: grid; place-items: center;
+  color: var(--u-content-tertiary); cursor: grab;
+}

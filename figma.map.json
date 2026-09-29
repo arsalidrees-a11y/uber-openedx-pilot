@@ -1,0 +1,221 @@
+{
+  "_comment": "Figma node -> code component. Check here before building anything new. netNew lists components with NO Base equivalent, invented for this pilot.",
+  "fileKey": "ruYJo9EUuYsyJxacE52B4p",
+  "components": {
+    "u-btn": {
+      "figmaNode": null,
+      "figmaName": "Base / Button",
+      "src": "src/components/button.css",
+      "variants": [
+        "--primary",
+        "--secondary",
+        "--tertiary",
+        "--pill",
+        "--block",
+        "--sm"
+      ],
+      "status": "node id unknown - 3:4200 was wrong, it is the page id"
+    },
+    "u-lesson": {
+      "figmaNode": "22664:395",
+      "figmaName": "Learning / Lesson row",
+      "src": "src/components/lesson-card.css",
+      "variants": [
+        "--complete",
+        "--locked"
+      ],
+      "status": "rebuilt in Figma 2026-09-28 as an Uber Safety checkup row"
+    },
+    "u-streak": {
+      "figmaNode": null,
+      "figmaName": "Learning / StreakChip",
+      "src": "src/components/streak-chip.css",
+      "variants": [
+        "--active",
+        "--cold"
+      ],
+      "status": "not designed: DESIGN.md rules out streak flames; the learning experience uses Learning / Weekly goal (22650:304)"
+    },
+    "u-ring": {
+      "figmaNode": null,
+      "figmaName": "Learning / ProgressRing",
+      "src": "src/components/progress-ring.css",
+      "variants": [
+        "--complete"
+      ],
+      "status": "not designed: Base ships Progress circle"
+    },
+    "u-achievement": {
+      "figmaNode": "22652:525",
+      "figmaName": "Learning / Badge row",
+      "src": "src/components/achievement.css",
+      "variants": [
+        "--locked"
+      ],
+      "status": "built in Figma 2026-09-28 on page 22637:8 (❖ Learning Components)"
+    },
+    "u-acc": {
+      "figmaNode": null,
+      "figmaName": "Learning / Accordion",
+      "src": "src/components/accordion.css",
+      "variants": [],
+      "status": "not designed: Base ships Accordion"
+    },
+    "u-kc": {
+      "figmaNode": "22642:46",
+      "figmaName": "Learning / Answer option",
+      "src": "src/components/knowledge-check.css",
+      "variants": [
+        "correct",
+        "incorrect"
+      ],
+      "status": "built in Figma 2026-09-28 as Answer option + Feedback (22643:87) on page 22637:8 (❖ Learning Components)"
+    }
+  },
+  "netNew": {
+    "built": {
+      "u-lesson": {
+        "name": "LessonCard",
+        "why": "lesson row with state and a progress rail; Base Tile and List item are both close but neither carries progress",
+        "src": "src/components/lesson-card.css"
+      },
+      "u-streak": {
+        "name": "StreakChip",
+        "why": "consecutive-day counter; no Base equivalent",
+        "src": "src/components/streak-chip.css"
+      },
+      "u-achievement": {
+        "name": "AchievementTile",
+        "why": "earned or locked badge; Base Badge is a notification count, not this",
+        "src": "src/components/achievement.css"
+      },
+      "u-kc": {
+        "name": "KnowledgeCheck",
+        "why": "ungraded retention check with immediate non-punitive feedback; Base has no question component",
+        "src": "src/components/knowledge-check.css"
+      }
+    },
+    "todo": {
+      "u-rank": {
+        "name": "RankingRow",
+        "why": "privacy-safe ranking named in the proposal; must not expose other drivers' identities",
+        "builtOn": "u-li",
+        "designedInFigma": "Learning / Cohort bands (22650:394)"
+      },
+      "u-points": {
+        "name": "PointsTicker",
+        "why": "animated award when points are earned",
+        "builtOn": "u-streak"
+      },
+      "u-completion": {
+        "name": "CompletionCard",
+        "why": "completion view and certificate, named in the proposal",
+        "builtOn": "u-card",
+        "designedInFigma": "Learning / Milestone (22648:292) and Check result (22650:445)",
+        "builtOnRemoved": "card left the kit on 2026-09-28; build on what the learning design uses instead"
+      },
+      "u-hotspot": {
+        "name": "HotspotImage",
+        "why": "Meredith asked for matching hot spots and roll-overs with pop-ups",
+        "builtOn": "u-tip",
+        "builtOnRemoved": "tooltip left the kit on 2026-09-28; build on what the learning design uses instead"
+      },
+      "u-match": {
+        "name": "MatchingExercise",
+        "why": "drag-to-match activity; Base ships Draggable list, but the exercise composite is new",
+        "builtOn": "u-drag",
+        "designedInFigma": "Learning / Match card (22643:157) and Drop zone (22643:219)"
+      },
+      "u-video": {
+        "name": "VideoUnit",
+        "why": "video with caption track; captions are in the acceptance criteria",
+        "builtOn": "u-card",
+        "designedInFigma": "Learning / Video player (22652:443)",
+        "builtOnRemoved": "card left the kit on 2026-09-28; build on what the learning design uses instead"
+      }
+    }
+  },
+  "_figmaLibraryState": {
+    "checkedOn": "2026-09-13",
+    "publishedComponents": 4,
+    "note": "The linked Base Gallery community file has only FOUR published components, all named \"Badge=none\". get_code_connect_map returns {} and get_code_connect_suggestions reports \"No published components found\". Node 3:4200 is the PAGE \"Base Components\", not a component. Most of the 3,499 instances are unpublished local components, so there is very little in this file to map against.",
+    "implication": "Real Code Connect needs published components. Either get access to Uber's internal Base library, or publish our own project library first. See _codeConnect below."
+  },
+  "_codeConnect": {
+    "supported": true,
+    "how": "Code Connect DOES support plain HTML and CSS with no React, via framework-agnostic template files using the figma.html / figma.code tags. The @figma/code-connect/html entrypoint ships figma.className([...]), which composes CSS class lists from Figma variants - purpose-built for a u- kit.",
+    "licensing": "Satisfied. Arbisoft is org tier with a Full seat, which is what Code Connect requires.",
+    "warning": "Framework-specific parsers are DEPRECATED as of @figma/code-connect 2.0.1. Template files are the only actively maintained route. Do not follow an older HTML-parser tutorial.",
+    "blockedBy": "Nothing published in the Figma file to connect to. See _figmaLibraryState."
+  },
+  "_fontState": {
+    "checkedOn": "2026-09-14",
+    "installed": {
+      "Uber Move": [
+        "Bold",
+        "Light",
+        "Medium",
+        "Regular"
+      ],
+      "Uber Move Text": [
+        "Bold",
+        "Light",
+        "Medium",
+        "Regular"
+      ],
+      "Uber Move Mono": [
+        "Medium",
+        "Medium 190923",
+        "Regular"
+      ]
+    },
+    "missing": [],
+    "coverage": "36 of 36 generated text styles",
+    "impact": "Figma pushes and local rendering are now on-brand at every level, headings included.",
+    "note": "Uber Move Mono registers a duplicate dated face, 'Medium 190923'. Harmless for CSS, which matches on family and weight, but it may appear twice in Figma's font picker.",
+    "separateQuestion": "Serving the font to drivers in the webview remains unsettled. Installing locally for design and embedding on the web are different licence grants."
+  },
+  "learningComponents": {
+    "_comment": "Learning components built on Base (2026-09-28) and laid out after the Uber and Uber Eats apps (UBER-PATTERNS.md). Every one uses Base variables and text styles, and nests Base components where Base has them. Text styles are applied; run the Apply Uber type plugin once to measure the text in Uber Move and set the Base button labels.",
+    "page": "22637:8",
+    "plugin": "Apply Uber type, 6eaa75a6-fd51-4b2c-82dd-db3821d9f67f (Arbisoft plan)",
+    "components": {
+      "_Step dot": "22640:12",
+      "Activity header": "22641:70",
+      "Answer option": "22642:46",
+      "Feedback": "22643:87",
+      "Video player": "22652:443",
+      "Match card": "22643:157",
+      "Drop zone": "22643:219",
+      "Sort row": "22645:343",
+      "Takeaway item": "22645:344",
+      "Resource row": "22652:500",
+      "Course card": "22665:409",
+      "Lesson row": "22664:395",
+      "Milestone": "22648:292",
+      "Check result": "22650:445",
+      "Learning stats": "22665:146266",
+      "Points total": "22667:315",
+      "Contribution row": "22648:307",
+      "Weekly goal": "22650:304",
+      "Cohort bands": "22650:394",
+      "Badge row": "22652:525",
+      "Step footer": "22663:355",
+      "Safety hero": "22665:146257"
+    },
+    "icons": {
+      "_comment": "Uber icons with no Base Gallery equivalent, as local components",
+      "player_pause": "22651:290",
+      "phone": "22651:293",
+      "speech_bubble": "22651:296",
+      "arrow_right_up": "22651:299",
+      "lock": "22651:302",
+      "closed_captioning": "22651:305",
+      "arrow_expand": "22651:308",
+      "arrow_counter_clockwise": "22651:311",
+      "badge_checkmark": "22651:314",
+      "shield_check": "22651:317",
+      "star": "22651:320"
+    }
+  }
+}

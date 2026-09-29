@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Component gallery · Open edX safety pilot</title>
+<link rel="stylesheet" href="/src/styles/index.css">
+<style>
+  /* Gallery chrome only. Never ships to Open edX. */
+  body { background: #F3F3F3; }
+  .g-bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: baseline;
+           gap: 16px; padding: 16px 24px; background: #000; color: #fff; }
+  .g-bar h1 { font-family: var(--u-type-heading-x-small-family); font-size: 18px; font-weight: 700; }
+  .g-bar span { font-family: var(--u-type-paragraph-x-small-family); font-size: 12px; color: #A6A6A6; }
+  .g-wrap { padding: 24px; }
+  .g-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  .g-phone { width: 390px; height: 844px; overflow-y: auto; overflow-x: hidden;
+             background: #fff; border-radius: 28px; box-shadow: 0 8px 40px rgb(0 0 0 / .18);
+             border: 6px solid #000; scrollbar-width: none; }
+  .g-phone::-webkit-scrollbar { display: none; }
+  .g-cap { font: 500 12px var(--u-type-label-x-small-family); color: #5E5E5E;
+           margin: 0 0 8px 4px; letter-spacing: .04em; text-transform: uppercase; }
+  .g-specimens { margin-top: 32px; display: grid;
+                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .g-card { background: #fff; border-radius: 12px; padding: 20px; }
+  .g-card > h3 { font: 700 13px var(--u-type-label-small-family); margin-bottom: 14px;
+                 color: #000; letter-spacing: .04em; text-transform: uppercase; }
+  .g-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap: 8px; }
+  .g-sw { border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px rgb(0 0 0 /.08); }
+  .g-sw i { display: block; height: 44px; }
+  .g-sw b { display: block; font: 500 10px var(--u-type-label-x-small-family);
+            padding: 5px 6px; color: #5E5E5E; font-style: normal; }
+  .screen { padding: 20px 16px 40px; }
+  .screen header { margin-bottom: 20px; }
+
+  /* Typography section */
+  .g-type { margin-top: 40px; }
+  .g-type__head { max-width: 46rem; margin: 0 0 16px 4px; }
+  .g-type__head p { color: var(--u-content-secondary); margin-top: 6px; }
+  .g-faces { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .g-face__aa { font: 400 72px/1 var(--g-face); margin: 4px 0 10px; }
+  .g-face__role { font: 500 14px/1.4 var(--u-type-label-small-family); color: var(--u-content-secondary); }
+  .g-face__set { font: 400 15px/1.5 var(--g-face); color: var(--u-content-primary); margin: 12px 0 16px;
+                 overflow-wrap: anywhere; }
+  .g-face__weights { list-style: none; border-top: 1px solid var(--u-border-opaque); }
+  .g-face__weights li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
+                        padding: 10px 0; border-bottom: 1px solid var(--u-border-opaque); }
+  .g-face__weights span { font: 18px/1.3 var(--g-face); }
+  .g-face__weights small { grid-column: 1; font: 400 12px/1.4 var(--u-type-paragraph-x-small-family);
+                           color: var(--u-content-tertiary); }
+  .g-pill { grid-row: 1 / span 2; grid-column: 2; font: 500 11px/1 var(--u-type-label-x-small-family);
+            padding: 5px 8px; border-radius: var(--u-radius-pill);
+            background: var(--u-background-secondary); color: var(--u-content-tertiary); }
+  .g-pill[data-state="ok"]  { background: var(--u-background-positive-light); color: var(--u-content-positive); }
+  .g-pill[data-state="bad"] { background: var(--u-background-negative-light); color: var(--u-content-negative); }
+  .g-scale { margin-top: 20px; }
+  .g-ts__group { font: 500 12px var(--u-type-label-x-small-family); color: var(--u-content-tertiary);
+                 letter-spacing: .04em; text-transform: uppercase; margin: 28px 0 4px; }
+  .g-ts__group:first-of-type { margin-top: 0; }
+  .g-ts__group span { color: var(--u-content-state-disabled); margin-left: 4px; }
+  .g-ts { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; align-items: baseline; gap: 16px;
+          padding: 10px 0; border-top: 1px solid var(--u-border-opaque); }
+  .g-ts__sample { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .g-ts__meta { font: 400 12px/1.5 var(--u-type-mono-paragraph-x-small-family); color: var(--u-content-tertiary);
+                text-align: right; }
+  @media (max-width: 640px) {
+    .g-ts { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .g-ts__meta { text-align: left; }
+  }
+</style>
+<script src="/uber-learn.js" defer></script>
+</head>
+<body>
+
+<div class="g-bar">
+  <h1>Component gallery</h1>
+  <span>Open edX safety pilot · tokens generated from Figma · viewport 390 × 844</span>
+</div>
+
+<div class="g-wrap">
+<div class="g-row">
+
+  <div>
+    <p class="g-cap">Learner home</p>
+    <div class="g-phone"><div class="screen u-safe">
+      <header class="u-stack">
+        <p class="u-label-small" style="color:var(--u-content-tertiary)">Good morning, Sam</p>
+        <h2 class="u-heading-large">Safety</h2>
+      </header>
+
+      <div style="display:flex;gap:8px;margin-bottom:24px">
+        <span class="u-streak u-streak--active"><i class="u-streak__flame">🔥</i> 6 day streak</span>
+        <span class="u-streak"><i class="u-streak__flame">⭐</i> 1,240 pts</span>
+      </div>
+
+      <ul class="u-stack">
+        <li><button class="u-lesson u-lesson--complete">
+          <span class="u-lesson__media">✅</span>
+          <span><span class="u-lesson__title">Spotting distracted driving</span>
+                <span class="u-lesson__meta">Completed · 4 min</span></span>
+          <span aria-hidden="true" style="color:var(--u-content-tertiary)">›</span>
+        </button></li>
+
+        <li><button class="u-lesson" style="--pct:45%">
+          <span class="u-lesson__media">🚦</span>
+          <span><span class="u-lesson__title">Night visibility basics</span>
+                <span class="u-lesson__meta">In progress · 3 min left</span></span>
+          <span aria-hidden="true" style="color:var(--u-content-tertiary)">›</span>
+          <span class="u-lesson__rail"></span>
+        </button></li>
+
+        <li><button class="u-lesson">
+          <span class="u-lesson__media">🅿️</span>
+          <span><span class="u-lesson__title">Safe pickup zones</span>
+                <span class="u-lesson__meta">5 min</span></span>
+          <span aria-hidden="true" style="color:var(--u-content-tertiary)">›</span>
+        </button></li>
+
+        <li><div class="u-lesson u-lesson--locked">
+          <span class="u-lesson__media">🔒</span>
+          <span><span class="u-lesson__title">Passenger conflict de-escalation</span>
+                <span class="u-lesson__meta">Unlocks after 3 lessons</span></span>
+        </div></li>
+      </ul>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="g-cap">Lesson view</p>
+    <div class="g-phone"><div class="screen u-safe">
+      <header class="u-stack" style="margin-bottom:24px">
+        <p class="u-label-x-small" style="color:var(--u-program-safety)">LESSON 2 OF 5</p>
+        <h2 class="u-heading-medium">Night visibility basics</h2>
+      </header>
+
+      <div style="aspect-ratio:16/9;border-radius:12px;background:var(--u-background-always-dark);
+                  display:grid;place-items:center;margin-bottom:24px">
+        <span style="font-size:40px">▶</span>
+      </div>
+
+      <p class="u-paragraph-medium" style="color:var(--u-content-secondary);margin-bottom:24px">
+        Most night-time incidents happen in the first ten minutes after sunset, while your eyes
+        are still adjusting.
+      </p>
+
+      <details class="u-acc" open>
+        <summary class="u-acc__head">Why sunset is the risk window
+          <svg class="u-acc__chev" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg></summary>
+        <div class="u-acc__body">Your pupils need roughly twenty minutes to fully dilate.
+          Oncoming headlights reset that adjustment each time.</div>
+      </details>
+      <details class="u-acc">
+        <summary class="u-acc__head">Cleaning your windscreen
+          <svg class="u-acc__chev" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg></summary>
+        <div class="u-acc__body">Interior film scatters light far more than exterior dirt.
+          Wipe the inside of the glass weekly.</div>
+      </details>
+
+      <div class="u-kc" style="margin-top:32px">
+        <p class="u-kc__q">How long do your eyes need to adjust?</p>
+        <button class="u-kc__opt" role="radio" aria-checked="false" data-correct="false">About 2 minutes</button>
+        <button class="u-kc__opt" role="radio" aria-checked="false" data-correct="true">About 20 minutes</button>
+        <button class="u-kc__opt" role="radio" aria-checked="false" data-correct="false">No adjustment needed</button>
+        <p class="u-kc__feedback" hidden>Your pupils need about twenty minutes. Leave extra following distance in that window.</p>
+      </div>
+
+      <button class="u-btn u-btn--primary u-btn--block" style="margin-top:28px">Continue</button>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="g-cap">Accountability dashboard</p>
+    <div class="g-phone"><div class="screen u-safe">
+      <h2 class="u-heading-medium" style="margin-bottom:24px">Your progress</h2>
+
+      <div style="display:grid;place-items:center;gap:12px;margin-bottom:32px">
+        <div class="u-ring" style="--size:140px" data-u-progress="68" role="progressbar">
+          <span class="u-ring__value">68%</span>
+        </div>
+        <p class="u-paragraph-small" style="color:var(--u-content-tertiary)">
+          11 of 16 safety lessons complete
+        </p>
+      </div>
+
+      <h3 class="u-label-medium" style="margin-bottom:12px">Badges</h3>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+        <div class="u-achievement"><span class="u-achievement__disc">🛡️</span><span class="u-achievement__name">First week</span></div>
+        <div class="u-achievement"><span class="u-achievement__disc">🌙</span><span class="u-achievement__name">Night pro</span></div>
+        <div class="u-achievement"><span class="u-achievement__disc">🔥</span><span class="u-achievement__name">7 streak</span></div>
+        <div class="u-achievement u-achievement--locked"><span class="u-achievement__disc">🏆</span><span class="u-achievement__name">All clear</span></div>
+      </div>
+
+      <h3 class="u-label-medium" style="margin:28px 0 12px">This week</h3>
+      <div class="u-stack">
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;
+                    background:var(--u-background-secondary);border-radius:8px">
+          <span class="u-label-small">You</span>
+          <span class="u-label-small" style="color:var(--u-program-safety)">1,240 pts</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;
+                    background:var(--u-background-primary);border-radius:8px">
+          <span class="u-paragraph-small" style="color:var(--u-content-tertiary)">Top 10% of drivers in Lahore</span>
+          <span class="u-paragraph-small" style="color:var(--u-content-tertiary)">1,500 pts</span></div>
+      </div>
+
+      <button class="u-btn u-btn--secondary u-btn--block" style="margin-top:28px">Resume lesson</button>
+    </div></div>
+  </div>
+
+</div>
+
+<section class="g-type" aria-labelledby="g-type-title">
+<div class="g-type__head">
+  <h2 id="g-type-title" class="u-heading-medium">Typography</h2>
+  <p class="u-paragraph-small">Base sets every text style in one of three Uber Move families: Uber Move for display and headings, Uber Move Text for labels and body copy, Uber Move Mono for figures. All ten faces come from Uber's official 1.003 packages. Each status shows whether this browser actually loaded that face; a failure means text in that face is rendering in the system fallback.</p>
+</div>
+<div class="g-faces">
+<div class="g-card g-face" style="--g-face: var(--u-type-heading-large-family)">
+  <h3>Uber Move</h3>
+  <p class="g-face__aa" style="font-weight:700">Aa</p>
+  <p class="g-face__role">Display and Heading styles, always Bold</p>
+  <p class="g-face__set">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 &amp;@%?! &rarr;</p>
+  <ul class="g-face__weights">
+    <li data-face="Uber Move" data-weight="300"><span style="font-weight:300">Light 300</span><small>No Base text style</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move" data-weight="400"><span style="font-weight:400">Regular 400</span><small>No Base text style</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move" data-weight="500"><span style="font-weight:500">Medium 500</span><small>No Base text style</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move" data-weight="700"><span style="font-weight:700">Bold 700</span><small>Display (4), Heading (6)</small><b class="g-pill">Checking</b></li>
+  </ul>
+</div>
+<div class="g-card g-face" style="--g-face: var(--u-type-paragraph-medium-family)">
+  <h3>Uber Move Text</h3>
+  <p class="g-face__aa" style="font-weight:400">Aa</p>
+  <p class="g-face__role">Label and Paragraph styles</p>
+  <p class="g-face__set">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 &amp;@%?! &rarr;</p>
+  <ul class="g-face__weights">
+    <li data-face="Uber Move Text" data-weight="300"><span style="font-weight:300">Light 300</span><small>No Base text style</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move Text" data-weight="400"><span style="font-weight:400">Regular 400</span><small>Paragraph (4)</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move Text" data-weight="500"><span style="font-weight:500">Medium 500</span><small>Label (4)</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move Text" data-weight="700"><span style="font-weight:700">Bold 700</span><small>No Base text style</small><b class="g-pill">Checking</b></li>
+  </ul>
+</div>
+<div class="g-card g-face" style="--g-face: var(--u-type-mono-paragraph-medium-family)">
+  <h3>Uber Move Mono</h3>
+  <p class="g-face__aa" style="font-weight:500">Aa</p>
+  <p class="g-face__role">Every Mono style: figures, codes, metrics</p>
+  <p class="g-face__set">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 &amp;@%?! &rarr;</p>
+  <ul class="g-face__weights">
+    <li data-face="Uber Move Mono" data-weight="400"><span style="font-weight:400">Regular 400</span><small>Mono Paragraph (4)</small><b class="g-pill">Checking</b></li>
+    <li data-face="Uber Move Mono" data-weight="500"><span style="font-weight:500">Medium 500</span><small>Mono Display (4), Mono Heading (6), Mono Label (4)</small><b class="g-pill">Checking</b></li>
+  </ul>
+</div>
+</div>
+<div class="g-card g-scale">
+<h3>Type scale &mdash; 36 Base text styles</h3>
+<h4 class="g-ts__group">Display <span>4</span></h4>
+<div class="g-ts"><span class="u-display-large g-ts__sample">Display Large</span><code class="g-ts__meta" data-cls=".u-display-large"></code></div>
+<div class="g-ts"><span class="u-display-medium g-ts__sample">Display Medium</span><code class="g-ts__meta" data-cls=".u-display-medium"></code></div>
+<div class="g-ts"><span class="u-display-small g-ts__sample">Display Small</span><code class="g-ts__meta" data-cls=".u-display-small"></code></div>
+<div class="g-ts"><span class="u-display-x-small g-ts__sample">Display X Small</span><code class="g-ts__meta" data-cls=".u-display-x-small"></code></div>
+<h4 class="g-ts__group">Heading <span>6</span></h4>
+<div class="g-ts"><span class="u-heading-xx-large g-ts__sample">Heading XX Large</span><code class="g-ts__meta" data-cls=".u-heading-xx-large"></code></div>
+<div class="g-ts"><span class="u-heading-x-large g-ts__sample">Heading X Large</span><code class="g-ts__meta" data-cls=".u-heading-x-large"></code></div>
+<div class="g-ts"><span class="u-heading-large g-ts__sample">Heading Large</span><code class="g-ts__meta" data-cls=".u-heading-large"></code></div>
+<div class="g-ts"><span class="u-heading-medium g-ts__sample">Heading Medium</span><code class="g-ts__meta" data-cls=".u-heading-medium"></code></div>
+<div class="g-ts"><span class="u-heading-small g-ts__sample">Heading Small</span><code class="g-ts__meta" data-cls=".u-heading-small"></code></div>
+<div class="g-ts"><span class="u-heading-x-small g-ts__sample">Heading X Small</span><code class="g-ts__meta" data-cls=".u-heading-x-small"></code></div>
+<h4 class="g-ts__group">Label <span>4</span></h4>
+<div class="g-ts"><span class="u-label-large g-ts__sample">Label Large</span><code class="g-ts__meta" data-cls=".u-label-large"></code></div>
+<div class="g-ts"><span class="u-label-medium g-ts__sample">Label Medium</span><code class="g-ts__meta" data-cls=".u-label-medium"></code></div>
+<div class="g-ts"><span class="u-label-small g-ts__sample">Label Small</span><code class="g-ts__meta" data-cls=".u-label-small"></code></div>
+<div class="g-ts"><span class="u-label-x-small g-ts__sample">Label X Small</span><code class="g-ts__meta" data-cls=".u-label-x-small"></code></div>
+<h4 class="g-ts__group">Paragraph <span>4</span></h4>
+<div class="g-ts"><span class="u-paragraph-large g-ts__sample">Paragraph Large</span><code class="g-ts__meta" data-cls=".u-paragraph-large"></code></div>
+<div class="g-ts"><span class="u-paragraph-medium g-ts__sample">Paragraph Medium</span><code class="g-ts__meta" data-cls=".u-paragraph-medium"></code></div>
+<div class="g-ts"><span class="u-paragraph-small g-ts__sample">Paragraph Small</span><code class="g-ts__meta" data-cls=".u-paragraph-small"></code></div>
+<div class="g-ts"><span class="u-paragraph-x-small g-ts__sample">Paragraph X Small</span><code class="g-ts__meta" data-cls=".u-paragraph-x-small"></code></div>
+<h4 class="g-ts__group">Mono Display <span>4</span></h4>
+<div class="g-ts"><span class="u-mono-display-large g-ts__sample">Mono Display Large</span><code class="g-ts__meta" data-cls=".u-mono-display-large"></code></div>
+<div class="g-ts"><span class="u-mono-display-medium g-ts__sample">Mono Display Medium</span><code class="g-ts__meta" data-cls=".u-mono-display-medium"></code></div>
+<div class="g-ts"><span class="u-mono-display-small g-ts__sample">Mono Display Small</span><code class="g-ts__meta" data-cls=".u-mono-display-small"></code></div>
+<div class="g-ts"><span class="u-mono-display-x-small g-ts__sample">Mono Display X Small</span><code class="g-ts__meta" data-cls=".u-mono-display-x-small"></code></div>
+<h4 class="g-ts__group">Mono Heading <span>6</span></h4>
+<div class="g-ts"><span class="u-mono-heading-xx-large g-ts__sample">Mono Heading XX Large</span><code class="g-ts__meta" data-cls=".u-mono-heading-xx-large"></code></div>
+<div class="g-ts"><span class="u-mono-heading-x-large g-ts__sample">Mono Heading X Large</span><code class="g-ts__meta" data-cls=".u-mono-heading-x-large"></code></div>
+<div class="g-ts"><span class="u-mono-heading-large g-ts__sample">Mono Heading Large</span><code class="g-ts__meta" data-cls=".u-mono-heading-large"></code></div>
+<div class="g-ts"><span class="u-mono-heading-medium g-ts__sample">Mono Heading Medium</span><code class="g-ts__meta" data-cls=".u-mono-heading-medium"></code></div>
+<div class="g-ts"><span class="u-mono-heading-small g-ts__sample">Mono Heading Small</span><code class="g-ts__meta" data-cls=".u-mono-heading-small"></code></div>
+<div class="g-ts"><span class="u-mono-heading-x-small g-ts__sample">Mono Heading X Small</span><code class="g-ts__meta" data-cls=".u-mono-heading-x-small"></code></div>
+<h4 class="g-ts__group">Mono Label <span>4</span></h4>
+<div class="g-ts"><span class="u-mono-label-large g-ts__sample">Mono Label Large</span><code class="g-ts__meta" data-cls=".u-mono-label-large"></code></div>
+<div class="g-ts"><span class="u-mono-label-medium g-ts__sample">Mono Label Medium</span><code class="g-ts__meta" data-cls=".u-mono-label-medium"></code></div>
+<div class="g-ts"><span class="u-mono-label-small g-ts__sample">Mono Label Small</span><code class="g-ts__meta" data-cls=".u-mono-label-small"></code></div>
+<div class="g-ts"><span class="u-mono-label-x-small g-ts__sample">Mono Label X Small</span><code class="g-ts__meta" data-cls=".u-mono-label-x-small"></code></div>
+<h4 class="g-ts__group">Mono Paragraph <span>4</span></h4>
+<div class="g-ts"><span class="u-mono-paragraph-large g-ts__sample">Mono Paragraph Large</span><code class="g-ts__meta" data-cls=".u-mono-paragraph-large"></code></div>
+<div class="g-ts"><span class="u-mono-paragraph-medium g-ts__sample">Mono Paragraph Medium</span><code class="g-ts__meta" data-cls=".u-mono-paragraph-medium"></code></div>
+<div class="g-ts"><span class="u-mono-paragraph-small g-ts__sample">Mono Paragraph Small</span><code class="g-ts__meta" data-cls=".u-mono-paragraph-small"></code></div>
+<div class="g-ts"><span class="u-mono-paragraph-x-small g-ts__sample">Mono Paragraph X Small</span><code class="g-ts__meta" data-cls=".u-mono-paragraph-x-small"></code></div>
+</div>
+</section>
+
+<div class="g-specimens">
+<div class="g-card"><h3>Input family</h3><div style="display:grid;gap:14px"><label class="u-field"><span class="u-field__label">Text field</span><input class="u-input" placeholder="Enter your name"></label><div class="u-input-wrap"><span class="u-input-wrap__icon">🔍</span><input class="u-input" placeholder="Search lessons"></div><div class="u-field"><span class="u-field__label">Select</span><div class="u-select"><button class="u-select__trigger" aria-expanded="false"><span class="u-select__value">All topics</span><svg class="u-select__chev" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><div class="u-select__list" hidden><button class="u-select__opt" aria-selected="true" data-value="all">All topics</button><button class="u-select__opt" data-value="night">Night driving</button></div></div></div><label class="u-field"><span class="u-field__label">Text area</span><textarea class="u-input" placeholder="Tell us what happened"></textarea></label><label class="u-field"><span class="u-field__label">Error state</span><input class="u-input u-input--error" value="not-an-email"><span class="u-field__hint u-field__hint--error">Enter a valid email.</span></label><label class="u-field"><span class="u-field__label">Disabled</span><input class="u-input" value="Locked" disabled></label></div></div>
+<div class="g-card"><h3>Tabs &mdash; standard and wide</h3><div style="display:grid;gap:14px"><div class="u-tabs"><button class="u-tab" aria-selected="true">Lessons</button><button class="u-tab">Badges</button><button class="u-tab">Ranking</button><button class="u-tab" disabled>Certificates</button></div><div class="u-tabs u-tabs--wide"><button class="u-tab" aria-selected="true">Wide</button><button class="u-tab">Even</button><button class="u-tab">Split</button></div></div></div>
+<div class="g-card"><h3>Progress, steps, vertical steps</h3><div style="display:grid;gap:14px"><div class="u-progress"><div class="u-progress__fill" style="--pct:64%"></div></div><div class="u-steps"><i class="u-steps__seg" data-state="done"></i><i class="u-steps__seg" data-state="done"></i><i class="u-steps__seg" data-state="current"></i><i class="u-steps__seg" data-state=""></i><i class="u-steps__seg" data-state=""></i><i class="u-steps__seg" data-state=""></i></div><div class="u-vsteps"><div class="u-vstep" data-state="done"><span class="u-vstep__dot">✓</span><span><b class="u-vstep__label">Distracted driving</b><span class="u-vstep__sub">Completed</span></span></div><div class="u-vstep" data-state="current"><span class="u-vstep__dot">2</span><span><b class="u-vstep__label">Night visibility</b><span class="u-vstep__sub">In progress</span></span></div><div class="u-vstep"><span class="u-vstep__dot">3</span><span><b class="u-vstep__label">Safe pickup</b><span class="u-vstep__sub">Locked</span></span></div></div></div></div>
+<div class="g-card"><h3>Banners</h3><div style="display:grid;gap:8px"><div class="u-banner"><span class="u-banner__icon">ℹ</span><span><b class="u-banner__title">New lessons</b>Two safety lessons were added.</span></div><div class="u-banner u-banner--positive"><span class="u-banner__icon">✓</span><span>Progress saved.</span></div><div class="u-banner u-banner--warning"><span class="u-banner__icon">!</span><span>Your streak ends tonight.</span></div><div class="u-banner u-banner--negative"><span class="u-banner__icon">✕</span><span>Could not load. Retry.</span></div></div></div>
+<div class="g-card"><h3>List</h3><div class="u-list" style="margin:-6px -8px"><p class="u-list-heading">This week</p><button class="u-li"><span class="u-li__art">📘</span><span class="u-li__body"><span class="u-li__title">Night visibility</span><span class="u-li__sub">3 min left</span></span><span class="u-li__end">›</span></button><button class="u-li"><span class="u-li__art">🅿️</span><span class="u-li__body"><span class="u-li__title">Safe pickup zones</span><span class="u-li__sub">Not started</span></span><span class="u-li__end">5 min</span></button></div></div>
+<div class="g-card"><h3>Empty state</h3><div class="u-empty" style="padding:24px 8px"><span class="u-empty__art">📭</span><span class="u-empty__title">No badges yet</span><span class="u-empty__text">Finish your first lesson to earn one.</span></div></div>
+<div class="g-card"><h3>Buttons</h3><div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><button class="u-btn u-btn--primary">Primary</button><button class="u-btn u-btn--secondary">Secondary</button><button class="u-btn u-btn--tertiary">Tertiary</button><button class="u-btn u-btn--primary u-btn--pill u-btn--sm">Pill small</button><button class="u-btn u-btn--primary" disabled>Disabled</button></div></div>
+<div class="g-card"><h3>Semantic colour</h3><div class="g-swatches"><div class="g-sw"><i style="background:var(--u-content-primary)"></i><b>content-primary</b></div><div class="g-sw"><i style="background:var(--u-program-safety)"></i><b>program-safety</b></div><div class="g-sw"><i style="background:var(--u-background-positive)"></i><b>background-positive</b></div><div class="g-sw"><i style="background:var(--u-background-negative)"></i><b>background-negative</b></div><div class="g-sw"><i style="background:var(--u-background-warning)"></i><b>background-warning</b></div><div class="g-sw"><i style="background:var(--u-background-accent)"></i><b>background-accent</b></div><div class="g-sw"><i style="background:var(--u-background-tertiary)"></i><b>background-tertiary</b></div><div class="g-sw"><i style="background:var(--u-content-tertiary)"></i><b>content-tertiary</b></div></div></div>
+<div class="g-card"><h3>Draggable list — drag or arrow keys</h3><div class="u-drag" id="demo-drag"><div class="u-drag__item" data-value="check"><span class="u-drag__index">1</span><svg class="u-drag__grab" viewBox="0 0 24 24" fill="currentColor" tabindex="0" role="button" aria-label="Reorder"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg><span class="u-drag__label">Check mirrors</span></div><div class="u-drag__item" data-value="signal"><span class="u-drag__index">2</span><svg class="u-drag__grab" viewBox="0 0 24 24" fill="currentColor" tabindex="0" role="button" aria-label="Reorder"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg><span class="u-drag__label">Signal early</span></div><div class="u-drag__item" data-value="slow"><span class="u-drag__index">3</span><svg class="u-drag__grab" viewBox="0 0 24 24" fill="currentColor" tabindex="0" role="button" aria-label="Reorder"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg><span class="u-drag__label">Slow before the turn</span></div><div class="u-drag__item" data-value="scan"><span class="u-drag__index">4</span><svg class="u-drag__grab" viewBox="0 0 24 24" fill="currentColor" tabindex="0" role="button" aria-label="Reorder"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg><span class="u-drag__label">Scan for cyclists</span></div></div><p style="font:400 11px system-ui;color:#868686;margin-top:10px">Drag a handle, or focus one and press the arrow keys.</p></div>
+<div class="g-card"><h3>Button dock</h3><div style="position:relative;height:150px;background:var(--u-background-secondary);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end"><div class="u-dock u-dock--split"><button class="u-btn u-btn--secondary">Back</button><button class="u-btn u-btn--primary">Continue</button></div></div></div>
+<div class="g-card"><h3>Indeterminate, pill, divider</h3><div style="display:grid;gap:14px"><div class="u-progress u-progress--indeterminate"><div class="u-progress__fill"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="u-progress-pill" style="--pct:40%"><span>4 of 10</span></span><span class="u-progress-pill" style="--pct:100%"><span>Complete</span></span></div><hr class="u-divider"><div class="u-section-heading" style="padding-top:8px"><span class="u-section-heading__title">This week</span><button class="u-section-heading__action">See all</button></div></div></div>
+<div class="g-card"><h3>Select &mdash; Base menu, no OS wheel</h3><div class="u-select"><button class="u-select__trigger" aria-expanded="false"><span class="u-select__value u-select__value--placeholder">Choose a topic</span><svg class="u-select__chev" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><div class="u-select__list" hidden><button class="u-select__opt" data-value="night">Night driving</button><button class="u-select__opt" data-value="pickup">Safe pickups</button><button class="u-select__opt" data-value="conflict">De-escalation</button></div></div><p style="font:400 11px system-ui;color:#868686;margin-top:10px">Base menu, not the OS wheel.</p></div>
+<div class="g-card"><h3>Layout grid &amp; dividers</h3><p class="u-paragraph-x-small" style="color:var(--u-content-tertiary);margin-bottom:10px">The grid below is the live token matrix: 4 columns at phone width, 8 from 600px, 12 from 1136px. Resize the window and the column count changes.</p><div class="u-grid u-grid--flush" style="background:var(--u-background-secondary);border-radius:8px;padding-block:10px"><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div></div><p class="u-paragraph-x-small" style="color:var(--u-content-tertiary);margin:14px 0 10px">Compact density: same columns, tighter gutter and margin.</p><div class="u-density-compact u-grid u-grid--flush" style="background:var(--u-background-secondary);border-radius:8px;padding-block:10px"><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div><div class="u-col-1" style="background:var(--u-background-tertiary);border-radius:4px;height:52px"></div></div><p class="u-paragraph-x-small" style="color:var(--u-content-tertiary);margin:14px 0 10px">Dividers: cell 1px, section 2px, module 8px &mdash; all on Border / Opaque.</p><hr class="u-divider"><hr class="u-divider u-divider--section" style="margin-top:12px"><hr class="u-divider u-divider--module" style="margin-top:12px"></div>
+</div>
+</div>
+
+<script>
+/* Gallery chrome only. Fills each type-scale row from the CSS the page
+   actually received, and loads every declared Uber Move face, so a missing or
+   blocked file shows here instead of falling back to the system font unseen. */
+(function () {
+  var NAMES = { 300: 'Light', 400: 'Regular', 500: 'Medium', 700: 'Bold' };
+  var rows = document.querySelectorAll('.g-ts');
+  for (var i = 0; i < rows.length; i++) {
+    var s = getComputedStyle(rows[i].querySelector('.g-ts__sample'));
+    var size = parseFloat(s.fontSize);
+    if (!size) continue;                       // no layout engine, e.g. jsdom
+    var lead = /px$/.test(s.lineHeight) ? parseFloat(s.lineHeight) : parseFloat(s.lineHeight) * size;
+    var track = parseFloat(s.letterSpacing) || 0;
+    rows[i].querySelector('.g-ts__meta').textContent =
+      s.fontFamily.split(',')[0].replace(/["']/g, '').trim() + ' ' + (NAMES[s.fontWeight] || s.fontWeight) +
+      ' \u00b7 ' + Math.round(size) + '/' + Math.round(lead) + (track ? ' \u00b7 ' + track + 'px' : '');
+  }
+  var faces = document.querySelectorAll('[data-face]');
+  for (var j = 0; j < faces.length; j++) (function (el) {
+    var pill = el.querySelector('.g-pill');
+    function show(state, text) { pill.setAttribute('data-state', state); pill.textContent = text; }
+    if (!document.fonts || !document.fonts.forEach) return show('bad', 'No font API');
+    var face = null;
+    document.fonts.forEach(function (f) {
+      if (f.family.replace(/["']/g, '') === el.getAttribute('data-face') &&
+          String(f.weight) === el.getAttribute('data-weight')) face = f;
+    });
+    if (!face) return show('bad', 'Not declared');
+    face.load().then(function () { show('ok', 'Loaded'); }, function () { show('bad', 'Fallback'); });
+  })(faces[j]);
+})();
+</script>
+</body>
+</html>
