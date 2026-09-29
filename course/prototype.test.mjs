@@ -67,7 +67,7 @@ test('home leads with the required course before goals and account progress', as
   const stats = document.querySelector('.learning-stats');
   assert.ok(course.compareDocumentPosition(goal) & 4);
   assert.ok(goal.compareDocumentPosition(stats) & 4);
-  assert.match(course.textContent, /7 lessons · 6 required videos/);
+  assert.match(course.textContent, /^Safety.*7 lessons/);
   assert.equal(course.querySelector('.ring').getAttribute('aria-label'), '0 of 7 lessons complete');
   assert.deepEqual([...document.querySelectorAll('.learning-stats small')].map(element => element.textContent), ['Points', 'Week streak', 'Badges']);
 });
@@ -148,7 +148,7 @@ test('finishing every lesson is not completion: the final check is still require
   click('[data-action="discover"]');
   const ring = document.querySelector('.course-card .ring');
   assert.ok(!ring.classList.contains('is-complete'));
-  assert.match(document.querySelector('.course-card').textContent, /Next: Final knowledge check/);
+  assert.match(document.querySelector('.course-card').textContent, /Next: Final check/);
 });
 
 test('previews never overwrite the learner’s saved progress', async () => {
@@ -186,7 +186,7 @@ test('mid-course numbers agree on every screen', async () => {
 test('home calls out trending optional courses with ratings; the required course shows proof, never stars', async () => {
   await loadPage();
   const required = document.querySelector('.course-card');
-  assert.match(required.textContent, /Completed by 1,240 drivers rated 4\.9\+/);
+  assert.match(required.textContent, /1,240 drivers rated 4\.9\+ took this/);
   assert.equal(required.querySelector('.rating, .trending-tag'), null);
   assert.match(text(), /Trending now/);
   const trending = [...document.querySelectorAll('.course-card[data-course]')];

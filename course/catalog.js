@@ -9,7 +9,7 @@
 const placeholder = (n, kicker, extra = {}) => ({ id: `course-${n}`, number: n, title: `Course ${n}`, kicker, description: 'Content coming soon', lessonCount: 4, ...extra });
 
 export const COURSES = [
-  { id: 'sexual-misconduct', number: 1, title: 'Sexual misconduct education', kicker: 'Required · Safety', required: true, sensitive: true, lessonCount: 7, proof: 'Completed by 1,240 drivers rated 4.9+' },
+  { id: 'sexual-misconduct', number: 1, title: 'Sexual misconduct education', kicker: 'Required · Safety', required: true, sensitive: true, lessonCount: 7, proof: 'Completed by 1,240 drivers rated 4.9+', cardProof: '1,240 drivers rated 4.9+ took this' },
   { id: 'road-safety', number: 2, title: 'Road safety fundamentals', kicker: 'Optional · Driving', description: 'Available soon', lessonCount: 4, external: true },
   placeholder(3, 'Optional · Safety'),
   placeholder(4, 'Optional · Safety'),

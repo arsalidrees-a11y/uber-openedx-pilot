@@ -272,10 +272,12 @@ const heading = (text, cls = 'u-heading-large') => `<h1 class="${cls}">${esc(tex
 const lead = (text) => `<p class="lead u-paragraph-medium">${esc(text)}</p>`;
 
 // ---------- Screens: one function per Figma screen ----------
-function requiredCourseCard() {
+// Card copy is trimmed to fit one line each (2026-09-29). On Learning home the
+// section heading already says Required, so the kicker drops it there.
+function requiredCourseCard({ kicker = 'Required · Safety' } = {}) {
   const status = courseStatus(), cur = currentLesson();
-  const description = status === 'not-started' ? '7 lessons · 6 required videos' : status === 'complete' ? 'Complete · Every lesson stays open for review' : status === 'final-pending' ? 'Next: Final knowledge check' : `Next: ${lessons[cur].title}`;
-  return courseCard({ kicker: 'Required · Safety', title: COURSE_TITLE, description, done: lessonsDone(), total: lessons.length, complete: status === 'complete', action: 'course', proof: courseById(COURSE_ID).proof });
+  const description = status === 'not-started' ? '7 lessons' : status === 'complete' ? 'Complete' : status === 'final-pending' ? 'Next: Final check' : `Next: ${lessons[cur].title}`;
+  return courseCard({ kicker, title: COURSE_TITLE, description, done: lessonsDone(), total: lessons.length, complete: status === 'complete', action: 'course', proof: courseById(COURSE_ID).cardProof });
 }
 // Every other course in the catalogue. Road safety hands off to its own
 // provider; the placeholders open a course page with no content yet.
@@ -287,7 +289,7 @@ function catalogCard(course) {
 function discovery() {
   const firstName = learnerFirstName();
   const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', '<span class="u-paragraph-small c-secondary">30 days on</span>')}${milestone({ kicker: 'Not scored for points', title: 'Five-question retention check', body: `Review what you remember from ${COURSE_TITLE}.`, next: true, action: 'retention-intro' })}` : '';
-  root.innerHTML = `<header class="discovery-header"><span class="u-heading-x-small">Learning</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${sectionTitle('Required')}${requiredCourseCard()}${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${sectionTitle('Trending now', '<button class="link u-paragraph-small" data-action="library">See all</button>')}${trendingCourses().map(catalogCard).join('')}</div>`;
+  root.innerHTML = `<header class="discovery-header"><span class="u-heading-x-small">Learning</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${sectionTitle('Required')}${requiredCourseCard({ kicker: 'Safety' })}${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${sectionTitle('Trending now', '<button class="link u-paragraph-small" data-action="library">See all</button>')}${trendingCourses().map(catalogCard).join('')}</div>`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
 }
 function libraryView() {
