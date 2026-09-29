@@ -2,6 +2,40 @@
 
 Uber-branded component kit for the Edly x Uber Open edX safety pilot.
 
+The product has no official name yet. Do not call it "Uber Learn" anywhere a
+person reads it: UI copy, page titles, docs or Figma. The `uber-learn`
+folder, package and asset file names are machine identifiers and stay until a
+name is agreed.
+
+## Workflow
+
+**Figma is the source of truth.** Design changes start in Figma (the
+`❖ Base Gallery - Design System` library and the `Uber-UI` file); code
+follows Figma, never the other way round. Where the two disagree, Figma wins
+and the code changes.
+
+Every change goes through git before it goes anywhere else:
+
+1. Make the change, then `npm run check` and `node --test course/*.test.mjs`.
+2. Commit and push to `origin`, github.com/arsalidrees-a11y/uber-openedx-pilot.
+3. Only then deploy to Vercel, from the committed state.
+
+The repository was restarted with fresh history on 2026-09-29. The earlier
+history, including two commits from 2026-09-14, is kept outside the project
+at `../uber-learn-git-backup-2026-09-29` (a bare `.git` directory).
+
+**Deploying the prototype.** The Vercel project is `uber-learn`, production
+URL https://uber-learn.vercel.app. Keep that link: do not rename the project.
+Deploy prebuilt, and strip the fonts before uploading, because Uber Move is
+not cleared for public web use:
+
+    npx vercel@59.25.0 build --prod
+    rm -rf .vercel/output/static/fonts
+    npx vercel@59.25.0 deploy --prebuilt --prod
+
+Without the files, the site falls back to a locally installed Uber Move and
+then to the system stack, as it did before the fonts arrived.
+
 ## Delivery
 
 Two static assets plus HTML snippets. How they are wired matters, and the
