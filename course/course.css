@@ -52,6 +52,9 @@ body:not(.review-mode) .course-shell { height: min(844px, 100dvh); }
 
 /* Discovery header (Learning home): 72 tall, brand + 40 avatar */
 .discovery-header { display: flex; flex: none; align-items: center; justify-content: space-between; min-height: 72px; padding: var(--u-space-16); }
+/* The Uber wordmark, 24px tall, in the text colour so it follows the theme */
+.discovery-header__logo { display: flex; color: var(--u-content-primary); }
+.discovery-header__logo .uicon { width: 69px; max-width: none; height: 24px; }
 .avatar { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--u-background-inverse-primary); color: var(--u-content-inverse-primary); }
 
 /* Learning / Step footer: 12 16 16, gap 12, dots then actions */

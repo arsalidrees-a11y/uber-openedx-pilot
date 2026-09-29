@@ -253,3 +253,12 @@ test('a badge is earned only when all four courses in a curriculum are complete'
   document.querySelector('[data-action="discover"]').click();
   assert.match(document.querySelector('.learning-stats').textContent, /1 of 4Badges/);
 });
+
+test('the home header shows the Uber wordmark in place of a text brand', async () => {
+  await loadPage();
+  const logo = document.querySelector('.discovery-header__logo');
+  assert.equal(logo.getAttribute('role'), 'img');
+  assert.equal(logo.getAttribute('aria-label'), 'Uber');
+  assert.equal(logo.querySelectorAll('svg path').length, 4);
+  assert.equal(document.querySelector('.discovery-header').textContent.trim(), 'S');
+});

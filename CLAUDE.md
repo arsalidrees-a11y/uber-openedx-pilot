@@ -7,6 +7,12 @@ person reads it: UI copy, page titles, docs or Figma. The `uber-learn`
 folder, package and asset file names are machine identifiers and stay until a
 name is agreed.
 
+Learning home's header carries the official Uber wordmark in place of a
+product name: Uber_Logo_Black_RGB from Uber's brand portal, as the `uber_logo`
+path in `course/icons.js` (in the Figma header too). Arsal cleared it for git
+and the public Vercel prototype on 2026-09-29. Unlike the Uber Move fonts, it
+does not need stripping before a deploy.
+
 ## Workflow
 
 **Figma is the source of truth.** Design changes start in Figma (the
