@@ -130,9 +130,14 @@ test('the course hero shows a plain shield until the course is complete', async 
   assert.equal(document.querySelector('.safety-hero').dataset.state, 'not-complete');
   assert.match(text(), /2 of 7 lessons complete/);
   await loadPage('?preview=complete');
-  const { click } = { click: selector => document.querySelector(selector).click() };
-  click('[data-action="overview"]');
+  document.querySelector('[data-action="overview"]').click();
   assert.equal(document.querySelector('.safety-hero').dataset.state, 'complete');
+  await loadPage('?preview=overview&stage=complete');
+  assert.equal(document.querySelector('.safety-hero').dataset.state, 'complete');
+  assert.match(text(), /7 of 7 lessons complete/);
+  assert.match(text(), /250 points from this course · 2 badges earned/);
+  assert.equal(document.querySelector('.step-footer .btn').textContent, 'Review course');
+  assert.equal(document.querySelectorAll('.lesson-row.is-complete').length, 7);
 });
 
 test('finishing every lesson is not completion: the final check is still required', async () => {

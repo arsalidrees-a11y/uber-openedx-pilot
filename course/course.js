@@ -537,7 +537,7 @@ function applyPreview(name, params = new URLSearchParams()) {
   if (name === 'discover') { state = freshState(); view = 'discover'; }
   else if (name === 'library') { seed('mid-course'); view = 'library'; }
   else if (name === 'road-safety') { state = freshState(); view = 'road-safety'; }
-  else if (name === 'overview') { seed('mid-course'); view = 'overview'; }
+  else if (name === 'overview') { seed(params.get('stage') === 'complete' ? 'complete' : 'mid-course'); view = 'overview'; }
   else if (name === 'intro') { state = freshState(); view = 'intro'; }
   else if (name === 'resume') { seed('mid-course'); view = 'exit'; }
   else if (name === 'baseline') { state = freshState(); assessmentMode = 'baseline'; assessmentIndex = Math.min(4, Math.max(0, Number(params.get('question')) || 0)); if (params.get('demo') === 'selected') state.assessmentResponses.baseline[assessmentIndex] = 1; view = 'assessment'; }
@@ -555,7 +555,7 @@ function applyPreview(name, params = new URLSearchParams()) {
 
 // Review panel: every prepared state, plus each activity and recovery state.
 const panel = document.querySelector('#review-panel');
-const figmaScreens = [['discover', 'Learning home'], ['library', 'Course library'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
+const figmaScreens = [['discover', 'Learning home'], ['library', 'Course library'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
 panel.innerHTML = `<h2>Figma screens</h2>${figmaScreens.map(([p, label, q]) => `<button data-preview="${p}" data-query="${q || ''}">${label}</button>`).join('')}<h2>Every activity</h2>${lessons.map((l, n) => l.steps.map((a, s) => `<button data-preview="activity" data-query="lesson=${n}&step=${s}">${n + 1}.${s + 1} ${a.type} · ${esc(a.title)}</button>`).join('')).join('')}<h2>Recovery states</h2>${Object.keys(errors).map(k => `<button data-error="${k}">${errors[k][0]}</button>`).join('')}<h2>Prototype controls</h2><button data-reset>Reset local progress</button>`;
 document.querySelector('#review-toggle').addEventListener('click', e => { panel.hidden = !panel.hidden; e.target.setAttribute('aria-expanded', !panel.hidden); });
 panel.addEventListener('click', e => {
