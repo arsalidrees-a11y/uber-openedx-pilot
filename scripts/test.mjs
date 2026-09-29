@@ -149,10 +149,10 @@ const TYPE_TOKENS = readFileSync('src/styles/tokens.css', 'utf8');
 t('learning discovery preserves shared points streak and badges', () =>
   ['Points', 'Week streak', 'Badges'].every((label) => COURSE_JS.includes(label))
     ? true : 'one or more learning stats are missing');
-t('course discovery leads with one operational required-course surface', () =>
-  ['priority-course', 'required-course-title', 'primaryAction'].every((label) => COURSE_JS.includes(label)) &&
+t('course discovery leads with one required-course card (Figma: Learning / Course card)', () =>
+  ['requiredCourseCard', 'courseCard(', "sectionTitle('Required')"].every((label) => COURSE_JS.includes(label)) &&
   !COURSE_JS.includes('<h2>Your path</h2>')
-    ? true : 'operational required-course hierarchy is missing or duplicated');
+    ? true : 'required-course card is missing or duplicated');
 t('gamification remains one account-level layer', () =>
   !COURSE_JS.includes('activity-reward') &&
   !COURSE_JS.includes('10 points ready') &&
@@ -177,11 +177,11 @@ t('course cards use the Base card radius, 12px', () => {
   const radiusTokens = [...COURSE_CSS.matchAll(/--course-radius:\s*([^;]+)/g)]
     .map((match) => match[1].trim());
   const cardSelectors = [
-    '.learning-stats', '.continue-learning-card', '.recommended-course',
-    '.course-hero-progress', '.video-player', '.card-bank', '.dropzone',
-    '.assessment-result', '.learning-gain', '.account-total',
+    '.course-card', '.weekly-goal', '.learning-stats > span', '.milestone',
+    '.check-result', '.gain > span', '.points-total', '.note', '.feedback',
+    '.answer', '.video-player', '.match-card', '.drop-zone', '.sort-row',
   ];
-  const authoredRules = [...COURSE_CSS.matchAll(/([^{}]+)\{([^}]*)\}/g)].map((match) => ({
+  const authoredRules = [...COURSE_CSS.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map((match) => ({
     selectors: match[1].split(',').map((selector) => selector.trim()),
     body: match[2],
   }));
@@ -191,7 +191,7 @@ t('course cards use the Base card radius, 12px', () => {
     .map((match) => match[1].trim())
     .at(-1);
   const invalid = cardSelectors.filter((selector) =>
-    !['12px', 'var(--course-radius)', 'var(--course-radius-sm)'].includes(effectiveRadius(selector)));
+    !['12px', 'var(--u-radius-md)'].includes(effectiveRadius(selector)));
   return radiusTokens.every((value) => value === '12px') && !invalid.length
     ? true : `tokens=${JSON.stringify(radiusTokens)} invalid=${JSON.stringify(invalid)}`;
 });

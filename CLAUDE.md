@@ -263,6 +263,25 @@ as 6eaa75a6-fd51-4b2c-82dd-db3821d9f67f, with a copy in the personal team
 (6bde15f7-f9e1-4768-bba1-f6d6b42df864); a plugin only shows in files of the
 plan that owns it.
 
+**The prototype is built from those components.** `course/course.css` has one
+block per Figma component (Learning / Course card, Lesson row, Step footer, …
+plus the Base parts the screens use), with padding, gaps, radii, text styles
+and colour tokens copied from Figma; `course/course.js` has one render function
+per component and one per screen, and `course/icons.js` holds the icons
+exported from Figma as SVG. Every screen on the `Uber-UI` page has a
+"Prototype ↗" link under it that opens the prototype in the same state
+(`?preview=…`), so the two can be compared side by side. When a screen changes
+in Figma, change the matching component block and render function, then check
+the linked state.
+
+Prototype logic, fixed on 2026-09-29 and covered by `course/prototype.test.mjs`:
+course progress is lessons complete out of 7; the course is complete only when
+all lessons **and** the final check are done (until then the hero shows a plain
+shield, not the check); upcoming lessons cannot be opened early; previews
+(`?preview=`, the review panel) never write over saved progress; and the
+prepared states carry real dates, so the streak, weekly goal and standing are
+computed by `gamification.js`, never typed in.
+
 The layout follows the Uber and Uber Eats apps, studied on Mobbin. See
 `UBER-PATTERNS.md`: the course page is Uber's Safety checkup, the course
 card is its Account checkup card, totals sit on grey like Uber Cash.

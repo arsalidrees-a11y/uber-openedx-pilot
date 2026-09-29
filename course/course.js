@@ -6,7 +6,7 @@ import { icon } from './icons.js';
 const variant = 'B';
 const rainnResources = [
   { label: 'RAINN information and support', href: 'https://www.rainn.org/' },
-  { label: 'National Sexual Assault Hotline: 1-800-656-HOPE', href: 'tel:18006564673' },
+  { label: 'National Sexual Assault Hotline', detail: 'Call 1-800-656-HOPE', href: 'tel:18006564673' },
   { label: 'RAINN online support', href: 'https://online.rainn.org/' }
 ];
 const videoMeta = [
@@ -121,23 +121,47 @@ const assessments = {
 
 const root = document.querySelector('#course');
 const KEY = `uber-us-mandatory-course-${variant.toLowerCase()}-v3`;
+const COURSE_ID = 'sexual-misconduct';
+const COURSE_TITLE = 'Sexual misconduct education';
 const freshState = () => ({ lesson: 0, step: 0, completed: [], started: false, baselineDone: false, finalCheckDone: false, finalCheckScore: null, retentionCheckDone: false, retentionScore: null, responses: {}, assessmentResponses: { baseline: [], final: [], retention: [] }, learningRecord: createLearningRecord() });
 let state = freshState();
 try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && Array.isArray(saved.completed) && saved.lesson >= 0 && saved.lesson < lessons.length && saved.step >= 0 && saved.step < lessons[saved.lesson].steps.length) state = { ...state, ...saved }; } catch {}
-let view = 'discover', progressTab = 'progress', errorState = '', selected = null, checked = false, correct = false, placement = {}, order = [0, 1, 2], dragged = null, watched = false, playing = false, tick = 0, timer, assessmentMode = 'baseline', assessmentIndex = 0, retentionPreview = false;
-const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const button = (label, action, secondary = false, disabled = false) => `<button class="u-btn u-btn--${secondary ? 'secondary' : 'primary'} u-btn--block" data-action="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+let view = 'discover', progressTab = 'progress', errorState = '', selected = null, checked = false, correct = false, placement = {}, order = [0, 1, 2], dragged = null, watched = false, playing = false, tick = 0, timer, assessmentMode = 'baseline', assessmentIndex = 0;
+// A preview shows a prepared state for review. It never writes over the
+// learner's saved progress: save() is off until the prototype is reset.
+let previewing = false;
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const totalSteps = lessons.reduce((sum, lesson) => sum + lesson.steps.length, 0);
-const badges = [
-  { title: 'Applied', detail: 'Complete five practice activities correctly', key: 'applied' },
-  { title: 'Thorough', detail: 'Complete an eligible course and its required check', key: 'thorough' },
-  { title: 'Retained', detail: 'Pass a check 30 days after course completion', key: 'retained' }
-];
-function completedStepCount() { return lessons.reduce((sum, lesson, i) => sum + (state.completed.includes(i) ? lesson.steps.length : i === state.lesson && state.started ? state.step : 0), 0); }
-function coursePercent() { return Math.round(completedStepCount() / totalSteps * 100); }
-function learningPoints() { return pointsTotal(state.learningRecord); }
-function earnedBadges() { const keys = earnedBadgeKeys(state.learningRecord); return badges.filter(badge => keys.includes(badge.key)); }
-function retentionDue() { const completedAt = state.learningRecord.courses['sexual-misconduct']?.completedAt; return (retentionPreview || (completedAt && Date.now() >= new Date(completedAt).getTime() + 30 * 86400000)) && !state.retentionCheckDone; }
+const eligibleIn = (lesson) => lesson.steps.filter(step => ELIGIBLE_ACTIVITY_TYPES.has(step.type)).length;
+
+// ---------- One state model: every screen reads these ----------
+const lessonsDone = () => state.completed.length;
+const coursePercent = () => Math.round(lessonsDone() / lessons.length * 100);
+function courseStatus() {
+  if (lessonsDone() === lessons.length) return state.finalCheckDone ? 'complete' : 'final-pending';
+  return state.started || lessonsDone() ? 'in-progress' : 'not-started';
+}
+function currentLesson() {
+  if (state.started && !state.completed.includes(state.lesson)) return state.lesson;
+  const next = lessons.findIndex((_, i) => !state.completed.includes(i));
+  return next === -1 ? null : next;
+}
+function lessonStatus(i) { return state.completed.includes(i) ? 'complete' : i === currentLesson() ? 'current' : 'upcoming'; }
+function completedActivities() { return lessons.reduce((sum, lesson, i) => sum + (state.completed.includes(i) ? lesson.steps.length : i === state.lesson && state.started ? state.step : 0), 0); }
+const learningPoints = () => pointsTotal(state.learningRecord);
+const lessonPoints = (i) => state.learningRecord.activities.filter(a => a.courseId === COURSE_ID && a.activityId.startsWith(`${i}.`)).length * 10;
+function badgeStates() {
+  const earned = earnedBadgeKeys(state.learningRecord);
+  const correctPractice = state.learningRecord.activities.filter(a => a.correct).length;
+  const earnedCopy = 'Earned across your courses';
+  return [
+    { key: 'applied', name: 'Applied', state: earned.includes('applied') ? 'earned' : correctPractice ? 'progress' : 'locked', detail: earned.includes('applied') ? earnedCopy : correctPractice ? `${correctPractice} of 5 correct practice activities` : 'Complete five practice activities correctly' },
+    { key: 'thorough', name: 'Thorough', state: earned.includes('thorough') ? 'earned' : lessonsDone() ? 'progress' : 'locked', detail: earned.includes('thorough') ? earnedCopy : 'Complete an eligible course and its required check' },
+    { key: 'retained', name: 'Retained', state: earned.includes('retained') ? 'earned' : 'locked', detail: earned.includes('retained') ? earnedCopy : 'Pass a check 30 days after course completion' }
+  ];
+}
+const earnedBadgeCount = () => badgeStates().filter(b => b.state === 'earned').length;
+function retentionDue() { const completedAt = state.learningRecord.courses[COURSE_ID]?.completedAt; return Boolean(completedAt && Date.now() >= new Date(completedAt).getTime() + 30 * 86400000) && !state.retentionCheckDone; }
 const DEMO_LEARNER_FIRST_NAME = 'Sam';
 function learnerFirstName() {
   const supplied = globalThis.learnerProfile?.firstName ?? new URLSearchParams(location.search).get('firstName') ?? DEMO_LEARNER_FIRST_NAME;
@@ -149,127 +173,194 @@ function personalGreeting() {
   const name = learnerFirstName();
   return `${salutation}${name ? `, ${esc(name)}` : ''}.`;
 }
-function learningStats() { const habit = habitSummary(state.learningRecord); return `<button class="learning-stats" data-action="rewards" aria-label="View progress across all courses"><span><b>${learningPoints()}</b><small>Points</small></span><span><b>${habit.weekStreak}</b><small>Week streak</small></span><span><b>${earnedBadges().length} of ${badges.length}</b><small>Badges</small></span></button>`; }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
+function save() { if (previewing) return; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
 function stopVideo() { clearInterval(timer); playing = false; }
 function resetActivity() { stopVideo(); selected = null; checked = false; correct = false; placement = {}; order = [0, 1, 2]; watched = false; tick = 0; }
 function openStep(l, s) { state.lesson = l; state.step = s; state.started = true; view = 'activity'; errorState = ''; resetActivity(); save(); render(); }
-function progressBar(value, label, className = '') { return `<div class="progress-summary ${className}"><div><span>${esc(label)}</span><b>${value}%</b></div><div class="progress-track" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><span style="width:${value}%"></span></div></div>`; }
-function courseRing(done, total, complete = false) {
+
+// ---------- Components: one function per Figma component ----------
+const txt = (tag, cls, text) => `<${tag} class="${cls}">${text}</${tag}>`;
+function navHeader(title, back, close = false) {
+  return `<nav class="nav-header"><button class="nav-header__action" data-action="${back}" aria-label="Back">${icon('arrow_left')}</button><span class="nav-header__title u-label-large">${esc(title)}</span>${close ? `<button class="nav-header__action" data-action="exit" aria-label="Save and exit">${icon('x')}</button>` : '<span aria-hidden="true"></span>'}</nav>`;
+}
+function stepFooter(primary, secondary = null, dots = null) {
+  const pageDots = dots ? `<div class="page-dots" role="progressbar" aria-label="Activity ${dots[1] + 1} of ${dots[0]}" aria-valuemin="1" aria-valuemax="${dots[0]}" aria-valuenow="${dots[1] + 1}">${Array.from({ length: dots[0] }, (_, i) => `<i class="${i < dots[1] ? 'is-done' : i === dots[1] ? 'is-current' : ''}"></i>`).join('')}</div>` : '';
+  const btn = (b, cls) => `<button class="btn ${cls} u-label-large" data-action="${b.action}" ${b.disabled ? 'disabled' : ''}>${esc(b.label)}</button>`;
+  return `<footer class="step-footer">${pageDots}${btn(primary, 'btn--primary')}${secondary ? btn(secondary, 'btn--tertiary') : ''}</footer>`;
+}
+function progress(label, pct, right = `${pct}%`) {
+  return `<div class="progress"><div class="progress__label"><span class="u-label-small">${esc(label)}</span><b class="u-mono-label-small">${right}</b></div><div class="progress__bar" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div></div>`;
+}
+function ring(done, total, complete) {
   const r = 22, c = 2 * Math.PI * r, pct = complete ? 1 : done / total;
-  return `<span class="course-ring${complete ? ' is-complete' : ''}" role="img" aria-label="${done} of ${total} lessons complete"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="course-ring-track" cx="24" cy="24" r="${r}"/><circle class="course-ring-value" cx="24" cy="24" r="${r}" stroke-dasharray="${(pct * c).toFixed(2)} ${c.toFixed(2)}"/></svg>${complete ? icon('checkmark') : `<b aria-hidden="true">${done}/${total}</b>`}</span>`;
+  return `<span class="ring${complete ? ' is-complete' : ''}" role="img" aria-label="${done} of ${total} lessons complete"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="ring__track" cx="24" cy="24" r="${r}"/>${pct ? `<circle class="ring__value" cx="24" cy="24" r="${r}" stroke-dasharray="${(pct * c).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 24 24)"/>` : ''}</svg>${complete ? icon('checkmark') : `<b class="u-label-small" aria-hidden="true">${done}/${total}</b>`}</span>`;
 }
-function mediaIcon(kind) { return icon(kind === 'pause' ? 'player_pause' : kind === 'replay' ? 'arrow_counter_clockwise' : 'player_play'); }
-function fullscreenIcon() { return icon('arrow_expand'); }
-function updatePlayControl(control, mode, title) {
-  control.innerHTML = mediaIcon(mode);
-  control.setAttribute('aria-label', `${mode === 'pause' ? 'Pause' : mode === 'replay' ? 'Replay' : 'Play'} ${title}`);
+function courseCard({ kicker, title, description, done, total, complete = false, action }) {
+  return `<button class="course-card" data-action="${action}"><span class="course-card__body"><span class="u-label-x-small c-secondary">${esc(kicker)}</span><span class="u-label-large c-primary">${esc(title)}</span><span class="u-paragraph-small c-secondary">${esc(description)}</span></span>${ring(done, total, complete)}</button>`;
 }
-function shell(body, footer = '', label = 'US mandatory education', back = 'overview', context = '') {
-  const navLabel = context
-    ? `<span class="course-nav-context"><small>${esc(context)}</small><b>${esc(label)}</b></span>`
-    : `<span class="course-nav-label">${esc(label)}</span>`;
-  root.innerHTML = `<nav class="course-nav"><button data-action="${back}" aria-label="Back">${icon('arrow_left')}</button>${navLabel}<button data-action="exit" aria-label="Save and exit">${icon('x')}</button></nav><div class="course-body">${body}</div>${footer ? `<footer class="course-footer">${footer}</footer>` : ''}`;
-  const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+function sectionTitle(title, trailing = '') { return `<div class="section-title"><h2 class="u-heading-small">${esc(title)}</h2>${trailing}</div>`; }
+function milestone({ kicker = '', title, body, next = false, action = '' }) {
+  const tag = action ? 'button' : 'div';
+  return `<${tag} class="milestone${next ? ' milestone--next' : ''}"${action ? ` data-action="${action}"` : ''}>${next ? '' : `<span class="mark">${icon('plus')}</span>`}<span class="milestone__body">${kicker ? `<span class="u-label-x-small c-tertiary">${esc(kicker)}</span>` : ''}<span class="u-label-large c-primary">${esc(title)}</span><span class="u-paragraph-small ${next ? 'c-tertiary' : 'c-secondary'}">${esc(body)}</span></span>${next ? `<span class="chevron">${icon('chevron_right_small')}</span>` : ''}</${tag}>`;
 }
-function habitCard() {
+function checkResult({ kicker, score = '', title, body, result = 'passed' }) {
+  return `<section class="check-result check-result--${result}"><p class="u-label-x-small c-tertiary">${esc(kicker)}</p>${score ? `<p class="check-result__score u-mono-heading-medium">${esc(score)}</p>` : ''}<h1 class="u-label-large c-primary">${esc(title)}</h1><p class="u-paragraph-small">${esc(body)}</p></section>`;
+}
+function note(title, body) { return `<div class="note"><b class="u-label-medium">${esc(title)}</b><p class="u-paragraph-small">${esc(body)}</p></div>`; }
+function banner(style, iconName, title, body) { return `<div class="banner banner--${style}"><span class="banner__art">${icon(iconName)}</span><div class="banner__text"><b class="u-label-medium">${esc(title)}</b><p class="u-paragraph-medium">${esc(body)}</p></div></div>`; }
+function weeklyGoal(kicker = 'Weekly learning goal') {
   const habit = habitSummary(state.learningRecord);
-  const status = habit.paused ? 'Paused until new learning is available' : habit.met ? 'Weekly goal complete' : `${habit.learningDays} of ${habit.goal} learning days this week`;
-  const detail = habit.paused ? 'Your completed learning stays saved. A quiet week does not break your streak.' : habit.met ? 'Your next qualifying week can extend your streak.' : 'Learn on two different days this week, or finish everything currently available.';
+  const title = habit.paused ? 'Paused until new learning is available' : habit.met ? 'Goal met this week' : `${habit.learningDays} of ${habit.goal} learning days this week`;
+  const body = habit.paused ? 'Your completed learning stays saved. A quiet week does not break your streak.' : habit.met ? 'Your streak grows when the week ends. A week with no new learning available pauses it.' : habit.learningDays ? 'One more day this week meets your goal.' : 'Learn on two different days this week, or finish everything currently available.';
   const streak = habit.weekStreak === 0 ? 'No week streak yet' : `${habit.weekStreak}-week streak`;
-  return `<button class="habit-card" data-action="rewards"><span class="page-context">Weekly learning goal</span><b>${status}</b><span class="habit-meter" aria-hidden="true"><i style="width:${habit.paused || habit.met ? 100 : Math.min(100, habit.learningDays / habit.goal * 100)}%"></i></span><small>${detail}</small><strong>${streak} <span aria-hidden="true">→</span></strong></button>`;
+  const days = Array.from({ length: habit.goal }, (_, i) => `<i class="${i < habit.learningDays ? 'is-done' : ''}"></i>`).join('');
+  return `<button class="weekly-goal${habit.met ? ' is-met' : ''}" data-action="habit"><span class="u-label-x-small c-tertiary">${esc(kicker)}</span><span class="u-label-large c-primary">${esc(title)}</span><span class="weekly-goal__meter" aria-hidden="true">${days}</span><span class="u-paragraph-small c-secondary">${esc(body)}</span><span class="u-label-small c-primary">${esc(streak)}</span></button>`;
 }
-function discovery() {
-  const complete = state.completed.length === lessons.length;
-  const primaryLabel = complete ? 'Review course' : state.started ? 'Continue course' : 'View course';
-  const primaryAction = state.started && !complete ? 'start' : 'course';
-  const firstName = learnerFirstName();
-  const remaining = lessons[state.lesson].steps.length - state.step;
-  const courseState = complete
-    ? 'Complete · your learning record is up to date.'
-    : state.started
-      ? `Lesson ${state.lesson + 1} of ${lessons.length} · ${remaining} ${remaining === 1 ? 'activity' : 'activities'} remaining in this lesson.`
-      : '7 lessons · 6 required videos · 33 activities.';
-  const saveNote = state.started || complete ? '' : '<p class="priority-course-save">Completed progress saves automatically.</p>';
-  const priorityCourse = `<section class="priority-course" aria-labelledby="required-course-title"><div class="priority-course-copy"><p class="priority-course-status">Required · Safety</p><h3 id="required-course-title">Sexual misconduct education</h3><p class="priority-course-state">${courseState}</p>${saveNote}</div>${courseRing(state.completed.length, lessons.length, complete)}<button class="priority-course-action" data-action="${primaryAction}">${primaryLabel}</button></section>`;
-  const retentionCard = retentionDue() ? `<section class="discovery-section"><div class="section-title"><h2>Check what stayed with you</h2><span>30 days on</span></div><button class="continue-learning-card" data-action="retention-intro"><span class="continue-meta">Not scored for points</span><b>Five-question retention check</b><span>Review what you remember from Sexual misconduct education.</span><strong>Start check <span aria-hidden="true">→</span></strong></button></section>` : '';
-  const explore = `<section class="discovery-section"><div class="section-title"><h2>Explore</h2><button class="text-link" data-action="library">See all</button></div><button class="optional-course" data-action="road-safety"><span><small>Optional · Driving</small><b>Road safety fundamentals</b><em>Opens the road safety course. Completion is tracked there.</em></span>${icon('chevron_right_small')}</button></section>`;
-  root.innerHTML = `<nav class="discovery-nav"><span class="discovery-brand">Learning</span><button class="avatar-button" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : 'UL'}</button></nav><div class="course-body discovery-body"><header class="discovery-greeting"><h1 class="personal-greeting">${personalGreeting()}</h1></header><section class="discovery-section"><div class="section-title"><h2>Required</h2></div>${priorityCourse}</section>${retentionCard}<section class="discovery-section supporting-section"><div class="section-title"><h2>This week</h2><span>2 learning days</span></div>${habitCard()}</section><section class="discovery-section supporting-section"><div class="section-title"><h2>Your progress</h2><span>Across all courses</span></div>${learningStats()}</section>${explore}</div>`;
+function learningStats() {
+  const habit = habitSummary(state.learningRecord);
+  const tile = (value, label) => `<span><b class="u-heading-small c-primary">${esc(value)}</b><small class="u-paragraph-x-small c-secondary">${label}</small></span>`;
+  return `<button class="learning-stats" data-action="rewards" aria-label="View progress across all courses">${tile(learningPoints(), 'Points')}${tile(habit.weekStreak, 'Week streak')}${tile(`${earnedBadgeCount()} of 3`, 'Badges')}</button>`;
+}
+function safetyHero(complete) { return `<div class="safety-hero" data-state="${complete ? 'complete' : 'not-complete'}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i>${icon(complete ? 'shield_check' : 'shield')}</div>`; }
+function activityHeader(mode) {
+  const icons = { Learn: 'circle_i', Watch: 'player_play', Practice: 'diamond', 'Lesson recap': 'checkmark' };
+  return `<div class="activity-header"><span class="activity-header__icon">${icon(icons[mode])}</span><span class="u-label-small">${mode}</span></div>`;
+}
+function answerOption(i, label, stateName, attrs) {
+  const resultIcon = stateName === 'correct' ? icon('circle_check') : stateName === 'incorrect' ? icon('circle_x') : '';
+  return `<button class="answer is-${stateName}" ${attrs} aria-pressed="${stateName === 'selected' || stateName === 'correct' || stateName === 'incorrect'}" ${stateName === 'disabled' ? 'disabled' : ''}><span class="answer__key u-label-small">${String.fromCharCode(65 + i)}</span><span class="answer__label u-paragraph-medium">${esc(label)}</span>${resultIcon}</button>`;
+}
+function feedbackBlock(result, title, body) {
+  const mark = result === 'incorrect' ? `<span class="mark mark--negative">${icon('x')}</span>` : result === 'saved' ? `<span class="mark mark--inverse">${icon('checkmark')}</span>` : `<span class="mark">${icon('checkmark')}</span>`;
+  return `<div id="feedback" class="feedback feedback--${result}" role="status"><div class="feedback__head">${mark}<b class="u-label-large">${esc(title)}</b></div><p class="u-paragraph-small">${esc(body)}</p></div>`;
+}
+function resourceDetail(r) {
+  if (r.detail) return r.detail;
+  if (r.href.startsWith('tel:')) { const n = r.href.slice(4); return `Call ${n.length === 11 ? `${n[0]}-${n.slice(1, 4)}-${n.slice(4, 7)}-${n.slice(7)}` : n}`; }
+  if (r.href.startsWith('sms:')) return `Text HELP to ${r.href.slice(4).split('?')[0]}`;
+  return new URL(r.href).hostname.replace(/^www\./, '');
+}
+function resourceRow(r) {
+  const kind = r.href.startsWith('tel:') ? 'phone' : r.href.startsWith('sms:') ? 'speech_bubble' : 'arrow_right_up';
+  return `<a class="resource-row" href="${esc(r.href)}" target="_blank" rel="noreferrer">${icon(kind)}<span class="resource-row__body"><b class="u-label-medium">${esc(r.label)}</b><p class="u-paragraph-small">${esc(resourceDetail(r))}</p></span><span class="chevron">${icon('chevron_right_small')}</span></a>`;
+}
+function badgeRow(b) {
+  return `<div class="badge-row is-${b.state === 'progress' ? 'in-progress' : b.state}"><span class="badge-row__art">${icon(b.state === 'locked' ? 'lock' : 'badge_checkmark')}</span><span class="badge-row__body"><b class="badge-row__name u-label-large">${esc(b.name)}</b><small class="u-paragraph-small c-tertiary">${esc(b.detail)}</small></span></div>`;
+}
+function bullets(items) { return items?.length ? `<ul class="bullets">${items.map(item => `<li class="u-paragraph-medium">${esc(item)}</li>`).join('')}</ul>` : ''; }
+function pointsTotalCard(title, subtitle, total) { return `<div class="points-total"><span><b class="u-label-large c-primary">${esc(title)}</b><small class="u-paragraph-small c-secondary">${esc(subtitle)}</small></span><b class="u-heading-medium c-primary">${esc(total)}</b></div>`; }
+function emptyState(title, body) { return `<div class="empty"><span class="empty__art">${icon('circle_exclamation_mark')}</span><h1 class="empty__title u-heading-x-small">${esc(title)}</h1><p class="u-paragraph-medium">${esc(body)}</p></div>`; }
+
+function shell({ nav, hero = '', body, footer = '', bodyClass = '' }) {
+  root.innerHTML = `${nav}${hero}<div class="screen-body ${bodyClass}">${body}</div>${footer}`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+}
+const kicker = (text) => `<p class="kicker u-label-x-small">${esc(text)}</p>`;
+const heading = (text, cls = 'u-heading-large') => `<h1 class="${cls}">${esc(text)}</h1>`;
+const lead = (text) => `<p class="lead u-paragraph-medium">${esc(text)}</p>`;
+
+// ---------- Screens: one function per Figma screen ----------
+function requiredCourseCard() {
+  const status = courseStatus(), cur = currentLesson();
+  const description = status === 'not-started' ? '7 lessons · 6 required videos' : status === 'complete' ? 'Complete · Every lesson stays open for review' : status === 'final-pending' ? 'Next: Final knowledge check' : `Next: ${lessons[cur].title}`;
+  return courseCard({ kicker: 'Required · Safety', title: COURSE_TITLE, description, done: lessonsDone(), total: lessons.length, complete: status === 'complete', action: 'course' });
+}
+const roadSafetyCard = () => courseCard({ kicker: 'Optional · Driving', title: 'Road safety fundamentals', description: 'Available soon', done: 0, total: 4, action: 'road-safety' });
+function discovery() {
+  const firstName = learnerFirstName();
+  const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', '<span class="u-paragraph-small c-secondary">30 days on</span>')}${milestone({ kicker: 'Not scored for points', title: 'Five-question retention check', body: `Review what you remember from ${COURSE_TITLE}.`, next: true, action: 'retention-intro' })}` : '';
+  root.innerHTML = `<header class="discovery-header"><span class="u-heading-x-small">Learning</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${sectionTitle('Required')}${requiredCourseCard()}${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${sectionTitle('Explore', '<button class="link u-paragraph-small" data-action="library">See all</button>')}${roadSafetyCard()}</div>`;
+  const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+}
+function libraryView() {
+  shell({ nav: navHeader('Course library', 'discover'), body: `${kicker('Course library')}${heading('Explore learning')}${lead('Courses available for your profile.')}${requiredCourseCard()}${roadSafetyCard()}`, footer: stepFooter({ label: 'Back to learning home', action: 'discover' }) });
+}
+function roadSafetyView() {
+  shell({ nav: navHeader('Road safety', 'library'), body: `${kicker('Available soon')}${heading('Road safety fundamentals')}${lead('This course is not available yet. We’ll show it here when it is ready.')}${banner('accent', 'circle_i', 'Your learning record stays accurate', 'Road Safety does not add points, count toward your weekly goal, or unlock badges until its completion can be confirmed.')}`, footer: stepFooter({ label: 'Back to course library', action: 'library' }) });
+}
+function lessonRow(lesson, i) {
+  const status = lessonStatus(i);
+  const inLesson = status === 'current' && state.started && state.lesson === i;
+  const description = status === 'complete' ? `Complete · +${lessonPoints(i)} points` : inLesson ? `In progress · ${state.step + 1} of ${lesson.steps.length}` : `${lesson.steps.length} activities · up to ${eligibleIn(lesson) * 10} points`;
+  const mark = status === 'complete' ? icon('circle_check') : '<i></i>';
+  const content = `<span class="lesson-row__status" aria-hidden="true">${mark}</span><span class="lesson-row__content"><span class="lesson-row__body"><b class="u-label-medium c-primary">${esc(lesson.title)}</b><small class="u-paragraph-small c-secondary">${esc(description)}</small></span>${status === 'upcoming' ? '' : `<span class="chevron">${icon('chevron_right_small')}</span>`}</span>`;
+  return status === 'upcoming' ? `<div class="lesson-row is-upcoming" aria-label="${esc(lesson.title)}, not yet available">${content}</div>` : `<button class="lesson-row is-${status}" data-lesson="${i}">${content}</button>`;
 }
 function overview() {
-  const all = state.completed.length === lessons.length, pct = all ? 100 : coursePercent();
-  const row = (lesson, i) => {
-    const complete = state.completed.includes(i), current = !complete && (state.started ? i === state.lesson : i === 0);
-    const eligibleCount = lesson.steps.filter(step => ELIGIBLE_ACTIVITY_TYPES.has(step.type)).length;
-    const earned = state.learningRecord.activities.filter(activity => activity.courseId === 'sexual-misconduct' && activity.activityId.startsWith(`${i}.`)).length * 10;
-    const status = complete ? `Complete · +${earned} points` : current && state.started ? `In progress · ${state.step + 1} of ${lesson.steps.length}` : `${lesson.steps.length} activities · up to ${eligibleCount * 10} points`;
-    return `<button class="lesson-row ${current ? 'is-current' : ''} ${complete ? 'is-complete' : ''}" data-lesson="${i}"><span class="lesson-status" aria-hidden="true">${complete ? icon('checkmark') : ''}</span><span class="lesson-copy"><b>${esc(lesson.title)}</b><small>${status}</small></span><span class="arrow" aria-hidden="true">${icon('chevron_right_small')}</span></button>`;
-  };
-  const groups = [['Foundations', [0, 1]], ['Boundaries', [2, 3, 4]], ['Safe response', [5, 6]]]
-    .map(([name, ids]) => `<section class="lesson-group"><h2>${name}</h2><div class="lesson-list">${ids.map(i => row(lessons[i], i)).join('')}</div></section>`).join('');
-  shell(`<div class="course-hero" aria-hidden="true">${icon('shield_check')}</div><p class="page-context">Required · Safety</p><h1>Sexual misconduct education</h1><p class="muted lead">Practical guidance for respectful boundaries, awareness, and safe reporting.</p>${progressBar(pct, `${state.completed.length} of ${lessons.length} lessons complete`, 'course-progress')}<p class="course-facts-line">7 lessons · 6 required videos · 33 activities</p><button class="record-row" data-action="rewards"><span class="lesson-copy"><b>Your learning record</b><small>${coursePoints(state.learningRecord, 'sexual-misconduct')} points from this course · ${earnedBadges().length} badges earned</small></span><span class="arrow" aria-hidden="true">${icon('chevron_right_small')}</span></button>${groups}`, button(all ? 'Review course' : state.started ? 'Continue course' : 'Begin course', state.started || all ? 'start' : 'course-intro'), 'Course details', 'discover');
+  const status = courseStatus();
+  const groups = [['Foundations', [0, 1]], ['Boundaries', [2, 3, 4]], ['Safe response', [5, 6]]].map(([name, ids]) => `<section class="group"><h2 class="u-heading-small">${name}</h2>${ids.map(i => lessonRow(lessons[i], i)).join('')}</section>`).join('');
+  const badges = earnedBadgeCount();
+  const record = milestone({ kicker: 'Shared across courses', title: 'Your learning record', body: `${coursePoints(state.learningRecord, COURSE_ID)} points from this course · ${badges} ${badges === 1 ? 'badge' : 'badges'} earned`, next: true, action: 'rewards' });
+  const primary = { 'not-started': { label: 'Begin course', action: 'course-intro' }, 'in-progress': { label: 'Continue course', action: 'start' }, 'final-pending': { label: 'Complete final check', action: 'final-check' }, complete: { label: 'Review course', action: 'review' } }[status];
+  shell({ nav: navHeader('Course details', 'discover'), hero: safetyHero(status === 'complete'), bodyClass: 'screen-body--roomy', body: `${kicker('Required · Safety')}${heading(COURSE_TITLE)}${lead('Practical guidance for respectful boundaries, awareness, and safe reporting.')}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}<p class="u-paragraph-small c-tertiary">7 lessons · 6 required videos · 33 activities</p>${record}${groups}`, footer: stepFooter(primary) });
 }
 function courseIntro() {
-  shell(`<div class="intro-mark" aria-hidden="true"><span>7</span><small>Lessons</small></div><p class="kicker">Before you begin</p><h1>Learn at your own pace</h1><p class="muted lead">This course includes sensitive topics. Pause whenever you need to; completed progress saves automatically.</p><div class="intro-list"><div><span>01</span><p><b>Start with a quick check</b><small>Five questions establish a baseline. They do not add or remove points.</small></p></div><div><span>02</span><p><b>Learn and practise</b><small>Watch required videos, make decisions, and review the source guidance.</small></p></div><div><span>03</span><p><b>Confirm what you learned</b><small>A five-question final check measures learning gain.</small></p></div></div><div class="care-note"><b>Take care of yourself</b><p>Support and reporting resources remain available throughout the course.</p></div>`, button(state.baselineDone ? 'Start lesson 1' : 'Begin quick check', state.baselineDone ? 'begin-lessons' : 'baseline') + button('Back to course', 'overview', true), 'Course introduction', 'overview');
+  const steps = [['01', 'Start with a quick check', 'Five questions establish a baseline. They do not add or remove points.'], ['02', 'Learn and practise', 'Watch required videos, make decisions, and review the source guidance.'], ['03', 'Confirm what you learned', 'A five-question final check measures learning gain.']];
+  shell({ nav: navHeader('Course introduction', 'overview'), body: `${kicker('Before you begin')}${heading('Learn at your own pace')}${lead('This course includes sensitive topics. Pause whenever you need to; completed progress saves automatically.')}<div>${steps.map(([n, t, d]) => `<div class="intro-step"><span class="u-mono-label-small">${n}</span><div><b class="u-label-medium">${t}</b><p class="u-paragraph-small">${d}</p></div></div>`).join('')}</div>${banner('warning', 'alert', 'Take care of yourself', 'Support and reporting resources remain available throughout the course.')}`, footer: stepFooter(state.baselineDone ? { label: 'Start lesson 1', action: 'begin-lessons' } : { label: 'Begin quick check', action: 'baseline' }, { label: 'Back to course', action: 'overview' }) });
 }
+const assessmentLabel = () => assessmentMode === 'baseline' ? 'Quick check' : assessmentMode === 'retention' ? '30-day retention check' : 'Final knowledge check';
 function assessment() {
   const questions = assessments[assessmentMode], q = questions[assessmentIndex], chosen = state.assessmentResponses?.[assessmentMode]?.[assessmentIndex];
-  const label = assessmentMode === 'baseline' ? 'Quick check' : assessmentMode === 'retention' ? '30-day retention check' : 'Final knowledge check';
-  shell(`<div class="assessment-progress"><span>${label}</span><b>${assessmentIndex + 1} / ${questions.length}</b></div><div class="step-dots" aria-hidden="true">${questions.map((_, i) => `<i class="${i <= assessmentIndex ? 'is-active' : ''}"></i>`).join('')}</div><p class="activity-type">Knowledge check</p><h1>${esc(q.prompt)}</h1><p class="muted">Choose the best answer. Your result does not change your points.</p><div class="options assessment-options" role="group" aria-label="Answer choices">${q.options.map((option, i) => `<button class="option" data-assessment-choice="${i}" aria-pressed="${chosen === i}"><span class="option-key">${String.fromCharCode(65 + i)}</span><span>${esc(option)}</span></button>`).join('')}</div>`, button(assessmentIndex === questions.length - 1 ? (assessmentMode === 'baseline' ? 'Start course' : assessmentMode === 'retention' ? 'See what stayed' : 'Finish course') : 'Next question', 'assessment-next', false, chosen === undefined), label, assessmentMode === 'baseline' ? 'course-intro' : assessmentMode === 'retention' ? 'retention-intro' : 'overview');
+  const last = assessmentIndex === questions.length - 1;
+  const next = last ? (assessmentMode === 'baseline' ? 'Start course' : assessmentMode === 'retention' ? 'See what stayed' : 'Finish check') : 'Next question';
+  shell({ nav: navHeader(assessmentLabel(), assessmentMode === 'baseline' ? 'course-intro' : assessmentMode === 'retention' ? 'retention-intro' : 'overview'), body: `${progress(assessmentLabel(), Math.round((assessmentIndex + 1) / questions.length * 100), `${assessmentIndex + 1} / ${questions.length}`)}${kicker('Knowledge check')}${heading(q.prompt, 'u-heading-medium')}${lead('Choose the best answer. Your result does not change your points.')}<div class="stack-8" role="group" aria-label="Answer choices">${q.options.map((option, i) => answerOption(i, option, chosen === i ? 'selected' : 'default', `data-assessment-choice="${i}"`)).join('')}</div>`, footer: stepFooter({ label: next, action: 'assessment-next', disabled: chosen === undefined }) });
 }
+const scoreOf = (mode) => assessments[mode].reduce((sum, question, i) => sum + (state.assessmentResponses?.[mode]?.[i] === question.answer ? 1 : 0), 0);
 function assessmentResult() {
   if (assessmentMode === 'retention') {
-    const answers = state.assessmentResponses?.retention || [];
-    const score = assessments.retention.reduce((sum, question, i) => sum + (answers[i] === question.answer ? 1 : 0), 0);
-    const passed = score >= 4;
-    shell(`<div class="result-mark ${passed ? '' : 'is-review'}" aria-hidden="true">${icon(passed ? 'checkmark' : 'arrow_counter_clockwise')}</div><p class="kicker">30-day retention check</p><h1>${passed ? 'You retained the key ideas' : 'Worth another look'}</h1><p class="muted lead">You answered ${score} of 5 questions correctly. ${passed ? 'Save your result to earn the Retained badge.' : 'Review the course, then try another check.'}</p><p class="measurement-note">This check measures retained learning. It does not add points.</p>`, button(passed ? 'Save result and view badge' : 'Review course', passed ? 'finish-retention' : 'overview') + (passed ? '' : button('Try again', 'retry-retention', true)), 'Retention check', 'discover');
+    const score = scoreOf('retention'), passed = score >= 4;
+    shell({ nav: navHeader('Retention check', 'discover'), body: `${checkResult({ kicker: '30-day retention check', score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: `You answered ${score} of 5 questions correctly. ${passed ? 'Save your result to earn the Retained badge.' : 'Review the course, then try another check.'}`, result: passed ? 'passed' : 'retry' })}<p class="u-paragraph-small c-secondary">This check measures retained learning. It does not add points.</p>`, footer: passed ? stepFooter({ label: 'Save result and view badge', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
     return;
   }
-  const answers = state.assessmentResponses?.final || [];
-  const score = assessments.final.reduce((sum, question, i) => sum + (answers[i] === question.answer ? 1 : 0), 0);
-  const passed = score >= 4;
-  const baselineAnswers = state.assessmentResponses?.baseline || [];
-  const baselineScore = assessments.baseline.reduce((sum, question, i) => sum + (baselineAnswers[i] === question.answer ? 1 : 0), 0);
-  shell(`<div class="result-mark ${passed ? '' : 'is-review'}" aria-hidden="true">${icon(passed ? 'checkmark' : 'arrow_counter_clockwise')}</div><p class="kicker">Final knowledge check</p><h1>${passed ? 'Ready to complete' : 'Review the key ideas'}</h1><p class="muted lead">${passed ? `You answered ${score} of 5 questions correctly.` : `You answered ${score} of 5 questions correctly. Review the guidance, then try again.`}</p><div class="learning-gain"><span><small>Before</small><b>${baselineScore}/5</b></span><span aria-hidden="true">→</span><span><small>Now</small><b>${score}/5</b></span></div><p class="measurement-note">Knowledge checks measure learning gain and do not award points.</p>${passed ? '<div class="care-note"><b>Your learning is recorded</b><p>Your result and course completion are saved to your learning record.</p></div>' : '<div class="review-topics"><span>Respecting boundaries</span><span>Consent and personal space</span><span>Safe reporting</span></div>'}`, button(passed ? 'Complete course' : 'Try final check again', passed ? 'finish-course' : 'retry-final') + button('Back to course', 'overview', true), 'Knowledge check result', 'overview');
+  const score = scoreOf('final'), passed = score >= 4, baseline = scoreOf('baseline');
+  shell({ nav: navHeader('Knowledge check result', 'overview'), body: `${checkResult({ kicker: 'Final knowledge check', score: `${score} / 5`, title: passed ? 'Ready to complete' : 'Review, then try again', body: passed ? `You answered ${score} of 5 questions correctly.` : `You answered ${score} of 5 questions correctly. There is no penalty: revisit the lessons, then try again.`, result: passed ? 'passed' : 'retry' })}<div class="gain"><span><small class="u-label-small c-secondary">Before</small><b class="u-mono-heading-medium">${baseline}/5</b></span><span><small class="u-label-small c-secondary">Now</small><b class="u-mono-heading-medium">${score}/5</b></span></div><p class="u-paragraph-small c-secondary">Knowledge checks measure learning gain and do not award points.</p>${passed ? note('Your learning is recorded', 'Your result and course completion are saved to your learning record.') : note('Review these topics', 'Respecting boundaries · Consent and personal space · Safe reporting')}`, footer: stepFooter(passed ? { label: 'Complete course', action: 'finish-course' } : { label: 'Try final check again', action: 'retry-final' }, { label: 'Back to course', action: 'overview' }) });
 }
-function feedback(a) { const saved = a.type === 'text'; const tone = saved ? 'is-saved' : correct ? 'is-positive' : 'is-negative'; return `<div id="feedback" class="feedback ${tone}" role="status"><span class="feedback-mark">${icon(saved || correct ? 'checkmark' : 'x')}</span><div><b>${saved ? 'Saved as private practice' : correct ? 'Correct' : 'Not quite'}</b><p>${esc(a.feedback)}</p></div></div>`; }
-function bulletList(items, className = 'takeaway-list') { return items?.length ? `<ul class="${className}">${items.map(item => `<li>${esc(item)}</li>`).join('')}</ul>` : ''; }
-function resources(a) { return `<div class="resource-list">${a.resources.map(resource => { const kind = resource.href.startsWith('tel:') ? 'phone' : resource.href.startsWith('sms:') ? 'speech_bubble' : 'arrow_right_up'; return `<a href="${esc(resource.href)}" target="_blank" rel="noreferrer">${icon(kind, 'uicon resource-icon')}<span>${esc(resource.label)}</span>${icon('chevron_right_small', 'uicon resource-chevron')}</a>`; }).join('')}</div>`; }
+function activityMode(type) { return type === 'reading' ? 'Learn' : type === 'video' ? 'Watch' : type === 'resources' ? 'Lesson recap' : 'Practice'; }
 function activity() {
   const l = lessons[state.lesson], steps = l.steps, a = steps[state.step];
+  const dots = [steps.length, state.step];
+  const lastStep = state.step === steps.length - 1;
   let content = '', footer = '';
   if (a.type === 'reading') {
-    content = `${a.body ? `<p class="u-paragraph-medium">${esc(a.body)}</p>` : ''}${bulletList(a.bullets)}${a.groups ? `<div class="content-groups">${a.groups.map(group => `<section><h2>${esc(group.title)}</h2>${bulletList(group.items)}</section>`).join('')}</div>` : ''}${a.note ? `<div class="source-note"><b>Keep context in mind</b><p>${esc(a.note)}</p></div>` : ''}`;
-    footer = button(state.step === steps.length - 1 ? 'Complete lesson' : 'Continue', 'next');
+    content = `${a.body ? `<p class="u-paragraph-medium c-primary">${esc(a.body)}</p>` : ''}${bullets(a.bullets)}${a.groups ? a.groups.map(group => `<section class="group group--gap"><h2 class="u-heading-x-small">${esc(group.title)}</h2>${bullets(group.items)}</section>`).join('') : ''}${a.note ? note('Keep context in mind', a.note) : ''}`;
+    footer = stepFooter({ label: lastStep ? 'Complete lesson' : 'Continue', action: 'next' }, null, dots);
   } else if (a.type === 'resources') {
-    content = `${bulletList(a.bullets)}${resources(a)}${a.note ? `<div class="source-note"><b>Important</b><p>${esc(a.note)}</p></div>` : ''}`;
-    footer = button(state.step === steps.length - 1 ? 'Complete lesson' : 'Continue', 'next');
+    const phoneLike = (a.resources || []).some(r => !r.href.startsWith('http'));
+    content = `${a.bullets ? `<div class="stack-8">${a.bullets.map(b => `<div class="takeaway">${icon('checkmark')}<p class="u-paragraph-medium">${esc(b)}</p></div>`).join('')}</div>` : ''}${a.resources ? `<section class="group"><h2 class="u-heading-x-small">${phoneLike || a.bullets ? 'Support' : 'Resources'}</h2>${a.resources.map(resourceRow).join('')}</section>` : ''}${a.note ? note('Important', a.note) : ''}`;
+    footer = stepFooter({ label: lastStep ? 'Complete lesson' : 'Continue', action: 'next' }, null, dots);
   } else if (a.type === 'video') {
     const media = videoMeta[state.lesson];
-    const playMode = playing ? 'pause' : watched ? 'replay' : 'play';
-    content = `<div class="video-player"><div class="video-slate" aria-hidden="true"><span>Required video</span><b>${esc(a.title)}</b></div><button class="video-play" data-action="play" aria-label="${playing ? 'Pause' : watched ? 'Replay' : 'Play'} ${esc(a.title)}">${mediaIcon(playMode)}</button><div class="video-timeline" aria-hidden="true"><span id="video-progress" style="width:${watched ? 100 : 0}%"></span></div><div class="video-runtime"><span id="video-time">${watched ? media.runtime : '0:00'} / ${media.runtime}</span><button class="video-fullscreen" data-action="fullscreen" aria-label="Enter fullscreen">${fullscreenIcon()}</button></div></div><div class="video-controls"><span class="activity-type">Mandatory video · ${media.runtime}</span><button class="text-button" data-action="captions" aria-pressed="true">CC on</button></div><p id="captions" class="caption">${esc(a.caption)}</p><details><summary>What should I look for?</summary><p>${esc(a.lookFor)}</p></details><p class="completion-requirement" id="watch-status">${watched ? 'Video complete. You can continue.' : 'Finish the video to unlock the next activity. If you leave now, this video restarts.'}</p>`;
-    footer = button('Continue', 'next', false, !watched);
+    const mode = playing ? 'pause' : watched ? 'replay' : 'play';
+    content = `<div class="video-player${playing ? ' is-playing' : ''}"><div class="video-player__title"${playing ? ' hidden' : ''}><small class="u-label-x-small">${watched ? `${icon('checkmark')}Watched` : 'Required video'}</small><b class="u-heading-x-small">${esc(a.title)}</b></div><div class="video-player__centre"><button class="circle-btn" data-action="play" aria-label="${mode === 'pause' ? 'Pause' : mode === 'replay' ? 'Replay' : 'Play'} ${esc(a.title)}">${icon(mode === 'pause' ? 'player_pause' : mode === 'replay' ? 'arrow_counter_clockwise' : 'player_play')}</button></div><div class="video-player__controls"><div class="video-player__timeline" aria-hidden="true"><span id="video-progress" style="width:${watched ? 100 : 0}%"></span></div><div class="video-player__row"><span id="video-time" class="u-mono-label-x-small">${watched ? media.runtime : '0:00'} / ${media.runtime}</span><span class="video-player__tools"><button data-action="captions" aria-pressed="true" aria-label="Captions">${icon('closed_captioning')}</button><button data-action="fullscreen" aria-label="Enter fullscreen">${icon('arrow_expand')}</button></span></div></div></div><div class="video-controls"><span class="u-label-small">Mandatory video · ${media.runtime}</span><button class="pill u-label-small" data-action="captions" aria-pressed="true">CC on</button></div><p id="captions" class="u-paragraph-medium c-primary">${esc(a.caption)}</p><details class="accordion"><summary><span class="accordion__text"><b class="u-label-medium">What should I look for?</b></span><span class="accordion__control">${icon('chevron_down_small')}</span></summary><p class="accordion__body u-paragraph-small">${esc(a.lookFor)}</p></details><p class="u-paragraph-small c-secondary" id="watch-status">${watched ? 'Video complete. You can continue.' : 'Finish the video to unlock the next activity. If you leave now, this video restarts.'}</p>`;
+    footer = stepFooter({ label: 'Continue', action: 'next', disabled: !watched }, null, dots);
   } else if (a.type === 'choice') {
-    content = `<div class="options" role="group" aria-label="Answer choices">${a.options.map((o, i) => `<button class="option" data-choice="${i}" aria-pressed="${selected === i}" ${checked ? 'disabled' : ''}><span class="option-key">${String.fromCharCode(65 + i)}</span><span>${esc(o)}</span></button>`).join('')}</div>`;
+    content = `<div class="stack-8" role="group" aria-label="Answer choices">${a.options.map((o, i) => answerOption(i, o, checked ? (i === selected ? (correct ? 'correct' : 'incorrect') : 'disabled') : selected === i ? 'selected' : 'default', `data-choice="${i}"`)).join('')}</div>`;
   } else if (a.type === 'dropdown') {
-    content = `<div class="dropdown"><button class="option" data-action="dropdown" aria-expanded="false" aria-controls="dropdown-options" ${checked ? 'disabled' : ''}><span>${selected === null ? 'Choose the missing phrase' : esc(a.options[selected])}</span>${icon('chevron_down_small')}</button><div id="dropdown-options" class="dropdown-list" role="listbox" aria-label="Missing phrase" hidden>${a.options.map((o, i) => `<button role="option" aria-selected="${selected === i}" data-choice="${i}">${esc(o)}</button>`).join('')}</div></div>`;
-  } else if (a.type === 'text' || a.type === 'number') {
+    content = `<div class="select"><button class="select__trigger" data-action="dropdown" aria-expanded="false" aria-controls="dropdown-options" ${checked ? 'disabled' : ''}><span class="u-paragraph-large${selected === null ? ' is-placeholder' : ''}">${selected === null ? 'Choose the missing phrase' : esc(a.options[selected])}</span>${icon('chevron_down_small')}</button><div id="dropdown-options" class="select__list" role="listbox" aria-label="Missing phrase" hidden>${a.options.map((o, i) => `<button class="u-paragraph-medium" role="option" aria-selected="${selected === i}" data-choice="${i}">${esc(o)}</button>`).join('')}</div></div>`;
+  } else if (a.type === 'number') {
     const val = state.responses[`${state.lesson}-${state.step}`] || '';
-    content = `<label class="field">${a.type === 'text' ? 'Your response' : 'Your answer'}${a.type === 'text' ? `<textarea id="answer" maxlength="300" placeholder="Write your response…" ${checked ? 'readonly' : ''}>${esc(val)}</textarea><small id="count">${val.length}/300 characters · private practice response</small>` : `<input id="answer" inputmode="numeric" type="text" value="${esc(val)}" placeholder="Enter a number" ${checked ? 'readonly' : ''}><small>Use the information in the source content above.</small>`}</label>`;
+    content = `<label class="field"><span class="u-label-large">Your answer</span><input id="answer" class="field__input u-paragraph-large" inputmode="numeric" type="text" value="${esc(val)}" placeholder="Enter a number" ${checked ? 'readonly' : ''}><small class="field__hint u-paragraph-small">Use the information in the source content above.</small></label>`;
+  } else if (a.type === 'text') {
+    const val = state.responses[`${state.lesson}-${state.step}`] || '';
+    content = `<label class="field"><span class="field__label-row"><span class="u-label-medium">Your response</span><span id="count" class="field__count u-label-medium">${val.length}/300</span></span><textarea id="answer" class="field__input u-paragraph-medium" maxlength="300" placeholder="Write your response…" ${checked ? 'readonly' : ''}>${esc(val)}</textarea><small class="field__hint u-paragraph-small">Private practice response</small></label>`;
   } else if (a.type === 'drag') {
-    const card = (t, i) => `<button draggable="${!checked}" class="option match-card ${checked ? placement[i] === a.answers[i] ? 'is-correct' : 'is-incorrect' : ''}" data-card="${i}" aria-pressed="${selected === i}" ${checked ? 'disabled' : ''}><span class="drag-handle">${icon('two_lines')}</span><span>${esc(t)}</span>${selected === i ? '<small>Selected</small>' : checked ? `<small>${placement[i] === a.answers[i] ? 'Correct' : 'Review'}</small>` : ''}</button>`;
-    content = `<div class="interaction-instruction"><span>${icon('arrow_up_down')}</span><p><b>Match each action</b><small>Drag a card, or select it and tap a destination.</small></p></div><div class="options card-bank" aria-label="Cards to place">${a.cards.map((t, i) => placement[i] === undefined ? card(t, i) : '').join('')}</div><div class="match-zones">${a.groups.map((g, n) => `<section class="dropzone" data-zone="${n}"><button data-place="${n}" ${checked ? 'disabled' : ''}><span>${esc(g)}</span><small>${a.cards.some((_, i) => placement[i] === n) ? 'Tap to replace' : 'Drop or tap to place'}</small></button>${a.cards.map((t, i) => placement[i] === n ? card(t, i) : '').join('')}</section>`).join('')}</div><p class="activity-count">${Object.keys(placement).length} of 3 actions matched</p>`;
+    const cardState = (i) => checked ? (placement[i] === a.answers[i] ? 'correct' : 'incorrect') : selected === i ? 'selected' : placement[i] !== undefined ? 'placed' : 'default';
+    const card = (t, i) => { const s = cardState(i); return `<button draggable="${!checked}" class="match-card is-${s}" data-card="${i}" aria-pressed="${selected === i}" ${checked ? 'disabled' : ''}><span class="grab">${icon('grabber')}</span><span class="match-card__label u-paragraph-medium">${esc(t)}</span>${s === 'correct' ? icon('circle_check') : s === 'incorrect' ? icon('circle_x') : ''}</button>`; };
+    const zone = (g, n) => {
+      const inside = a.cards.map((t, i) => placement[i] === n ? i : null).filter(i => i !== null);
+      const zoneState = checked && inside.length ? (inside.every(i => a.answers[i] === n) ? 'correct' : 'incorrect') : inside.length ? 'filled' : selected !== null ? 'target' : 'empty';
+      const hint = { empty: 'Drop or tap to place', target: 'Tap to place here', filled: 'Tap the card to move it', correct: 'Matches', incorrect: 'Review this match' }[zoneState];
+      return `<section class="drop-zone is-${zoneState}" data-zone="${n}"><button class="drop-zone__head" data-place="${n}" ${checked ? 'disabled' : ''}><b class="u-label-medium">${esc(g)}</b><small class="u-paragraph-x-small">${hint}</small></button>${inside.map(i => card(a.cards[i], i)).join('')}</section>`;
+    };
+    content = `${note('Match each action', 'Drag a card, or select it and tap a destination.')}<div class="stack-8" aria-label="Cards to place">${a.cards.map((t, i) => placement[i] === undefined ? card(t, i) : '').join('')}</div><div class="stack-8">${a.groups.map(zone).join('')}</div><p class="u-paragraph-small c-secondary">${Object.keys(placement).length} of 3 actions matched</p>`;
   } else if (a.type === 'sort') {
-    content = `<div class="interaction-instruction"><span>${icon('arrow_up_down')}</span><p><b>Build the safest sequence</b><small>Drag each step or use the arrow controls.</small></p></div><div class="options sort-list" aria-label="Sequence to arrange">${order.map((n, i) => `<div class="sort-row ${checked ? n === a.answer[i] ? 'is-correct' : 'is-incorrect' : ''}" draggable="${!checked}" data-sort="${i}"><span class="drag-handle">${icon('two_lines')}</span><b class="sort-number">${i + 1}</b><span>${esc(a.items[n])}</span><span class="sort-actions"><button data-move="${i},-1" aria-label="Move ${esc(a.items[n])} up" ${i === 0 || checked ? 'disabled' : ''}>↑</button><button data-move="${i},1" aria-label="Move ${esc(a.items[n])} down" ${i === 2 || checked ? 'disabled' : ''}>↓</button></span></div>`).join('')}</div>`;
+    content = `${note('Build the safest sequence', 'Drag each step or use the arrow controls.')}<div class="stack-8" aria-label="Sequence to arrange">${order.map((n, i) => `<div class="sort-row ${checked ? (n === a.answer[i] ? 'is-correct' : 'is-incorrect') : ''}" draggable="${!checked}" data-sort="${i}"><span class="grab">${icon('grabber')}</span><b class="sort-row__number u-label-small">${i + 1}</b><span class="sort-row__label u-paragraph-medium">${esc(a.items[n])}</span><span class="sort-row__arrows"><button class="circle-btn circle-btn--small" data-move="${i},-1" aria-label="Move ${esc(a.items[n])} up" ${i === 0 || checked ? 'disabled' : ''}>${icon('chevron_up_small')}</button><button class="circle-btn circle-btn--small" data-move="${i},1" aria-label="Move ${esc(a.items[n])} down" ${i === order.length - 1 || checked ? 'disabled' : ''}>${icon('chevron_down_small')}</button></span></div>`).join('')}</div>`;
   }
   if (!['reading', 'resources', 'video'].includes(a.type)) {
-    if (checked) content += feedback(a);
-    footer = checked ? button(correct || a.type === 'text' ? 'Continue' : 'Try again', correct || a.type === 'text' ? 'next' : 'retry') : button(a.type === 'text' ? 'Save reflection' : 'Check answer', 'check', false, !ready(a));
+    if (checked) content += a.type === 'text' ? feedbackBlock('saved', 'Saved as private practice', a.feedback) : feedbackBlock(correct ? 'correct' : 'incorrect', correct ? 'Correct' : 'Not quite', a.feedback);
+    footer = checked ? stepFooter(correct || a.type === 'text' ? { label: 'Continue', action: 'next' } : { label: 'Try again', action: 'retry' }, null, dots) : stepFooter({ label: a.type === 'text' ? 'Save reflection' : 'Check answer', action: 'check', disabled: !ready(a) }, null, dots);
   }
-  const activityLabel = a.type === 'resources' ? 'Lesson recap' : a.type === 'reading' ? 'Learn' : a.type === 'video' ? 'Watch' : 'Practice';
-  const activitySteps = steps.map((_, index) => `<i class="${index < state.step ? 'is-complete' : index === state.step ? 'is-current' : ''}"></i>`).join('');
-  shell(`<div class="activity-meta-row"><p class="activity-type"><span aria-hidden="true">${icon(a.type === 'video' ? 'player_play' : a.type === 'resources' ? 'checkmark' : a.type === 'reading' ? 'circle_i' : 'diamond')}</span>${activityLabel}</p></div><h1>${esc(a.title)}</h1><p class="muted lead">${esc(a.prompt)}</p>${content}`, `<div class="page-dots" role="progressbar" aria-label="Activity ${state.step + 1} of ${steps.length}" aria-valuemin="1" aria-valuemax="${steps.length}" aria-valuenow="${state.step + 1}">${activitySteps}</div>${footer}`, l.title, 'back', `Lesson ${state.lesson + 1} / ${lessons.length}`);
+  shell({ nav: navHeader(`Lesson ${state.lesson + 1} of ${lessons.length}`, 'back', true), body: `${activityHeader(activityMode(a.type))}${heading(a.title)}${lead(a.prompt)}${content}`, footer });
 }
 function ready(a) {
   if (['choice', 'dropdown'].includes(a.type)) return selected !== null;
@@ -278,34 +369,49 @@ function ready(a) {
   return true;
 }
 function completion() {
-  const all = state.completed.length === lessons.length, next = lessons[Math.min(state.lesson + 1, lessons.length - 1)];
-  const unlocked = earnedBadges().find(badge => badge.key === 'thorough');
-  const contribution = state.learningRecord.activities.filter(activity => activity.courseId === 'sexual-misconduct' && activity.activityId.startsWith(`${state.lesson}.`)).length * 10;
-  const awaitingFinal = all && !state.finalCheckDone;
-  shell(`<div class="result-mark" aria-hidden="true">${icon('checkmark')}</div><p class="kicker">${awaitingFinal ? 'Lessons complete' : all ? 'Course complete' : `Lesson ${state.lesson + 1} complete`}</p><h1>${awaitingFinal ? 'One final check' : all ? 'You completed the course' : esc(lessons[state.lesson].title)}</h1><p class="muted lead">${awaitingFinal ? 'You finished all seven lessons. Confirm what you learned to complete the course.' : all ? 'You completed all seven lessons in the United States mandatory safety education.' : esc(lessons[state.lesson].summary)}</p>${progressBar(all ? 100 : Math.round(state.completed.length / lessons.length * 100), `${state.completed.length} of ${lessons.length} lessons complete`, 'course-progress')}<div class="course-contribution"><span class="feedback-mark">${icon('plus')}</span><div><b>${all ? 'Course contribution recorded' : `Lesson complete · +${contribution} points`}</b><p>${all ? `${coursePoints(state.learningRecord, 'sexual-misconduct')} points from this course are in your shared record.${unlocked ? ` ${esc(unlocked.title)} badge unlocked.` : ''}` : `Your account-level total is now ${learningPoints()} points.`}</p></div></div><div class="milestone"><b>${awaitingFinal ? 'Next step' : all ? 'Your commitment' : 'Next lesson'}</b><p>${awaitingFinal ? 'Five questions · about 3 minutes' : all ? 'Keep conversations respectful, follow stated boundaries, and report concerns safely.' : `${esc(next.title)} · ${next.steps.length} activities`}</p></div>`, button(awaitingFinal ? 'Complete final check' : all ? 'View learning progress' : `Start lesson ${state.lesson + 2}`, awaitingFinal ? 'final-check' : all ? 'rewards' : 'next-lesson') + button('Back to course', 'overview', true));
+  const status = courseStatus();
+  const back = { label: 'Back to course', action: 'overview' };
+  if (status === 'complete') {
+    const thorough = badgeStates().find(b => b.key === 'thorough');
+    shell({ nav: navHeader(COURSE_TITLE, 'overview'), body: `${checkResult({ kicker: 'Course complete', title: 'You completed the course', body: 'You completed all seven lessons in the United States mandatory safety education.' })}${progress(`${lessons.length} of ${lessons.length} lessons complete`, 100)}${milestone({ title: 'Course contribution recorded', body: `${coursePoints(state.learningRecord, COURSE_ID)} points from this course are in your shared record.` })}${thorough.state === 'earned' ? `<section class="group"><h2 class="u-heading-x-small">Badge unlocked</h2>${badgeRow(thorough)}</section>` : ''}${note('Your commitment', 'Keep conversations respectful, follow stated boundaries, and report concerns safely.')}`, footer: stepFooter({ label: 'View learning progress', action: 'rewards' }, back) });
+    return;
+  }
+  const lessonTitle = lessons[state.lesson].title, contribution = lessonPoints(state.lesson);
+  const points = milestone({ title: `Lesson complete · +${contribution} points`, body: `Your account-level total is now ${learningPoints()} points.` });
+  if (status === 'final-pending') {
+    shell({ nav: navHeader(`Lesson ${state.lesson + 1} of ${lessons.length}`, 'overview'), body: `${checkResult({ kicker: 'Lessons complete', title: 'One final check', body: 'You finished all seven lessons. Confirm what you learned to complete the course.' })}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}${points}${milestone({ kicker: 'Next step', title: 'Final knowledge check', body: 'Five questions · about 3 minutes', next: true, action: 'final-check' })}`, footer: stepFooter({ label: 'Complete final check', action: 'final-check' }, back) });
+    return;
+  }
+  const next = currentLesson();
+  shell({ nav: navHeader(`Lesson ${state.lesson + 1} of ${lessons.length}`, 'overview'), body: `${checkResult({ kicker: `Lesson ${state.lesson + 1} complete`, title: lessonTitle, body: lessons[state.lesson].summary })}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}${points}${milestone({ kicker: 'Next lesson', title: lessons[next].title, body: `${lessons[next].steps.length} activities · Up to ${eligibleIn(lessons[next]) * 10} points`, next: true, action: 'next-lesson' })}`, footer: stepFooter({ label: `Start lesson ${next + 1}`, action: 'next-lesson' }, back) });
 }
 function rewardsView() {
-  const earned = earnedBadges();
-  const tabs = `<div class="progress-tabs" role="tablist" aria-label="Learning record"><button role="tab" data-progress-tab="progress" aria-selected="${progressTab === 'progress'}">Progress</button><button role="tab" data-progress-tab="habit" aria-selected="${progressTab === 'habit'}">Habit</button><button role="tab" data-progress-tab="badges" aria-selected="${progressTab === 'badges'}">Badges</button><button role="tab" data-progress-tab="standing" aria-selected="${progressTab === 'standing'}">Standing</button></div>`;
-  const progressContent = `<section class="progress-panel"><div class="account-total"><small>Total points</small><b>${learningPoints()}</b><span>Across all your courses</span></div><h2>Course contributions</h2><div class="course-breakdown"><div><b>Sexual misconduct education</b><small>${state.completed.length} of ${lessons.length} lessons complete · ${activityCount(state.learningRecord, 'sexual-misconduct')} eligible activities</small></div><strong>+${coursePoints(state.learningRecord, 'sexual-misconduct')}</strong></div><div class="course-breakdown"><div><b>Road safety fundamentals</b><small>External completion tracked separately</small></div><strong>—</strong></div>${progressBar(coursePercent(), `${completedStepCount()} of ${totalSteps} course steps`, 'course-progress')}<p class="measurement-note">Points are awarded once per eligible activity. Reading requires Continue, videos require full playback, and practice requires a correct answer. Resource screens and assessments award no points.</p></section>`;
-  const habit = habitSummary(state.learningRecord);
-  const habitContent = `<section class="progress-panel"><div class="account-total"><small>Week streak</small><b>${habit.weekStreak}</b><span>consecutive goal weeks</span></div><h2>This week's goal</h2><p class="muted">${habit.paused ? 'Paused: you have completed all currently available eligible learning.' : habit.met ? 'Goal complete for this week.' : `${habit.learningDays} of ${habit.goal} learning days complete.`}</p><div class="habit-days"><span class="${habit.learningDays >= 1 || habit.met ? 'done' : ''}">Day 1</span><span class="${habit.learningDays >= 2 || habit.met ? 'done' : ''}">Day 2</span></div><p class="measurement-note">A learning day requires the first completion of an eligible activity. The goal is two different days in a Monday–Sunday week. Finishing all available learning also meets that week's goal. A week with no eligible learning pauses the streak. One missed active week in eight can be forgiven; earned points and badges never disappear. Your learning week follows this device’s time zone (${esc(habit.timeZone)}).</p></section>`;
-  const badgesContent = `<section class="progress-panel"><p class="muted">Three account-level badges recognise applied practice, course completion, and retained knowledge.</p><div class="badge-list">${badges.map((badge, index) => `<div class="badge-row ${earned.includes(badge) ? 'earned' : ''}"><span>${icon(['badge_checkmark', 'shield_check', 'star'][index] || 'badge_checkmark')}</span><div><b>${esc(badge.title)}</b><small>${earned.includes(badge) ? 'Earned across your courses' : esc(badge.detail)}</small></div></div>`).join('')}</div>${retentionDue() ? button('Take your 30-day check', 'retention-intro') : ''}</section>`;
-  const standing = demoComparison(state.learningRecord);
-  const bands = COHORT_BANDS.map((range, index) => `<div class="standing-band ${standing.bandIndex === index ? 'is-current' : ''}" role="listitem" aria-label="${range}${standing.bandIndex === index ? ', your example band' : ''}"><span class="standing-band-bar" aria-hidden="true">${standing.bandIndex === index ? '<i>You</i>' : ''}</span><span class="standing-band-label">${range}</span></div>`).join('');
-  const standingContent = `<section class="progress-panel standing-panel"><p class="page-context">Illustrative cohort · This week</p><h2>${standing.bandIndex === null ? 'Your band will appear here' : `Your band: ${standing.label}`}</h2><p class="muted">${standing.bandIndex === null ? 'Complete a learning activity to see where you stand.' : `${standing.count} eligible ${standing.count === 1 ? 'activity' : 'activities'} completed this week.`}</p><div class="standing-bands" role="list" aria-label="Four cohort position bands">${bands}</div><p class="measurement-note">Example cohort of ${standing.cohortSize} learners. Live comparisons will use approved, privacy-safe learner data.</p></section>`;
-  shell(`<p class="page-context">Across all courses</p><h1 class="learning-progress-title">Learning progress</h1><p class="muted">Points, habits, badges, and standing across your courses.</p>${tabs}${progressTab === 'progress' ? progressContent : progressTab === 'habit' ? habitContent : progressTab === 'badges' ? badgesContent : standingContent}`, button(state.started && state.completed.length < lessons.length ? 'Continue course' : 'Back to course', state.started && state.completed.length < lessons.length ? 'start' : 'overview') + button('Learning home', 'discover', true), 'Learning progress', 'discover');
-}
-
-function libraryView() {
-  shell(`<p class="page-context">Course library</p><h1>Explore learning</h1><p class="muted lead">Courses available for your profile.</p><div class="filter-chips" role="group" aria-label="Course filters"><button aria-pressed="true">All</button><button>Required</button><button>Safety</button></div><div class="library-list"><button class="library-row" data-action="course"><span><small>Required · Safety</small><b>Sexual misconduct education</b><em>7 lessons · 33 activities</em></span><strong>${state.started ? 'Continue' : 'View'} →</strong></button><button class="library-row is-external" data-action="road-safety"><span><small>Optional · Safety</small><b>Road safety fundamentals</b><em>Available soon</em></span><strong>Details →</strong></button></div>`, button('Back to learning home', 'discover'), 'Course library', 'discover');
-}
-function roadSafetyView() {
-  shell(`<p class="page-context">Available soon</p><h1>Road safety fundamentals</h1><p class="muted lead">This course is not available yet. We’ll show it here when it is ready.</p><div class="care-note"><b>Your learning record stays accurate</b><p>Road Safety does not add points, count toward your weekly goal, or unlock badges until its completion can be confirmed.</p></div>`, button('Back to course library', 'library'), 'Road safety', 'library');
+  const tabs = [['progress', 'Progress'], ['habit', 'Habit'], ['badges', 'Badges'], ['standing', 'Standing']];
+  const tabBar = `<div class="tabs" role="tablist" aria-label="Learning record">${tabs.map(([key, label]) => `<button role="tab" data-progress-tab="${key}" aria-selected="${progressTab === key}"><span class="u-label-small">${label}</span></button>`).join('')}</div>`;
+  let panel = '';
+  if (progressTab === 'progress') {
+    panel = `${pointsTotalCard('Total points', 'Across all your courses', learningPoints())}<section class="group"><h2 class="u-heading-small">Course contributions</h2><div class="contribution-row"><span class="contribution-row__body"><b class="u-label-medium c-primary">${COURSE_TITLE}</b><small class="u-paragraph-small c-tertiary">${lessonsDone()} of ${lessons.length} lessons complete · ${activityCount(state.learningRecord, COURSE_ID)} eligible activities</small></span><b class="contribution-row__value u-mono-label-medium">+${coursePoints(state.learningRecord, COURSE_ID)}</b></div><div class="contribution-row is-external"><span class="contribution-row__body"><b class="u-label-medium c-primary">Road safety fundamentals</b><small class="u-paragraph-small c-tertiary">External completion tracked separately</small></span><b class="contribution-row__value u-mono-label-medium">—</b></div></section>${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}<p class="u-paragraph-small c-secondary">Points are awarded once per eligible activity. Reading requires Continue, videos require full playback, and practice requires a correct answer. Resource screens and assessments award no points.</p>`;
+  } else if (progressTab === 'habit') {
+    const habit = habitSummary(state.learningRecord);
+    panel = `${pointsTotalCard('Week streak', 'Consecutive goal weeks', habit.weekStreak)}${weeklyGoal()}<p class="u-paragraph-small c-secondary">A learning day requires the first completion of an eligible activity. The goal is two different days in a Monday–Sunday week. Finishing all available learning also meets that week’s goal. A week with no eligible learning pauses the streak. One missed active week in eight can be forgiven; earned points and badges never disappear.</p>`;
+  } else if (progressTab === 'badges') {
+    panel = `<p class="lead u-paragraph-medium">Three account-level badges recognise applied practice, course completion, and retained knowledge.</p><div>${badgeStates().map(badgeRow).join('')}</div>${retentionDue() ? '<button class="btn btn--primary u-label-large" data-action="retention-intro">Take your 30-day check</button>' : ''}`;
+  } else {
+    const standing = demoComparison(state.learningRecord);
+    const bands = COHORT_BANDS.map((range, index) => { const current = standing.bandIndex === index; return `<div class="cohort__band${current ? ' is-current' : ''}" role="listitem" aria-label="${range}${current ? ', your example band' : ''}"><span class="cohort__block">${current ? '<b class="u-label-x-small">You</b>' : ''}</span><span class="standing-band-label ${current ? 'u-label-x-small c-primary' : 'u-paragraph-x-small c-tertiary'}">${range}</span></div>`; }).join('');
+    panel = `<section class="cohort standing-panel"><p class="u-label-x-small c-tertiary">Illustrative cohort · This week</p><h2 class="u-heading-small">${standing.bandIndex === null ? 'Your band appears after your first activity' : `Your band: ${standing.label}`}</h2><div class="cohort__bands" role="list" aria-label="Four cohort position bands">${bands}</div><p class="u-paragraph-x-small c-tertiary">Example cohort of ${standing.cohortSize} learners. Live comparisons will use approved, privacy-safe learner data.</p></section>`;
+  }
+  const status = courseStatus();
+  const primary = status === 'in-progress' ? { label: 'Continue course', action: 'start' } : status === 'final-pending' ? { label: 'Complete final check', action: 'final-check' } : { label: 'Back to course', action: 'overview' };
+  shell({ nav: navHeader('Learning progress', 'discover'), body: `${kicker('Across all courses')}${heading('Learning progress')}${lead('Points, habits, badges, and standing across your courses.')}${tabBar}${panel}`, footer: stepFooter(primary, { label: 'Learning home', action: 'discover' }) });
 }
 function retentionIntro() {
   const due = retentionDue();
-  shell(`<p class="page-context">30 days on · Not scored for points</p><h1>${due ? 'Still with you?' : 'Come back in 30 days'}</h1><p class="muted lead">${due ? 'Five new questions check what stayed with you from Sexual misconduct education.' : 'Your retention check becomes available 30 days after you complete the course.'}</p><div class="care-note"><b>Retained badge</b><p>Answer at least four of five questions correctly to earn it. You can review the course and try again if needed.</p></div>`, button(due ? 'Start retention check' : 'Back to learning home', due ? 'start-retention' : 'discover') + (due ? button('Not now', 'discover', true) : ''), 'Retention check', 'discover');
+  const retained = badgeStates().find(b => b.key === 'retained');
+  shell({ nav: navHeader('Retention check', 'discover'), body: `${kicker('30 days on · Not scored for points')}${heading(due ? 'Still with you?' : 'Come back in 30 days')}${lead(due ? `Five new questions check what stayed with you from ${COURSE_TITLE}.` : 'Your retention check becomes available 30 days after you complete the course.')}${badgeRow({ ...retained, detail: 'Answer at least four of five questions correctly to earn it. You can review the course and try again if needed.' })}`, footer: due ? stepFooter({ label: 'Start retention check', action: 'start-retention' }, { label: 'Not now', action: 'discover' }) : stepFooter({ label: 'Back to learning home', action: 'discover' }) });
+}
+function resumeView() {
+  shell({ nav: navHeader('Progress saved', 'discover'), body: `${kicker('Progress saved')}${heading('Pick up where you left off')}${lead(`You completed ${completedActivities()} of ${totalSteps} activities. Come back whenever you’re ready.`)}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}`, footer: stepFooter({ label: 'Resume where you left off', action: 'start' }, { label: 'Back to learning home', action: 'discover' }) });
 }
 const errors = {
   loading: ['Loading your course', 'Your course and saved progress are being retrieved.', 'Finish loading'],
@@ -320,166 +426,147 @@ const errors = {
 };
 function render() {
   stopVideo();
-  if (errorState) { const e = errors[errorState]; shell(`<div class="placeholder" aria-hidden="true">${errorState === 'loading' ? '···' : '!'}</div><h1>${e[0]}</h1><p class="muted">${e[1]}</p>`, button(e[2], 'recover')); return; }
-  if (view === 'discover') discovery(); else if (view === 'library') libraryView(); else if (view === 'road-safety') roadSafetyView(); else if (view === 'retention-intro') retentionIntro(); else if (view === 'overview') overview(); else if (view === 'intro') courseIntro(); else if (view === 'assessment') assessment(); else if (view === 'assessment-result') assessmentResult(); else if (view === 'activity') activity(); else if (view === 'complete') completion(); else if (view === 'rewards') rewardsView();
-  else shell(`<p class="kicker">Progress saved</p><h1>Pick up where you left off</h1><p class="muted">You completed ${completedStepCount()} of ${totalSteps} activities. Come back whenever you’re ready.</p>${progressBar(coursePercent(), `${state.completed.length} of ${lessons.length} lessons complete`, 'course-progress')}`, button('Resume where you left off', 'start') + button('Back to learning home', 'discover', true), 'Progress saved', 'discover');
+  if (errorState) { const e = errors[errorState]; shell({ nav: navHeader(COURSE_TITLE, 'discover'), bodyClass: 'screen-body--centre', body: emptyState(e[0], e[1]), footer: stepFooter({ label: e[2], action: 'recover' }) }); return; }
+  ({ discover: discovery, library: libraryView, 'road-safety': roadSafetyView, 'retention-intro': retentionIntro, overview, intro: courseIntro, assessment, 'assessment-result': assessmentResult, activity, complete: completion, rewards: rewardsView, exit: resumeView }[view] || discovery)();
 }
-root.addEventListener('input', e => { if (e.target.id !== 'answer') return; state.responses[`${state.lesson}-${state.step}`] = e.target.value; save(); const check = root.querySelector('[data-action="check"]'); if (check) check.disabled = !e.target.value.trim(); const count = root.querySelector('#count'); if (count) count.textContent = `${e.target.value.length}/300 characters · private practice response`; });
+
+// ---------- Interaction ----------
+root.addEventListener('input', e => { if (e.target.id !== 'answer') return; state.responses[`${state.lesson}-${state.step}`] = e.target.value; save(); const check = root.querySelector('[data-action="check"]'); if (check) check.disabled = !e.target.value.trim(); const count = root.querySelector('#count'); if (count) count.textContent = `${e.target.value.length}/300`; });
 root.addEventListener('click', e => {
   const el = e.target.closest('button'); if (!el || el.disabled) return;
-  if (el.dataset.assessmentChoice !== undefined) { if (!state.assessmentResponses) state.assessmentResponses = { baseline: [], final: [] }; state.assessmentResponses[assessmentMode][assessmentIndex] = +el.dataset.assessmentChoice; save(); assessment(); return; }
-  if (el.dataset.lesson !== undefined) { openStep(+el.dataset.lesson, 0); return; }
+  if (el.dataset.assessmentChoice !== undefined) { state.assessmentResponses[assessmentMode] ||= []; state.assessmentResponses[assessmentMode][assessmentIndex] = +el.dataset.assessmentChoice; save(); assessment(); return; }
+  if (el.dataset.lesson !== undefined) { const i = +el.dataset.lesson; openStep(i, state.started && state.lesson === i ? state.step : 0); return; }
   if (el.dataset.progressTab) { progressTab = el.dataset.progressTab; rewardsView(); return; }
   if (el.dataset.choice !== undefined) { selected = +el.dataset.choice; activity(); root.querySelector('[data-action="check"]')?.focus(); return; }
   if (el.dataset.card !== undefined) { selected = +el.dataset.card; activity(); root.querySelector('[data-place]')?.focus(); return; }
   if (el.dataset.place !== undefined) { if (selected !== null) { placement[selected] = +el.dataset.place; selected = null; activity(); } return; }
   if (el.dataset.move) { const [i, d] = el.dataset.move.split(',').map(Number); [order[i], order[i + d]] = [order[i + d], order[i]]; activity(); root.querySelector(`[data-move="${i + d},${d}"]`)?.focus(); return; }
   const action = el.dataset.action;
-  if (action === 'discover') { errorState = ''; view = 'discover'; render(); }
-  if (action === 'course') { errorState = ''; view = 'overview'; render(); }
-  if (action === 'overview') { errorState = ''; view = 'overview'; render(); }
-  if (action === 'rewards') { errorState = ''; view = 'rewards'; render(); }
-  if (action === 'library') { errorState = ''; view = 'library'; render(); }
-  if (action === 'road-safety') { errorState = ''; view = 'road-safety'; render(); }
-  if (action === 'retention-intro') { errorState = ''; view = 'retention-intro'; render(); }
-  if (action === 'course-intro') { errorState = ''; view = 'intro'; render(); }
-  if (action === 'baseline') { assessmentMode = 'baseline'; assessmentIndex = 0; view = 'assessment'; render(); }
-  if (action === 'final-check') { assessmentMode = 'final'; assessmentIndex = 0; view = 'assessment'; render(); }
-  if (action === 'start-retention' && retentionDue()) { assessmentMode = 'retention'; assessmentIndex = 0; view = 'assessment'; render(); }
-  if (action === 'assessment-next') { const questions = assessments[assessmentMode]; if (assessmentIndex < questions.length - 1) { assessmentIndex++; render(); } else if (assessmentMode === 'baseline') { state.baselineDone = true; save(); openStep(0, 0); } else { const score = questions.reduce((sum, question, i) => sum + (state.assessmentResponses[assessmentMode][i] === question.answer ? 1 : 0), 0); if (assessmentMode === 'retention') state.retentionScore = score; else state.finalCheckScore = score; view = 'assessment-result'; save(); render(); } }
+  const go = (next) => { errorState = ''; view = next; render(); };
+  if (action === 'discover') go('discover');
+  if (action === 'course' || action === 'overview') go('overview');
+  if (action === 'rewards') { progressTab = 'progress'; go('rewards'); }
+  if (action === 'habit') { progressTab = 'habit'; go('rewards'); }
+  if (action === 'library') go('library');
+  if (action === 'road-safety') go('road-safety');
+  if (action === 'retention-intro') go('retention-intro');
+  if (action === 'course-intro') go('intro');
+  if (action === 'baseline') { assessmentMode = 'baseline'; assessmentIndex = 0; go('assessment'); }
+  if (action === 'final-check') { assessmentMode = 'final'; assessmentIndex = 0; go('assessment'); }
+  if (action === 'start-retention' && retentionDue()) { assessmentMode = 'retention'; assessmentIndex = 0; go('assessment'); }
+  if (action === 'assessment-next') { const questions = assessments[assessmentMode]; if (assessmentIndex < questions.length - 1) { assessmentIndex++; render(); } else if (assessmentMode === 'baseline') { state.baselineDone = true; save(); openStep(0, 0); } else { const score = scoreOf(assessmentMode); if (assessmentMode === 'retention') state.retentionScore = score; else state.finalCheckScore = score; view = 'assessment-result'; save(); render(); } }
   if (action === 'retry-final') { state.assessmentResponses.final = []; state.finalCheckScore = null; assessmentMode = 'final'; assessmentIndex = 0; view = 'assessment'; save(); render(); }
   if (action === 'retry-retention') { state.assessmentResponses.retention = []; state.retentionScore = null; assessmentMode = 'retention'; assessmentIndex = 0; view = 'assessment'; save(); render(); }
-  if (action === 'finish-course') { state.finalCheckDone = true; recordCourseCompletion(state.learningRecord, 'sexual-misconduct'); save(); view = 'complete'; render(); }
-  if (action === 'finish-retention') { if (recordRetentionCheck(state.learningRecord, { courseId: 'sexual-misconduct', score: state.retentionScore })) state.retentionCheckDone = true; save(); progressTab = 'badges'; view = 'rewards'; render(); }
+  if (action === 'finish-course') { state.finalCheckDone = true; recordCourseCompletion(state.learningRecord, COURSE_ID); save(); go('complete'); }
+  if (action === 'finish-retention') { if (recordRetentionCheck(state.learningRecord, { courseId: COURSE_ID, score: state.retentionScore })) state.retentionCheckDone = true; save(); progressTab = 'badges'; go('rewards'); }
   if (action === 'begin-lessons') openStep(0, 0);
-  if (action === 'start') openStep(state.completed.length === lessons.length ? 0 : state.lesson, state.completed.length === lessons.length ? 0 : state.step);
-  if (action === 'exit') { save(); view = 'exit'; errorState = ''; render(); }
-  if (action === 'back') { if (state.step > 0) openStep(state.lesson, state.step - 1); else { view = 'overview'; render(); } }
+  if (action === 'start') { const cur = currentLesson(); if (cur === null) openStep(0, 0); else openStep(cur, state.lesson === cur ? state.step : 0); }
+  if (action === 'review') openStep(0, 0);
+  if (action === 'exit') { save(); go('exit'); }
+  if (action === 'back') { if (state.step > 0) openStep(state.lesson, state.step - 1); else go('overview'); }
   if (action === 'dropdown') { const list = root.querySelector('#dropdown-options'); list.hidden = !list.hidden; el.setAttribute('aria-expanded', !list.hidden); if (!list.hidden) list.querySelector('button').focus(); }
   if (action === 'retry') { checked = false; activity(); }
   if (action === 'check') {
     const a = lessons[state.lesson].steps[state.step]; checked = true;
     const val = (state.responses[`${state.lesson}-${state.step}`] || '').trim();
     correct = a.type === 'text' || (['choice', 'dropdown'].includes(a.type) && selected === a.answer) || (a.type === 'number' && /^\d+$/.test(val) && Number(val) === a.answer) || (a.type === 'drag' && a.answers.every((n, i) => placement[i] === n)) || (a.type === 'sort' && order.every((n, i) => n === a.answer[i]));
-    activity(); root.querySelector('#feedback')?.scrollIntoView({ block: 'nearest' });
+    activity(); root.querySelector('#feedback')?.scrollIntoView?.({ block: 'nearest' });
   }
-  if (action === 'next') { const activity = lessons[state.lesson].steps[state.step]; recordActivity(state.learningRecord, { courseId: 'sexual-misconduct', activityId: `${state.lesson}.${state.step}`, type: activity.type, correct }); if (state.step < lessons[state.lesson].steps.length - 1) openStep(state.lesson, state.step + 1); else { if (!state.completed.includes(state.lesson)) state.completed.push(state.lesson); save(); view = 'complete'; render(); } }
-  if (action === 'next-lesson') openStep(Math.min(state.lesson + 1, lessons.length - 1), 0);
-  if (action === 'captions') { const c = root.querySelector('#captions'); c.hidden = !c.hidden; el.textContent = c.hidden ? 'CC off' : 'CC on'; el.setAttribute('aria-pressed', !c.hidden); }
-  if (action === 'fullscreen') {
-    const player = el.closest('.video-player');
-    if (document.fullscreenElement) document.exitFullscreen?.();
-    else player?.requestFullscreen?.();
-  }
-  if (action === 'recover') { const wasMedia = errorState === 'media'; errorState = ''; if (wasMedia) openStep(state.lesson, state.step); else { view = 'overview'; render(); } }
+  if (action === 'next') { const step = lessons[state.lesson].steps[state.step]; recordActivity(state.learningRecord, { courseId: COURSE_ID, activityId: `${state.lesson}.${state.step}`, type: step.type, correct }); if (state.step < lessons[state.lesson].steps.length - 1) openStep(state.lesson, state.step + 1); else { if (!state.completed.includes(state.lesson)) state.completed.push(state.lesson); save(); go('complete'); } }
+  if (action === 'next-lesson') { const next = currentLesson(); if (next !== null) openStep(next, 0); }
+  if (action === 'captions') { const c = root.querySelector('#captions'); c.hidden = !c.hidden; root.querySelectorAll('[data-action="captions"]').forEach(b => b.setAttribute('aria-pressed', !c.hidden)); const pill = root.querySelector('.pill[data-action="captions"]'); if (pill) pill.textContent = c.hidden ? 'CC off' : 'CC on'; }
+  if (action === 'fullscreen') { const player = el.closest('.video-player'); if (document.fullscreenElement) document.exitFullscreen?.(); else player?.requestFullscreen?.(); }
+  if (action === 'recover') { const wasMedia = errorState === 'media'; errorState = ''; if (wasMedia) openStep(state.lesson, state.step); else go('overview'); }
   if (action === 'play') {
     const title = lessons[state.lesson].steps[state.step].title;
-    if (playing) { stopVideo(); updatePlayControl(el, 'play', title); return; }
+    const setControl = (mode) => { el.innerHTML = icon(mode === 'pause' ? 'player_pause' : mode === 'replay' ? 'arrow_counter_clockwise' : 'player_play'); el.setAttribute('aria-label', `${mode === 'pause' ? 'Pause' : mode === 'replay' ? 'Replay' : 'Play'} ${title}`); root.querySelector('.video-player__title').hidden = mode === 'pause'; };
+    if (playing) { stopVideo(); setControl('play'); return; }
     if (watched) { tick = 0; watched = false; }
-    playing = true; updatePlayControl(el, 'pause', title); root.querySelector('[data-action="next"]').disabled = true;
+    playing = true; setControl('pause'); root.querySelector('[data-action="next"]').disabled = true;
     const media = videoMeta[state.lesson];
-    timer = setInterval(() => { tick++; const time = root.querySelector('#video-time'), progress = root.querySelector('#video-progress'); if (!time) return stopVideo(); const current = Math.min(media.duration, Math.round(media.duration * tick / 12)); time.textContent = `${Math.floor(current / 60)}:${String(current % 60).padStart(2, '0')} / ${media.runtime}`; if (progress) progress.style.width = `${Math.min(100, tick / 12 * 100)}%`; if (tick >= 12) { stopVideo(); watched = true; updatePlayControl(el, 'replay', title); root.querySelector('[data-action="next"]').disabled = false; root.querySelector('#watch-status').textContent = 'Video complete. You can continue.'; } }, 1000);
+    timer = setInterval(() => { tick++; const time = root.querySelector('#video-time'), bar = root.querySelector('#video-progress'); if (!time) return stopVideo(); const current = Math.min(media.duration, Math.round(media.duration * tick / 12)); time.textContent = `${Math.floor(current / 60)}:${String(current % 60).padStart(2, '0')} / ${media.runtime}`; if (bar) bar.style.width = `${Math.min(100, tick / 12 * 100)}%`; if (tick >= 12) { stopVideo(); watched = true; activity(); } }, 1000);
   }
 });
 root.addEventListener('keydown', e => { const list = root.querySelector('#dropdown-options'); if (!list || list.hidden) return; const opts = [...list.querySelectorAll('button')]; const i = opts.indexOf(document.activeElement); if (e.key === 'Escape') { list.hidden = true; const trigger = root.querySelector('[data-action="dropdown"]'); trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); } if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) { e.preventDefault(); opts[e.key === 'Home' ? 0 : e.key === 'End' ? opts.length - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length].focus(); } });
-root.addEventListener('dragstart', e => { const el = e.target.closest('[data-card],[data-sort]'); if (!el || checked) return; dragged = { type: el.dataset.card !== undefined ? 'card' : 'sort', index: +(el.dataset.card ?? el.dataset.sort) }; el.classList.add('is-dragging'); root.querySelectorAll(dragged.type === 'card' ? '[data-zone]' : '[data-sort]').forEach(target => target.classList.add('is-valid-target')); e.dataTransfer.setData('text/plain', String(dragged.index)); });
+root.addEventListener('dragstart', e => { const el = e.target.closest('[data-card],[data-sort]'); if (!el || checked) return; dragged = { type: el.dataset.card !== undefined ? 'card' : 'sort', index: +(el.dataset.card ?? el.dataset.sort) }; el.classList.add(dragged.type === 'card' ? 'is-selected' : 'is-dragging'); e.dataTransfer.setData('text/plain', String(dragged.index)); });
 root.addEventListener('dragover', e => { const target = e.target.closest('[data-zone],[data-sort]'); if (target) { e.preventDefault(); root.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over')); target.classList.add('is-drag-over'); } });
 root.addEventListener('dragleave', e => { e.target.closest('[data-zone],[data-sort]')?.classList.remove('is-drag-over'); });
-root.addEventListener('dragend', () => { root.querySelectorAll('.is-dragging,.is-valid-target,.is-drag-over').forEach(item => item.classList.remove('is-dragging', 'is-valid-target', 'is-drag-over')); });
-root.addEventListener('drop', e => { const zone = e.target.closest('[data-zone]'), row = e.target.closest('[data-sort]'); if (!dragged) return; e.preventDefault(); if (zone && dragged.type === 'card') placement[dragged.index] = +zone.dataset.zone; if (row && dragged.type === 'sort') { const [item] = order.splice(dragged.index, 1); order.splice(+row.dataset.sort, 0, item); } dragged = null; activity(); });
-function seedPreviewThrough(lastLesson, { complete = false, retained = false } = {}) {
-  state = freshState();
-  state.started = true;
-  state.completed = lessons.slice(0, lastLesson + 1).map((_, index) => index);
-  state.lesson = Math.min(lastLesson, lessons.length - 1);
-  for (let lessonIndex = 0; lessonIndex <= lastLesson; lessonIndex++) {
-    lessons[lessonIndex].steps.forEach((step, stepIndex) => recordActivity(state.learningRecord, { courseId: 'sexual-misconduct', activityId: `${lessonIndex}.${stepIndex}`, type: step.type, correct: true }));
-  }
-  if (complete) {
-    const completedAt = retained ? new Date(Date.now() - 31 * 86400000).toISOString() : new Date().toISOString();
-    state.finalCheckDone = true;
-    recordCourseCompletion(state.learningRecord, 'sexual-misconduct', completedAt);
-  }
-  if (retained) {
-    recordRetentionCheck(state.learningRecord, { courseId: 'sexual-misconduct', score: 5 });
-    state.retentionCheckDone = true;
-  }
-}
-const panel = document.querySelector('#review-panel');
-panel.innerHTML = `<h2>Complete interactive Version B</h2><button data-preview="discover">Course discovery</button><button data-preview="library">Course library</button><button data-preview="road-safety">Road safety handoff</button><button data-preview="overview">Course overview</button><button data-preview="intro">Course introduction</button><button data-preview="baseline">Baseline check</button><button data-preview="rewards">Learning progress</button><button data-preview="habit">Weekly habit</button><button data-preview="standing">Demo comparison</button><button data-preview="retention">Retention check due</button>${lessons.map((l, n) => l.steps.map((a, s) => `<button data-jump="${n},${s}">${n + 1}.${s + 1} ${a.type} · ${a.title}</button>`).join('')).join('')}<button data-preview="final-check">Final knowledge check</button><button data-preview="complete">Course completion</button><h2>Recovery states</h2>${Object.keys(errors).map(k => `<button data-error="${k}">${errors[k][0]}</button>`).join('')}<h2>Prototype controls</h2><button data-preview="reset">Reset local Version B progress</button>`;
-document.querySelector('#review-toggle').addEventListener('click', e => { panel.hidden = !panel.hidden; e.target.setAttribute('aria-expanded', !panel.hidden); });
-panel.addEventListener('click', e => { const el = e.target.closest('button'); if (!el) return; if (el.dataset.jump) { openStep(...el.dataset.jump.split(',').map(Number)); return; } if (el.dataset.error) { errorState = el.dataset.error; render(); return; } errorState = ''; if (el.dataset.preview === 'reset') { state = freshState(); retentionPreview = false; save(); view = 'discover'; } else if (el.dataset.preview === 'complete') { seedPreviewThrough(lessons.length - 1, { complete: true }); view = 'complete'; } else if (el.dataset.preview === 'retention') { seedPreviewThrough(lessons.length - 1, { complete: true }); state.learningRecord.courses['sexual-misconduct'].completedAt = new Date(Date.now() - 31 * 86400000).toISOString(); retentionPreview = true; view = 'retention-intro'; } else if (el.dataset.preview === 'baseline' || el.dataset.preview === 'final-check') { assessmentMode = el.dataset.preview === 'baseline' ? 'baseline' : 'final'; assessmentIndex = 0; view = 'assessment'; } else if (['habit', 'standing', 'rewards'].includes(el.dataset.preview)) { seedPreviewThrough(2); progressTab = el.dataset.preview === 'rewards' ? 'progress' : el.dataset.preview; view = 'rewards'; } else if (el.dataset.preview === 'intro') view = 'intro'; else if (el.dataset.preview === 'road-safety') view = 'road-safety'; else if (el.dataset.preview === 'library') view = 'library'; else if (el.dataset.preview === 'overview') view = 'overview'; else view = 'discover'; render(); });
+root.addEventListener('dragend', () => { root.querySelectorAll('.is-dragging,.is-drag-over').forEach(item => item.classList.remove('is-dragging', 'is-drag-over')); });
+root.addEventListener('drop', e => { const zone = e.target.closest('[data-zone]'), row = e.target.closest('[data-sort]'); if (!dragged) return; e.preventDefault(); if (zone && dragged.type === 'card') placement[dragged.index] = +zone.dataset.zone; if (row && dragged.type === 'sort') { const [item] = order.splice(dragged.index, 1); order.splice(+row.dataset.sort, 0, item); } dragged = null; selected = null; activity(); });
 
-// Deterministic presentation states for design review and Figma capture.
-// These do not overwrite a learner's saved progress.
-const previewParams = new URLSearchParams(location.search);
-const preview = previewParams.get('preview');
-if (previewParams.get('review') === '1') document.body.classList.add('review-mode');
-if (previewParams.get('capture') === '1') document.body.classList.add('capture-only');
-const previewLesson = Number(previewParams.get('lesson'));
-const previewStep = Number(previewParams.get('step'));
-const validPreviewActivity = Number.isInteger(previewLesson) && Number.isInteger(previewStep) && lessons[previewLesson]?.steps[previewStep];
-if (preview === 'discover') {
-  state = freshState();
-  view = 'discover';
-} else if (preview === 'library') {
-  view = 'library';
-} else if (preview === 'road-safety') {
-  view = 'road-safety';
-} else if (preview === 'overview') {
-  state = freshState();
-  view = 'overview';
-} else if (preview === 'intro') {
-  view = 'intro';
-} else if (preview === 'baseline' || preview === 'final-check') {
-  assessmentMode = preview === 'baseline' ? 'baseline' : 'final';
-  assessmentIndex = Math.min(4, Math.max(0, Number(previewParams.get('question')) || 0));
-  view = 'assessment';
-} else if (preview === 'activity' && validPreviewActivity) {
-  state = freshState();
-  state = { ...state, lesson: previewLesson, step: previewStep, completed: lessons.slice(0, previewLesson).map((_, i) => i), started: true };
-  view = 'activity';
-} else if (preview === 'lesson-complete' && Number.isInteger(previewLesson) && lessons[previewLesson]) {
-  seedPreviewThrough(previewLesson);
-  state.step = lessons[previewLesson].steps.length - 1;
-  view = 'complete';
-} else if (preview === 'achievements') {
-  seedPreviewThrough(lessons.length - 1, { complete: true, retained: true });
-  view = 'rewards';
-  progressTab = previewParams.get('tab') || 'badges';
-} else if (preview === 'rewards') {
-  const tab = previewParams.get('tab') || 'progress';
-  seedPreviewThrough(tab === 'badges' ? lessons.length - 1 : 2, { complete: tab === 'badges' });
-  view = 'rewards';
-  progressTab = tab;
-} else if (preview === 'habit' || preview === 'standing') {
-  seedPreviewThrough(2);
-  view = 'rewards';
-  progressTab = preview;
-} else if (preview === 'retention') {
-  seedPreviewThrough(lessons.length - 1, { complete: true });
-  state.learningRecord.courses['sexual-misconduct'].completedAt = new Date(Date.now() - 31 * 86400000).toISOString();
-  retentionPreview = true;
-  view = 'retention-intro';
-} else if (preview === 'mastery') {
-  seedPreviewThrough(3);
-  state.lesson = 4; state.step = 2;
-  view = 'activity';
-} else if (preview === 'badge') {
-  seedPreviewThrough(1);
-  state.step = lessons[1].steps.length - 1;
-  view = 'complete';
-} else if (preview === 'complete') {
-  seedPreviewThrough(lessons.length - 1, { complete: true });
-  state.step = lessons.at(-1).steps.length - 1;
-  view = 'complete';
-} else if (preview === 'resume') {
-  seedPreviewThrough(1);
-  state.lesson = 2; state.step = 1;
-  view = 'exit';
-} else if (preview === 'offline') {
-  seedPreviewThrough(1);
-  state.lesson = 2; state.step = 1;
-  errorState = 'offline';
+// ---------- Prepared states, one per Figma screen ----------
+// Dates are real, so the weekly goal, streak and standing are computed by
+// gamification.js rather than typed in: two goal weeks behind the learner,
+// one learning day so far this week.
+function weekStart(weeksAgo, day, hour = 10) { const d = new Date(); d.setHours(hour, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 - weeksAgo * 7 + day); return d.toISOString(); }
+function recordLesson(record, i, dates) {
+  lessons[i].steps.forEach((step, s) => recordActivity(record, { courseId: COURSE_ID, activityId: `${i}.${s}`, type: step.type, correct: true, completedAt: dates[Math.min(s, dates.length - 1)] }));
 }
+const lessonDates = (w, now) => [[w(2, 0), w(2, 0), w(2, 1), w(2, 1), w(2, 1)], [w(1, 0), w(1, 1), now, now], [w(1, 2)], [w(1, 3)], [w(1, 4)], [now], [now]];
+function seedLessons(n, weeksBack = 0) {
+  state = freshState();
+  const w = (k, d) => weekStart(k + weeksBack, d);
+  const now = new Date(Date.now() - weeksBack * 7 * 86400000).toISOString();
+  state.learningRecord = createLearningRecord(weekStart(2 + weeksBack, 0, 9));
+  state.baselineDone = true; state.started = true;
+  state.assessmentResponses.baseline = [1, 0, 0, 0, 0];
+  const dates = lessonDates(w, now);
+  for (let i = 0; i < n; i++) recordLesson(state.learningRecord, i, dates[i]);
+  state.completed = lessons.slice(0, n).map((_, i) => i);
+  state.lesson = Math.min(n, lessons.length - 1);
+  state.step = n >= lessons.length ? lessons.at(-1).steps.length - 1 : 0;
+  return now;
+}
+function seed(stage, { weeksBack = 0 } = {}) {
+  if (stage === 'mid-course') { seedLessons(2); return; }
+  const now = seedLessons(lessons.length, weeksBack);
+  state.assessmentResponses.final = assessments.final.map(q => q.answer); state.finalCheckScore = 5;
+  if (stage === 'lessons-done') return;
+  state.finalCheckDone = true;
+  recordCourseCompletion(state.learningRecord, COURSE_ID, now);
+}
+const demos = {
+  correct: () => { selected = lessons[state.lesson].steps[state.step].answer; checked = true; correct = true; },
+  incorrect: () => { state.responses[`${state.lesson}-${state.step}`] = '21'; checked = true; correct = false; },
+  saved: () => { state.responses[`${state.lesson}-${state.step}`] = 'I can keep conversation respectful and follow the Community Guidelines.'; checked = true; correct = true; },
+  matching: () => { placement = { 0: 0 }; selected = 1; }
+};
+function applyPreview(name, params = new URLSearchParams()) {
+  previewing = true; errorState = ''; resetActivity();
+  const lesson = Number(params.get('lesson')), step = Number(params.get('step'));
+  if (name === 'discover') { state = freshState(); view = 'discover'; }
+  else if (name === 'library') { seed('mid-course'); view = 'library'; }
+  else if (name === 'road-safety') { state = freshState(); view = 'road-safety'; }
+  else if (name === 'overview') { seed('mid-course'); view = 'overview'; }
+  else if (name === 'intro') { state = freshState(); view = 'intro'; }
+  else if (name === 'resume') { seed('mid-course'); view = 'exit'; }
+  else if (name === 'baseline') { state = freshState(); assessmentMode = 'baseline'; assessmentIndex = Math.min(4, Math.max(0, Number(params.get('question')) || 0)); if (params.get('demo') === 'selected') state.assessmentResponses.baseline[assessmentIndex] = 1; view = 'assessment'; }
+  else if (name === 'final-check') { seed('lessons-done'); state.assessmentResponses.final = []; assessmentMode = 'final'; assessmentIndex = 0; view = 'assessment'; }
+  else if (name === 'final-result') { seed('lessons-done'); assessmentMode = 'final'; view = 'assessment-result'; }
+  else if (name === 'activity' && lessons[lesson]?.steps[step]) { seedLessons(lesson); state.lesson = lesson; state.step = step; view = 'activity'; demos[params.get('demo')]?.(); }
+  else if (name === 'lesson-complete' && lessons[lesson]) { seedLessons(lesson + 1); state.lesson = lesson; state.step = lessons[lesson].steps.length - 1; view = 'complete'; }
+  else if (name === 'complete') { seed('complete'); view = 'complete'; }
+  else if (name === 'retention') { seed('complete', { weeksBack: 5 }); view = 'retention-intro'; }
+  else if (name === 'rewards') { seed('mid-course'); progressTab = params.get('tab') || 'progress'; view = 'rewards'; }
+  else if (name === 'offline') { seed('mid-course'); errorState = 'offline'; }
+  else { previewing = false; return false; }
+  return true;
+}
+
+// Review panel: every prepared state, plus each activity and recovery state.
+const panel = document.querySelector('#review-panel');
+const figmaScreens = [['discover', 'Learning home'], ['library', 'Course library'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
+panel.innerHTML = `<h2>Figma screens</h2>${figmaScreens.map(([p, label, q]) => `<button data-preview="${p}" data-query="${q || ''}">${label}</button>`).join('')}<h2>Every activity</h2>${lessons.map((l, n) => l.steps.map((a, s) => `<button data-preview="activity" data-query="lesson=${n}&step=${s}">${n + 1}.${s + 1} ${a.type} · ${esc(a.title)}</button>`).join('')).join('')}<h2>Recovery states</h2>${Object.keys(errors).map(k => `<button data-error="${k}">${errors[k][0]}</button>`).join('')}<h2>Prototype controls</h2><button data-reset>Reset local progress</button>`;
+document.querySelector('#review-toggle').addEventListener('click', e => { panel.hidden = !panel.hidden; e.target.setAttribute('aria-expanded', !panel.hidden); });
+panel.addEventListener('click', e => {
+  const el = e.target.closest('button'); if (!el) return;
+  if (el.dataset.error) { errorState = el.dataset.error; render(); return; }
+  if (el.dataset.reset !== undefined) { previewing = false; state = freshState(); save(); view = 'discover'; errorState = ''; render(); return; }
+  applyPreview(el.dataset.preview, new URLSearchParams(el.dataset.query)); render();
+});
+
+const params = new URLSearchParams(location.search);
+if (params.get('review') === '1') document.body.classList.add('review-mode');
+if (params.get('capture') === '1') document.body.classList.add('capture-only');
+if (params.get('preview')) applyPreview(params.get('preview'), params);
 render();
