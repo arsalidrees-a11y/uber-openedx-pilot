@@ -1,3 +1,5 @@
+import { CURRICULA } from './catalog.js';
+
 export const POINTS_PER_ACTIVITY = 10;
 export const WEEKLY_DAY_GOAL = 2;
 export const ROAD_SAFETY_COUNTS_FOR_REWARDS = false;
@@ -62,13 +64,11 @@ export function recordRetentionCheck(record, { courseId, score, completedAt = ne
 export const pointsTotal = record => record.activities.reduce((sum, activity) => sum + activity.points, 0);
 export const coursePoints = (record, courseId) => record.activities.filter(activity => activity.courseId === courseId).reduce((sum, activity) => sum + activity.points, 0);
 export const activityCount = (record, courseId) => record.activities.filter(activity => activity.courseId === courseId).length;
-export function earnedBadgeKeys(record) {
-  const earned = [];
-  if (record.activities.filter(activity => activity.correct).length >= 5) earned.push('applied');
-  if (Object.values(record.courses).some(course => course.completedAt)) earned.push('thorough');
-  if (record.retentionChecks.length) earned.push('retained');
-  return earned;
-}
+// Badges belong to curricula, not courses: one badge when every course in a
+// curriculum is complete. The 30-day retention check awards no badge.
+export const curriculumProgress = (record, curriculum) => curriculum.courses.filter(id => record.courses[id]?.completedAt).length;
+export const curriculumComplete = (record, curriculum) => curriculumProgress(record, curriculum) === curriculum.courses.length;
+export const earnedBadgeKeys = (record, curricula = CURRICULA) => curricula.filter(curriculum => curriculumComplete(record, curriculum)).map(curriculum => curriculum.id);
 
 export function habitSummary(record, now = new Date().toISOString()) {
   const timeZone = record.timeZone;

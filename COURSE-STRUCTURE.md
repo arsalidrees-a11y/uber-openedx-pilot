@@ -208,10 +208,11 @@ Gamification supports completion and mastery but does not compete with the safet
 | Each eligible completed activity | Adds 10 points to the learner total after first verified completion or a correct practice answer | Development and Accomplishment | Resource-only screens, retry, review, speed, and assessment answers do not add points |
 | Incorrect practice | Immediate explanation and Try again | Empowerment of Creativity and Feedback | No public failure state or point loss |
 | Save and resume | Progress and achievements persist | Ownership and Possession | An unfinished source video restarts |
-| Five correct practice completions | Applied badge | Development and Accomplishment | Awarded once at account level, not per course |
-| Verified course completion and final check | Thorough badge | Development and Accomplishment | No celebratory overlay during sensitive content |
-| Pass a five-question check 30 days later with at least four correct | Retained badge | Development and Accomplishment | The delayed check gives no points |
-| Learning progress | One cross-course weekly goal and week streak, total points, three account badges, four illustrative cohort bands (1–25%, 26–50%, 51–75%, 76–100%), and per-course contribution | Social Influence and Relatedness | This is the only gamification dashboard; no names, exact ranks, or shaming |
+| Verified course completion and final check | Advances the Safety essentials curriculum (1 of 4 courses) | Development and Accomplishment | No celebratory overlay during sensitive content |
+| Every course in a curriculum complete | Curriculum badge | Development and Accomplishment | Awarded once for the curriculum, never for a single course |
+| Pass a five-question check 30 days later with at least four correct | Result saved to the learning record | Development and Accomplishment | The delayed check gives no points and no badge |
+| Course discovery and course details | Completion proof ("Completed by 1,240 drivers rated 4.9+") | Social Influence and Relatedness | Required and sensitive: no stars, no Trending, no rating prompt |
+| Learning progress | One cross-course weekly goal and week streak, total points, four curriculum badges, four illustrative cohort bands (1–25%, 26–50%, 51–75%, 76–100%), and per-course contribution | Social Influence and Relatedness | This is the only gamification dashboard; no names, exact ranks, or shaming |
 | Upcoming badge | Visible locked state | Scarcity and Impatience | No artificial deadline |
 | Progressive reveal | Next lesson and milestone appear after completion | Unpredictability and Curiosity | Required information is never hidden for suspense |
 | Safe exit | Saved progress avoids losing completed work | Loss and Avoidance | No punitive streak loss |
@@ -315,7 +316,7 @@ Primary comparisons are course completion rate, common post-course knowledge sco
 2. Every practice activity supports retry and source-based feedback.
 3. All 6 videos enforce completion and expose captions and transcript controls.
 4. Lesson and course progress persist across exit and resume.
-5. The single Learning progress view receives contributions from eligible activities across courses, shows this course's contribution, and applies the account-level Applied, Thorough, and Retained badge rules.
+5. The single Learning progress view receives contributions from eligible activities across courses, shows this course's contribution, and applies the curriculum badge rule: one badge when all four courses in a curriculum are complete.
 6. Support and reporting resources appear at the relevant recaps.
 7. Keyboard-only and tap-only alternatives work for matching and sorting.
 8. The human-trafficking context warning is visible with the indicators.

@@ -175,6 +175,41 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .safety-hero i:nth-child(5) { width: 104px; height: 104px; background: var(--u-background-primary); }
 .safety-hero .uicon { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); color: var(--u-program-safety); }
 
+/* Learning / Rating, Trending tag and Social proof (optional courses get
+   stars and Trending; required and sensitive courses get proof only) */
+.rating { display: inline-flex; align-items: center; gap: var(--u-space-4); }
+.rating .uicon { width: 16px; height: 16px; color: var(--u-content-primary); }
+.trending-tag { display: inline-flex; align-items: center; gap: var(--u-space-4); padding: 2px var(--u-space-8); border-radius: var(--u-radius-pill); background: var(--u-background-accent-light); color: var(--u-content-accent); }
+.trending-tag .uicon { width: 12px; height: 12px; }
+.course-card__meta, .course-page__rating { display: flex; flex-wrap: wrap; align-items: center; gap: var(--u-space-8); }
+.course-card__meta { padding-top: var(--u-space-4); }
+.social-proof { display: flex; align-items: flex-start; gap: var(--u-space-8); color: var(--u-content-secondary); }
+.social-proof .uicon { flex: none; width: 16px; height: 16px; }
+
+/* Learning / Review: one anonymous line with a bottom hairline */
+.review { display: flex; flex-direction: column; gap: var(--u-space-4); padding: var(--u-space-16) 0; border-bottom: 1px solid var(--u-border-opaque); }
+.review__head { display: flex; align-items: center; gap: var(--u-space-4); }
+.review__head .uicon { width: 12px; height: 12px; color: var(--u-content-primary); }
+.group > .section-title { padding-top: 0; }
+
+/* Learning / Rating input: five 48px targets holding 36px stars */
+.rating-input { display: flex; flex-direction: column; align-items: center; gap: var(--u-space-12); }
+.rating-input__stars { display: flex; gap: var(--u-space-8); }
+.rating-input__stars button { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--u-content-primary); }
+.rating-input__stars .uicon { width: 36px; height: 36px; }
+
+/* Learning / Curriculum header: four courses, one badge */
+.curriculum-group { display: flex; flex-direction: column; gap: var(--u-space-8); padding-top: var(--u-space-8); }
+.curriculum-header { display: flex; align-items: center; gap: var(--u-space-12); padding: var(--u-space-8) 0; }
+.curriculum-header__art { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: var(--u-radius-md); background: var(--u-background-secondary); color: var(--u-content-tertiary); }
+.curriculum-header__art .uicon { width: 20px; height: 20px; }
+.curriculum-header.is-complete .curriculum-header__art { background: var(--u-background-positive-light); color: var(--u-content-positive); }
+.curriculum-header__body { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); min-width: 0; }
+.curriculum-header__meter { display: flex; gap: var(--u-space-4); }
+.curriculum-header__meter i { flex: 1; height: 4px; border-radius: 2px; background: var(--u-background-tertiary); }
+.curriculum-header__meter i.is-done { background: var(--u-background-accent); }
+.curriculum-header.is-complete .curriculum-header__meter i { background: var(--u-background-positive); }
+
 /* Learning / Milestone: Points earned (positive) and Next lesson (secondary + chevron) */
 .milestone { display: flex; align-items: center; gap: var(--u-space-12); width: 100%; padding: var(--u-space-16); border: 0; border-radius: var(--u-radius-md); background: var(--u-background-positive-light); text-align: left; }
 .milestone--next { background: var(--u-background-secondary); }
@@ -213,15 +248,10 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .points-total { display: flex; align-items: center; justify-content: space-between; gap: var(--u-space-16); padding: var(--u-space-16); border-radius: var(--u-radius-md); background: var(--u-background-secondary); }
 .points-total > span { display: flex; flex-direction: column; gap: var(--u-space-2); }
 
-/* Learning / Contribution row and Badge row: rows with a bottom hairline */
-.contribution-row, .badge-row, .resource-row { display: flex; align-items: center; gap: var(--u-space-16); padding: var(--u-space-16) 0; border-bottom: 1px solid var(--u-border-opaque); }
-.contribution-row__body, .badge-row__body, .resource-row__body { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); min-width: 0; }
-.badge-row__body { gap: var(--u-space-2); }
+/* Learning / Contribution row and Resource row: rows with a bottom hairline */
+.contribution-row, .resource-row { display: flex; align-items: center; gap: var(--u-space-16); padding: var(--u-space-16) 0; border-bottom: 1px solid var(--u-border-opaque); }
+.contribution-row__body, .resource-row__body { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); min-width: 0; }
 .contribution-row.is-external .contribution-row__value { color: var(--u-content-tertiary); }
-.badge-row__art { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: var(--u-radius-md); background: var(--u-background-secondary); color: var(--u-content-tertiary); }
-.badge-row__art .uicon { width: 28px; height: 28px; }
-.badge-row.is-earned .badge-row__art { background: var(--u-background-positive-light); color: var(--u-content-positive); }
-.badge-row.is-locked .badge-row__name { color: var(--u-content-secondary); }
 
 /* Learning / Cohort bands */
 .cohort { display: flex; flex-direction: column; gap: var(--u-space-12); }

@@ -282,6 +282,15 @@ shield, not the check); upcoming lessons cannot be opened early; previews
 prepared states carry real dates, so the streak, weekly goal and standing are
 computed by `gamification.js`, never typed in.
 
+Catalogue and badges, added 2026-09-29: `course/catalog.js` holds four
+curricula of four courses. Only Sexual misconduct education has content; the
+other courses are placeholders ("Content coming soon"). A badge is earned for
+a whole curriculum, never for one course, and the retention check awards none.
+Optional courses carry ratings, reviews and Trending (the numbers are
+illustrative); required and sensitive courses carry completion proof only and
+are never rated. Previews: `course&id=5`, `rate&id=5` (`stars=0` for the empty
+prompt) and `curriculum-complete`.
+
 The layout follows the Uber and Uber Eats apps, studied on Mobbin. See
 `UBER-PATTERNS.md`: the course page is Uber's Safety checkup, the course
 card is its Account checkup card, totals sit on grey like Uber Cash.

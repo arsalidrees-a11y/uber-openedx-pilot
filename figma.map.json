@@ -52,7 +52,7 @@
       "variants": [
         "--locked"
       ],
-      "status": "built in Figma 2026-09-28 on page 22637:8 (❖ Learning Components)"
+      "status": "retired 2026-09-29: badges are per curriculum now, drawn with Learning / Curriculum header (22717:753)"
     },
     "u-acc": {
       "figmaNode": null,
@@ -201,7 +201,13 @@
       "Cohort bands": "22650:394",
       "Badge row": "22652:525",
       "Step footer": "22663:355",
-      "Safety hero": "22665:146257"
+      "Safety hero": "22665:146257",
+      "Rating": "22716:671",
+      "Social proof": "22716:677",
+      "Trending tag": "22716:681",
+      "Review": "22717:665",
+      "Rating input": "22717:713",
+      "Curriculum header": "22717:753"
     },
     "icons": {
       "_comment": "Uber icons with no Base Gallery equivalent, as local components",
@@ -215,7 +221,10 @@
       "arrow_counter_clockwise": "22651:311",
       "badge_checkmark": "22651:314",
       "shield_check": "22651:317",
-      "star": "22651:320"
+      "star": "22651:320",
+      "person_multiple": "22716:663",
+      "chart_line": "22716:666",
+      "star_outlined": "22716:669"
     }
   }
 }

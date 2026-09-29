@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, earnedBadgeKeys, habitSummary, demoComparison, COHORT_BANDS } from './gamification.js';
+import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, earnedBadgeKeys, curriculumProgress, habitSummary, demoComparison, COHORT_BANDS } from './gamification.js';
+import { CURRICULA } from './catalog.js';
 
 const monday = '2026-09-21T12:00:00Z';
 const tuesday = '2026-09-22T12:00:00Z';
@@ -49,16 +50,23 @@ test('finishing all available learning meets the goal and pauses future weeks', 
   assert.equal(habitSummary(record, '2026-09-28T12:00:00Z').weekStreak, 1);
 });
 
-test('badges are based on practice, course completion, and delayed retention', () => {
+test('a badge is earned for a whole curriculum, never for one course or a retention check', () => {
   const record = createLearningRecord(monday, 'UTC');
   for (let index = 0; index < 5; index++) recordActivity(record, { courseId: 'sexual-misconduct', activityId: `practice-${index}`, type: 'choice', correct: true, completedAt: monday });
-  assert.deepEqual(earnedBadgeKeys(record), ['applied']);
+  assert.deepEqual(earnedBadgeKeys(record), []);
   recordCourseCompletion(record, 'sexual-misconduct', monday);
-  assert.deepEqual(earnedBadgeKeys(record), ['applied', 'thorough']);
+  assert.deepEqual(earnedBadgeKeys(record), []);
+  assert.equal(curriculumProgress(record, CURRICULA[0]), 1);
   assert.equal(recordRetentionCheck(record, { courseId: 'sexual-misconduct', score: 5, completedAt: tuesday }), false);
   assert.equal(recordRetentionCheck(record, { courseId: 'sexual-misconduct', score: 3, completedAt: '2026-10-22T12:00:00Z' }), false);
   assert.equal(recordRetentionCheck(record, { courseId: 'sexual-misconduct', score: 4, completedAt: '2026-10-22T12:00:00Z' }), true);
-  assert.deepEqual(earnedBadgeKeys(record), ['applied', 'thorough', 'retained']);
+  assert.deepEqual(earnedBadgeKeys(record), []);
+  for (const id of ['road-safety', 'course-3']) recordCourseCompletion(record, id, tuesday, false);
+  assert.deepEqual(earnedBadgeKeys(record), []);
+  recordCourseCompletion(record, 'course-4', tuesday, false);
+  assert.deepEqual(earnedBadgeKeys(record), ['safety-essentials']);
+  assert.equal(CURRICULA.length, 4);
+  assert.equal(CURRICULA.flatMap(curriculum => curriculum.courses).length, 16);
 });
 
 test('cohort comparison assigns one of four non-overlapping 1–100% bands', () => {

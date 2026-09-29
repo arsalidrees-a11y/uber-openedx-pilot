@@ -31,9 +31,10 @@ The learning experience should feel like an operational tool that happens to tea
 
 ## Gamification
 
-- One account-level system spans every course: points, learning streak, cohort standing, and three lifecycle badges.
+- One account-level system spans every course: points, learning streak, cohort standing, and one badge per curriculum.
 - Courses contribute points; they do not create competing scores.
-- The badge set is Consistent, Thorough, and Retained. A course can advance these badges but does not own them.
+- Badges belong to curricula, not courses: four curricula of four courses (sixteen in all), and a badge when every course in a curriculum is complete. A course advances its curriculum's badge but never earns one alone. The 30-day retention check awards no badge.
+- Social proof is aggregate and anonymous. Optional courses show an average rating with a driver count, short anonymous reviews and a Trending tag. Required and sensitive courses show completion proof only ("Completed by 1,240 drivers rated 4.9+"): no stars, no Trending, no rating prompt.
 - Correct practice can award points. Baseline and final measurement do not award points, so experiment results stay interpretable.
 - Progress messages state the action and its consequence: “Correct · +10 points” or “Lesson complete · +40 points”.
 
