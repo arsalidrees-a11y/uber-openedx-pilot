@@ -34,7 +34,7 @@ The learning experience should feel like an operational tool that happens to tea
 - One account-level system spans every course: points, learning streak, cohort standing, and three lifecycle badges.
 - Courses contribute points; they do not create competing scores.
 - The badge set is Consistent, Thorough, and Retained. A course can advance these badges but does not own them.
-- Uber's Flow tool picks the optional courses each driver is recommended, from their experience and other factors. The set has no name and is not a curriculum: Learning home shows it as "Recommended for you" with a done count, in a carousel of course cards; the library lists it in full.
+- Uber's Flow tool assigns each driver a set of courses from their experience and other factors; every course in that set is required for that driver. Learning home lists only that set, as "Required" with a done count, and says "You're all caught up" once it is done. Everything else is optional and lives in All courses.
 - Ratings, reviews, the Trending tag, social proof and curricula are parked (PRD scope, 2026-10-01): their components stay in the Figma library but appear on no screen or prototype view.
 - Correct practice can award points. Baseline and final measurement do not award points, so experiment results stay interpretable.
 - Progress messages state the action and its consequence: “Correct · +10 points” or “Lesson complete · +40 points”.

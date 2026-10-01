@@ -1,15 +1,15 @@
 // The course catalogue, scoped to the PRD (reworked 2026-10-01).
 //
-// Uber's internal tool, Flow, decides which optional courses each driver is
-// recommended, from their experience and other factors. The set has no name
-// and is not a curriculum: the interface shows it as "Recommended for you"
-// and counts how many are done. Flow owns the choice; this file stands in for
-// what Flow would send.
+// Uber's internal tool, Flow, assigns each driver a set of courses based on
+// their experience and other factors. Every course in that set is required
+// for that driver (Uber's curriculum map marks mandatory education the same
+// way). The set has no name: Learning home lists it as "Required". Everything
+// else is optional and lives in All courses.
 //
-// The four recommended courses are illustrative and go beyond pilot scope
-// (the PRD allows two course shells). They have no content yet. Ratings,
-// reviews, social proof and curricula are parked: their Figma components
-// stay in the library but are on no screen.
+// The demo driver's Flow set is the two required courses below. Courses 2–5
+// are illustrative optional placeholders with no content yet. Ratings,
+// reviews, social proof and curricula are parked: their Figma components stay
+// in the library but are on no screen.
 const placeholder = (n) => ({ id: `course-${n}`, number: n, title: `Course ${n}`, kicker: 'Optional', description: 'Content coming soon', lessonCount: 4 });
 
 export const COURSES = [
@@ -25,11 +25,7 @@ export const COURSES = [
   { id: 'regional-safety', number: 7, title: 'Regional safety training', kicker: 'Required · Safety', required: true, description: 'Content coming soon', lessonCount: 4 }
 ];
 
-// Flow's recommendation for the demo driver, in Flow's order.
-export const RECOMMENDED = ['course-2', 'course-3', 'course-4', 'course-5'];
-
 export const courseById = id => COURSES.find(course => course.id === id);
 export const courseByNumber = n => COURSES.find(course => course.number === Number(n));
-export const recommendedCourses = () => RECOMMENDED.map(courseById);
 export const requiredCourses = () => COURSES.filter(course => course.required);
-export const moreCourses = () => COURSES.filter(course => !course.required && !RECOMMENDED.includes(course.id));
+export const optionalCourses = () => COURSES.filter(course => !course.required);

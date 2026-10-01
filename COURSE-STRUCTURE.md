@@ -212,7 +212,7 @@ Gamification supports completion and mastery but does not compete with the safet
 | Verified course completion and final check | Thorough badge | Development and Accomplishment | No celebratory overlay during sensitive content |
 | Pass a five-question check 30 days later with at least four correct | Retained badge | Development and Accomplishment | The delayed check gives no points |
 | Learning progress | One cross-course weekly goal and week streak, total points, three account badges, four illustrative cohort bands (1–25%, 26–50%, 51–75%, 76–100%), and per-course contribution | Social Influence and Relatedness | This is the only gamification dashboard; no names, exact ranks, or shaming |
-| Learning home | Flow's recommended optional courses, unnamed, with a done count | Empowerment and Unpredictability | Flow (Uber) chooses the set; the pilot shows it, never ranks it |
+| Learning home | Flow's set as the Required list, with a done count; all caught up once done | Development and Accomplishment | Flow (Uber) chooses the set; optional courses live in All courses |
 | Upcoming badge | Visible locked state | Scarcity and Impatience | No artificial deadline |
 | Progressive reveal | Next lesson and milestone appear after completion | Unpredictability and Curiosity | Required information is never hidden for suspense |
 | Safe exit | Saved progress avoids losing completed work | Loss and Avoidance | No punitive streak loss |

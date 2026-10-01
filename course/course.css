@@ -102,6 +102,10 @@ body:not(.review-mode) .course-shell { height: min(844px, 100dvh); }
 .banner { display: flex; align-items: center; border-radius: var(--u-radius-md); }
 .banner--accent { background: var(--u-background-accent-light); }
 .banner--warning { background: var(--u-background-warning-light); }
+.banner--positive { background: var(--u-background-positive-light); }
+.banner--positive .banner__art { color: var(--u-content-positive); }
+/* Base Banner, Text button layout: a pill on the right (green 100 on positive light) */
+.banner__action { flex: none; min-height: 36px; margin: 0 var(--u-space-16) 0 0; padding: 0 var(--u-space-12); border: 0; border-radius: var(--u-radius-pill); background: var(--u-green-100); color: var(--u-content-primary); }
 .banner__art { display: grid; place-items: center; flex: none; align-self: stretch; width: 56px; padding: var(--u-space-16); }
 .banner__text { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); padding: var(--u-space-16) var(--u-space-16) var(--u-space-16) 0; color: var(--u-content-primary); }
 
@@ -178,14 +182,8 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .safety-hero i:nth-child(5) { width: 104px; height: 104px; background: var(--u-background-primary); }
 .safety-hero .uicon { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); color: var(--u-program-safety); }
 
-/* Course groups (library) and the recommended set. Flow, Uber's tool, picks
-   the set; it has no name, so it is a heading, a done count and a carousel
-   of course cards that runs to the screen edge (Figma: 260px cards, 12 gap) */
+/* Course groups in All courses: a section title, then its cards */
 .course-group { display: flex; flex-direction: column; gap: var(--u-space-8); }
-.recommended { display: flex; flex-direction: column; gap: var(--u-space-12); }
-.carousel { display: flex; gap: var(--u-space-12); margin-right: calc(-1 * var(--u-space-16)); padding-right: var(--u-space-16); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.carousel::-webkit-scrollbar { display: none; }
-.carousel > .course-card { flex: 0 0 260px; scroll-snap-align: start; }
 
 /* Learning / Filter bar: Base selection Tags (32 tall, radius 8, grey fill
    with a 1px border; selected adds a 2px gray-600 border). Runs to the edge. */

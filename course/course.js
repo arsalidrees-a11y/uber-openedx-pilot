@@ -1,5 +1,5 @@
 import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, activityCount, earnedBadgeKeys, habitSummary, demoComparison, COHORT_BANDS, ELIGIBLE_ACTIVITY_TYPES } from './gamification.js';
-import { courseByNumber, courseById, recommendedCourses, requiredCourses, moreCourses, RECOMMENDED } from './catalog.js';
+import { courseByNumber, courseById, requiredCourses, optionalCourses } from './catalog.js';
 import { icon } from './icons.js';
 
 // Source: United States Mandatory Sexual Misconduct Education .docx.pdf.
@@ -280,7 +280,7 @@ function requiredCourseCard({ kicker = 'Required · Safety' } = {}) {
 function catalogCard(course, { kicker = course.kicker } = {}) {
   if (course.id === COURSE_ID) return requiredCourseCard({ kicker });
   const done = courseComplete(course.id);
-  return courseCard({ kicker, title: course.title, description: course.description, done: done ? course.lessonCount : 0, total: course.lessonCount, complete: done, action: course.external ? 'road-safety' : 'course-page', course: course.external ? '' : course.id });
+  return courseCard({ kicker, title: course.title, description: done ? 'Complete' : course.description, done: done ? course.lessonCount : 0, total: course.lessonCount, complete: done, action: course.external ? 'road-safety' : 'course-page', course: course.external ? '' : course.id });
 }
 // Required courses: there can be several (region-specific mandatory training),
 // so the heading carries a done count once there is more than one.
@@ -293,15 +293,15 @@ function requiredSection({ home = false } = {}) {
 }
 // ---------- All courses: every course available, any time, with filters ----------
 const STATUSES = [['not-started', 'Not started'], ['in-progress', 'In progress'], ['completed', 'Completed']];
-const TYPES = [['required', 'Required'], ['recommended', 'Recommended for you'], ['other', 'Other optional']];
-const QUICK_FILTERS = [['type', 'required', 'Required'], ['type', 'recommended', 'Recommended'], ['status', 'in-progress', 'In progress'], ['status', 'completed', 'Completed']];
-const allCourses = () => [...requiredCourses(), ...recommendedCourses(), ...moreCourses()];
+const TYPES = [['required', 'Required'], ['optional', 'Optional']];
+const QUICK_FILTERS = [['type', 'required', 'Required'], ['type', 'optional', 'Optional'], ['status', 'in-progress', 'In progress'], ['status', 'completed', 'Completed']];
+const allCourses = () => [...requiredCourses(), ...optionalCourses()];
 function courseState(course) {
   if (course.id !== COURSE_ID) return courseComplete(course.id) ? 'completed' : 'not-started';
   const status = courseStatus();
   return status === 'complete' ? 'completed' : status === 'not-started' ? 'not-started' : 'in-progress';
 }
-const courseType = (course) => course.required ? 'required' : RECOMMENDED.includes(course.id) ? 'recommended' : 'other';
+const courseType = (course) => course.required ? 'required' : 'optional';
 const matchesFilters = (course, f) => (!f.status.length || f.status.includes(courseState(course))) && (!f.type.length || f.type.includes(courseType(course)));
 const filterCount = (f) => f.status.length + f.type.length;
 const coursesLabel = (n) => `${n} ${n === 1 ? 'course' : 'courses'}`;
@@ -330,22 +330,21 @@ function filtersSheet() {
 function allCoursesRow() {
   return `<button class="list-row" data-action="all-courses"><span class="list-row__text"><span class="list-row__body"><b class="u-label-medium c-primary">All courses</b><small class="u-paragraph-small c-secondary">Every course available to you, any time</small></span><span class="u-label-medium c-primary">${allCourses().length}</span></span><span class="list-row__control">${icon('chevron_right_small')}</span></button>`;
 }
-// Flow's recommended set: chosen by Uber, unnamed, shown with a done count.
-function recommendedHeader(seeAll) {
-  const set = recommendedCourses(), done = set.filter(course => courseComplete(course.id)).length;
-  return `<div>${sectionTitle('Recommended for you', seeAll ? '<button class="link u-paragraph-small" data-action="see-recommended">See all</button>' : '')}<p class="u-paragraph-small c-secondary">Optional courses picked for you by Uber · ${done} of ${set.length} done</p></div>`;
+// Shown once every required course is done: the moment to offer the rest.
+function caughtUpBanner() {
+  return `<div class="banner banner--positive"><span class="banner__art">${icon('circle_check')}</span><div class="banner__text"><b class="u-label-medium">You’re all caught up</b><p class="u-paragraph-medium">Every required course is done.</p></div><button class="banner__action u-label-medium" data-action="all-courses">All courses</button></div>`;
 }
+const allRequiredDone = () => requiredCourses().every(course => course.id === COURSE_ID ? courseStatus() === 'complete' : courseComplete(course.id));
 function discovery() {
   const firstName = learnerFirstName();
   const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', '<span class="u-paragraph-small c-secondary">30 days on</span>')}${milestone({ kicker: 'Not scored for points', title: 'Five-question retention check', body: `Review what you remember from ${COURSE_TITLE}.`, next: true, action: 'retention-intro' })}` : '';
-  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${requiredSection({ home: true })}<section class="recommended">${recommendedHeader(true)}<div class="carousel">${recommendedCourses().map(catalogCard).join('')}</div></section>${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${allCoursesRow()}</div>`;
+  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${allRequiredDone() ? caughtUpBanner() : ''}${requiredSection({ home: true })}${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${allCoursesRow()}</div>`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
 }
 function libraryView() {
-  const more = moreCourses();
   const shown = allCourses().filter(course => matchesFilters(course, filters));
   let list;
-  if (!filterCount(filters)) list = `<section class="course-group">${requiredSection()}</section><section class="course-group">${recommendedHeader(false)}${recommendedCourses().map(catalogCard).join('')}</section>${more.length ? `<section class="course-group">${sectionTitle('More courses')}${more.map(catalogCard).join('')}</section>` : ''}`;
+  if (!filterCount(filters)) list = `<section class="course-group">${requiredSection()}</section><section class="course-group">${sectionTitle('Optional')}${optionalCourses().map(catalogCard).join('')}</section>`;
   else if (shown.length) list = `<div class="stack-8">${shown.map(course => catalogCard(course)).join('')}</div>`;
   else list = `<div class="no-results"><h2 class="u-heading-small c-primary">No courses match these filters</h2><p class="u-paragraph-medium c-secondary">Try fewer filters, or clear them to see every course.</p><button class="pill-btn u-label-medium" data-action="reset-filters">Clear filters</button></div>`;
   shell({ nav: navHeader('All courses', 'discover'), body: `${heading('All courses')}${lead('Every course available to you, any time.')}${filterBar()}${resultsLine(shown.length)}${list}`, footer: stepFooter({ label: 'Back to learning home', action: 'discover' }) });
@@ -542,7 +541,6 @@ root.addEventListener('click', e => {
   if (action === 'habit') { progressTab = 'habit'; go('rewards'); }
   if (action === 'library') go('library');
   if (action === 'all-courses') { filters = noFilters(); go('library'); }
-  if (action === 'see-recommended') { filters = { status: [], type: ['recommended'] }; go('library'); }
   if (action === 'open-filters') { draft = { status: [...filters.status], type: [...filters.type] }; sheetOpen = true; libraryView(); }
   if (action === 'close-filters') { sheetOpen = false; libraryView(); root.querySelector('[data-action="open-filters"]')?.focus(); }
   if (action === 'apply-filters') { filters = draft; sheetOpen = false; libraryView(); }
@@ -635,7 +633,7 @@ const demos = {
 function applyPreview(name, params = new URLSearchParams()) {
   previewing = true; errorState = ''; resetActivity(); filters = noFilters(); sheetOpen = false;
   const lesson = Number(params.get('lesson')), step = Number(params.get('step'));
-  if (name === 'discover') { state = freshState(); view = 'discover'; }
+  if (name === 'discover') { if (params.get('stage') === 'caught-up') { seed('complete'); recordCourseCompletion(state.learningRecord, 'regional-safety', new Date().toISOString(), false); } else state = freshState(); view = 'discover'; }
   else if (name === 'library') {
     seed('mid-course'); view = 'library';
     const list = (key, allowed) => (params.get(key) || '').split(',').filter(v => allowed.some(([a]) => a === v));
@@ -667,7 +665,7 @@ function applyPreview(name, params = new URLSearchParams()) {
 
 // Review panel: every prepared state, plus each activity and recovery state.
 const panel = document.querySelector('#review-panel');
-const figmaScreens = [['discover', 'Learning home'], ['library', 'All courses'], ['library', 'All courses · filters open', 'sheet=filters&status=in-progress&type=required'], ['library', 'All courses · filtered', 'status=in-progress&type=required'], ['library', 'All courses · no results', 'status=completed&type=recommended'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['course', 'Course details · optional', 'id=2'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
+const figmaScreens = [['discover', 'Learning home'], ['discover', 'Learning home · all caught up', 'stage=caught-up'], ['library', 'All courses'], ['library', 'All courses · filters open', 'sheet=filters&status=in-progress&type=required'], ['library', 'All courses · filtered', 'status=in-progress&type=required'], ['library', 'All courses · no results', 'status=completed&type=optional'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['course', 'Course details · optional', 'id=2'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
 panel.innerHTML = `<h2>Figma screens</h2>${figmaScreens.map(([p, label, q]) => `<button data-preview="${p}" data-query="${q || ''}">${label}</button>`).join('')}<h2>Every activity</h2>${lessons.map((l, n) => l.steps.map((a, s) => `<button data-preview="activity" data-query="lesson=${n}&step=${s}">${n + 1}.${s + 1} ${a.type} · ${esc(a.title)}</button>`).join('')).join('')}<h2>Recovery states</h2>${Object.keys(errors).map(k => `<button data-error="${k}">${errors[k][0]}</button>`).join('')}<h2>Prototype controls</h2><button data-reset>Reset local progress</button>`;
 document.querySelector('#review-toggle').addEventListener('click', e => { panel.hidden = !panel.hidden; e.target.setAttribute('aria-expanded', !panel.hidden); });
 panel.addEventListener('click', e => {

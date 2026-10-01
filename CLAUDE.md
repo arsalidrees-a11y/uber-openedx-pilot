@@ -289,15 +289,15 @@ prepared states carry real dates, so the streak, weekly goal and standing are
 computed by `gamification.js`, never typed in.
 
 Catalogue, reworked to the PRD on 2026-10-01: `course/catalog.js` holds the
-required course, Flow's recommended set and Road safety. Flow is Uber's
-internal tool that picks each driver's optional courses; the set has no name
-and is not a curriculum, so the home screen shows it as "Recommended for you"
-with a done count, in a carousel. Its four courses are illustrative
-placeholders beyond pilot scope (the PRD allows two course shells). Badges are
-the PRD's three: Applied, Thorough and Retained, and the 30-day check earns
-Retained. Ratings, reviews, Trending, social proof and curricula are parked:
-their components stay in the Figma library, on no screen, and the code was
-removed (it is in git history before this date). Optional course preview:
+courses. Flow is Uber's internal tool that assigns each driver a set of
+courses; every course in that set is required for that driver, so Learning
+home lists only the set, as "Required" with a done count, then shows "You're
+all caught up" once it is done. Everything else is optional and lives in All
+courses. The demo driver's set is the two required courses; Courses 2–5 are
+illustrative optional placeholders. Badges are the PRD's three: Applied,
+Thorough and Retained, and the 30-day check earns Retained. Ratings, reviews,
+Trending, social proof and curricula are parked: their components stay in the
+Figma library, on no screen, and the code was removed (it is in git history before this date). Optional course preview:
 `course&id=2`. The Required section holds every mandatory course (Uber's
 curriculum map adds region-specific ones, e.g. Chicago or California), with a
 done count once there is more than one; "Regional safety training" is an
@@ -306,11 +306,11 @@ illustrative second one (`course&id=7`).
 All courses (2026-10-01): the Course library is now "All courses", every
 course available to the driver at any time (the curriculum map's "Always On").
 It follows Uber Eats: a Filter bar of Base selection Tags (Filters ⌄, Required,
-Recommended, In progress, Completed), a Results line with Reset, and a Filters
+Optional, In progress, Completed), a Results line with Reset, and a Filters
 sheet of Base checkbox rows with counts whose button states the live result.
-Values within Status or Type are alternatives; the two groups combine. Learning
-home leads in with an "All courses" row; "See all" opens it filtered to
-Recommended. The four pieces are Learning components in the library because
+Values within Status or Type are alternatives; the two groups combine. Type is
+Required (Flow's set) or Optional. Learning home leads in with an "All courses"
+row. Home all-caught-up preview: `discover&stage=caught-up`. The four pieces are Learning components in the library because
 the Base Tag, List item and Sheet header are only reachable from there.
 Previews: `library`, plus `status=…&type=…` and `sheet=filters`.
 
