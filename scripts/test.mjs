@@ -149,10 +149,10 @@ const TYPE_TOKENS = readFileSync('src/styles/tokens.css', 'utf8');
 t('learning discovery preserves shared points streak and badges', () =>
   ['Points', 'Week streak', 'Badges'].every((label) => COURSE_JS.includes(label))
     ? true : 'one or more learning stats are missing');
-t('course discovery leads with one required-course card (Figma: Learning / Course card)', () =>
-  ['requiredCourseCard', 'courseCard(', "sectionTitle('Required')"].every((label) => COURSE_JS.includes(label)) &&
+t('course discovery leads with the Required section (Figma: Learning / Course card)', () =>
+  ['requiredCourseCard', 'requiredSection', 'courseCard(', "sectionTitle('Required'"].every((label) => COURSE_JS.includes(label)) &&
   !COURSE_JS.includes('<h2>Your path</h2>')
-    ? true : 'required-course card is missing or duplicated');
+    ? true : 'the Required section or its course card is missing');
 t('gamification remains one account-level layer', () =>
   !COURSE_JS.includes('activity-reward') &&
   !COURSE_JS.includes('10 points ready') &&

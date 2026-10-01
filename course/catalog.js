@@ -18,7 +18,11 @@ export const COURSES = [
   placeholder(3),
   placeholder(4),
   placeholder(5),
-  { id: 'road-safety', number: 6, title: 'Road safety fundamentals', kicker: 'Optional · Driving', description: 'Available soon', lessonCount: 4, external: true }
+  { id: 'road-safety', number: 6, title: 'Road safety fundamentals', kicker: 'Optional · Driving', description: 'Available soon', lessonCount: 4, external: true },
+  // A driver can have more than one required course: Uber's curriculum map
+  // adds region-specific mandatory training (Chicago, California, Nebraska…).
+  // Illustrative placeholder, no content yet.
+  { id: 'regional-safety', number: 7, title: 'Regional safety training', kicker: 'Required · Safety', required: true, description: 'Content coming soon', lessonCount: 4 }
 ];
 
 // Flow's recommendation for the demo driver, in Flow's order.
@@ -27,4 +31,5 @@ export const RECOMMENDED = ['course-2', 'course-3', 'course-4', 'course-5'];
 export const courseById = id => COURSES.find(course => course.id === id);
 export const courseByNumber = n => COURSES.find(course => course.number === Number(n));
 export const recommendedCourses = () => RECOMMENDED.map(courseById);
+export const requiredCourses = () => COURSES.filter(course => course.required);
 export const moreCourses = () => COURSES.filter(course => !course.required && !RECOMMENDED.includes(course.id));

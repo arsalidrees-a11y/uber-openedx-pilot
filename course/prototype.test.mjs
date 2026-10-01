@@ -209,7 +209,8 @@ test('the library lists Required, Recommended for you and More courses', async (
   await loadPage('?preview=library');
   const groups = [...document.querySelectorAll('.course-group')];
   assert.deepEqual(groups.map(group => group.querySelector('h2').textContent), ['Required', 'Recommended for you', 'More courses']);
-  assert.deepEqual(groups.map(group => group.querySelectorAll('.course-card').length), [1, 4, 1]);
+  assert.deepEqual(groups.map(group => group.querySelectorAll('.course-card').length), [2, 4, 1]);
+  assert.match(groups[0].querySelector('.section-title').textContent, /Required0 of 2 done/);
   assert.match(groups[2].textContent, /Road safety fundamentals/);
 });
 
@@ -226,4 +227,16 @@ test('the badges tab shows the three PRD badges', async () => {
   await loadPage('?preview=rewards&tab=badges');
   assert.deepEqual([...document.querySelectorAll('.badge-row__name')].map(name => name.textContent), ['Applied', 'Thorough', 'Retained']);
   assert.match(text(), /1 of 5 correct practice activities/);
+});
+
+test('the Required section holds several mandatory courses, with a done count', async () => {
+  const { click } = await loadPage();
+  const title = [...document.querySelectorAll('.section-title')].find(t => /^Required/.test(t.textContent));
+  assert.match(title.textContent, /Required0 of 2 done/);
+  const cards = [...title.nextElementSibling.querySelectorAll('.course-card')];
+  assert.deepEqual(cards.map(card => card.querySelector('.u-label-large').textContent), ['Sexual misconduct education', 'Regional safety training']);
+  assert.deepEqual(cards.map(card => card.querySelector('.u-label-x-small').textContent), ['Safety', 'Safety']);
+  click('[data-course="regional-safety"]');
+  assert.equal(document.querySelector('h1').textContent, 'Regional safety training');
+  assert.match(text(), /Required · Safety/);
 });

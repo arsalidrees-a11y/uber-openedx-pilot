@@ -1,5 +1,5 @@
 import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, activityCount, earnedBadgeKeys, habitSummary, demoComparison, COHORT_BANDS, ELIGIBLE_ACTIVITY_TYPES } from './gamification.js';
-import { courseByNumber, courseById, recommendedCourses, moreCourses } from './catalog.js';
+import { courseByNumber, courseById, recommendedCourses, requiredCourses, moreCourses } from './catalog.js';
 import { icon } from './icons.js';
 
 // Source: United States Mandatory Sexual Misconduct Education .docx.pdf.
@@ -274,10 +274,19 @@ function requiredCourseCard({ kicker = 'Required · Safety' } = {}) {
 }
 // Every other course in the catalogue. Road safety hands off to its own
 // provider; the placeholders open a course page with no content yet.
-function catalogCard(course) {
-  if (course.id === COURSE_ID) return requiredCourseCard();
+function catalogCard(course, { kicker = course.kicker } = {}) {
+  if (course.id === COURSE_ID) return requiredCourseCard({ kicker });
   const done = courseComplete(course.id);
-  return courseCard({ kicker: course.kicker, title: course.title, description: course.description, done: done ? course.lessonCount : 0, total: course.lessonCount, complete: done, action: course.external ? 'road-safety' : 'course-page', course: course.external ? '' : course.id });
+  return courseCard({ kicker, title: course.title, description: course.description, done: done ? course.lessonCount : 0, total: course.lessonCount, complete: done, action: course.external ? 'road-safety' : 'course-page', course: course.external ? '' : course.id });
+}
+// Required courses: there can be several (region-specific mandatory training),
+// so the heading carries a done count once there is more than one.
+function requiredSection({ home = false } = {}) {
+  const courses = requiredCourses();
+  const done = courses.filter(course => course.id === COURSE_ID ? courseStatus() === 'complete' : courseComplete(course.id)).length;
+  const count = courses.length > 1 ? `<span class="u-paragraph-small c-secondary">${done} of ${courses.length} done</span>` : '';
+  const cards = courses.map(course => catalogCard(course, home ? { kicker: course.kicker.replace(/^Required · /, '') } : {})).join('');
+  return `${sectionTitle('Required', count)}<div class="stack-8">${cards}</div>`;
 }
 // Flow's recommended set: chosen by Uber, unnamed, shown with a done count.
 function recommendedHeader(seeAll) {
@@ -287,12 +296,12 @@ function recommendedHeader(seeAll) {
 function discovery() {
   const firstName = learnerFirstName();
   const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', '<span class="u-paragraph-small c-secondary">30 days on</span>')}${milestone({ kicker: 'Not scored for points', title: 'Five-question retention check', body: `Review what you remember from ${COURSE_TITLE}.`, next: true, action: 'retention-intro' })}` : '';
-  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${sectionTitle('Required')}${requiredCourseCard({ kicker: 'Safety' })}<section class="recommended">${recommendedHeader(true)}<div class="carousel">${recommendedCourses().map(catalogCard).join('')}</div></section>${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}</div>`;
+  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${requiredSection({ home: true })}<section class="recommended">${recommendedHeader(true)}<div class="carousel">${recommendedCourses().map(catalogCard).join('')}</div></section>${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}</div>`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
 }
 function libraryView() {
   const more = moreCourses();
-  const groups = `<section class="course-group">${sectionTitle('Required')}${requiredCourseCard()}</section><section class="course-group">${recommendedHeader(false)}${recommendedCourses().map(catalogCard).join('')}</section>${more.length ? `<section class="course-group">${sectionTitle('More courses')}${more.map(catalogCard).join('')}</section>` : ''}`;
+  const groups = `<section class="course-group">${requiredSection()}</section><section class="course-group">${recommendedHeader(false)}${recommendedCourses().map(catalogCard).join('')}</section>${more.length ? `<section class="course-group">${sectionTitle('More courses')}${more.map(catalogCard).join('')}</section>` : ''}`;
   shell({ nav: navHeader('Course library', 'discover'), body: `${kicker('Course library')}${heading('Explore learning')}${lead('Courses available for your profile.')}${groups}`, footer: stepFooter({ label: 'Back to learning home', action: 'discover' }) });
 }
 function roadSafetyView() {

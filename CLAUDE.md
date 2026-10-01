@@ -298,7 +298,10 @@ the PRD's three: Applied, Thorough and Retained, and the 30-day check earns
 Retained. Ratings, reviews, Trending, social proof and curricula are parked:
 their components stay in the Figma library, on no screen, and the code was
 removed (it is in git history before this date). Optional course preview:
-`course&id=2`.
+`course&id=2`. The Required section holds every mandatory course (Uber's
+curriculum map adds region-specific ones, e.g. Chicago or California), with a
+done count once there is more than one; "Regional safety training" is an
+illustrative second one (`course&id=7`).
 
 The layout follows the Uber and Uber Eats apps, studied on Mobbin. See
 `UBER-PATTERNS.md`: the course page is Uber's Safety checkup, the course
