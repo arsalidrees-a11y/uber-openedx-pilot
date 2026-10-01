@@ -303,6 +303,17 @@ curriculum map adds region-specific ones, e.g. Chicago or California), with a
 done count once there is more than one; "Regional safety training" is an
 illustrative second one (`course&id=7`).
 
+All courses (2026-10-01): the Course library is now "All courses", every
+course available to the driver at any time (the curriculum map's "Always On").
+It follows Uber Eats: a Filter bar of Base selection Tags (Filters ⌄, Required,
+Recommended, In progress, Completed), a Results line with Reset, and a Filters
+sheet of Base checkbox rows with counts whose button states the live result.
+Values within Status or Type are alternatives; the two groups combine. Learning
+home leads in with an "All courses" row; "See all" opens it filtered to
+Recommended. The four pieces are Learning components in the library because
+the Base Tag, List item and Sheet header are only reachable from there.
+Previews: `library`, plus `status=…&type=…` and `sheet=filters`.
+
 The layout follows the Uber and Uber Eats apps, studied on Mobbin. See
 `UBER-PATTERNS.md`: the course page is Uber's Safety checkup, the course
 card is its Account checkup card, totals sit on grey like Uber Cash.

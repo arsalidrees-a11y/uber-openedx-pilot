@@ -1,5 +1,5 @@
 import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, activityCount, earnedBadgeKeys, habitSummary, demoComparison, COHORT_BANDS, ELIGIBLE_ACTIVITY_TYPES } from './gamification.js';
-import { courseByNumber, courseById, recommendedCourses, requiredCourses, moreCourses } from './catalog.js';
+import { courseByNumber, courseById, recommendedCourses, requiredCourses, moreCourses, RECOMMENDED } from './catalog.js';
 import { icon } from './icons.js';
 
 // Source: United States Mandatory Sexual Misconduct Education .docx.pdf.
@@ -130,6 +130,9 @@ try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && Array.is
 let view = 'discover', progressTab = 'progress', errorState = '', selected = null, checked = false, correct = false, placement = {}, order = [0, 1, 2], dragged = null, watched = false, playing = false, tick = 0, timer, assessmentMode = 'baseline', assessmentIndex = 0;
 // The optional course on screen and where its page was opened from.
 let openCourse = courseByNumber(2), courseFrom = 'library';
+// All courses filters: values within a group are alternatives (OR); Status and
+// Type combine (AND). The sheet edits a draft until "Show N courses" applies it.
+let filters = { status: [], type: [] }, draft = null, sheetOpen = false;
 // A preview shows a prepared state for review. It never writes over the
 // learner's saved progress: save() is off until the prototype is reset.
 let previewing = false;
@@ -288,24 +291,68 @@ function requiredSection({ home = false } = {}) {
   const cards = courses.map(course => catalogCard(course, home ? { kicker: course.kicker.replace(/^Required · /, '') } : {})).join('');
   return `${sectionTitle('Required', count)}<div class="stack-8">${cards}</div>`;
 }
+// ---------- All courses: every course available, any time, with filters ----------
+const STATUSES = [['not-started', 'Not started'], ['in-progress', 'In progress'], ['completed', 'Completed']];
+const TYPES = [['required', 'Required'], ['recommended', 'Recommended for you'], ['other', 'Other optional']];
+const QUICK_FILTERS = [['type', 'required', 'Required'], ['type', 'recommended', 'Recommended'], ['status', 'in-progress', 'In progress'], ['status', 'completed', 'Completed']];
+const allCourses = () => [...requiredCourses(), ...recommendedCourses(), ...moreCourses()];
+function courseState(course) {
+  if (course.id !== COURSE_ID) return courseComplete(course.id) ? 'completed' : 'not-started';
+  const status = courseStatus();
+  return status === 'complete' ? 'completed' : status === 'not-started' ? 'not-started' : 'in-progress';
+}
+const courseType = (course) => course.required ? 'required' : RECOMMENDED.includes(course.id) ? 'recommended' : 'other';
+const matchesFilters = (course, f) => (!f.status.length || f.status.includes(courseState(course))) && (!f.type.length || f.type.includes(courseType(course)));
+const filterCount = (f) => f.status.length + f.type.length;
+const coursesLabel = (n) => `${n} ${n === 1 ? 'course' : 'courses'}`;
+const noFilters = () => ({ status: [], type: [] });
+// Learning / Filter bar: a Filters chip that opens the sheet, then Base
+// selection Tags for one-tap filters (Uber Eats pattern).
+function filterBar() {
+  const n = filterCount(filters);
+  const chip = (attrs, on, label, trailing = '') => `<button class="filter-tag${on ? ' is-selected' : ''}" ${attrs}><span class="u-label-medium">${label}</span>${trailing}</button>`;
+  return `<div class="filter-bar" role="group" aria-label="Filter courses">${chip('data-action="open-filters" aria-haspopup="dialog"', n > 0, n ? `Filters · ${n}` : 'Filters', icon('chevron_down_small'))}${QUICK_FILTERS.map(([group, value, label]) => { const on = filters[group].includes(value); return chip(`data-filter="${group}:${value}" aria-pressed="${on}"`, on, label); }).join('')}</div>`;
+}
+// Learning / Results line: the count, with Reset once any filter is on.
+function resultsLine(count) {
+  return `<div class="results-line" role="status"><span class="u-label-medium c-primary">${coursesLabel(count)}</span>${filterCount(filters) ? '<button class="pill-btn u-label-medium" data-action="reset-filters">Reset</button>' : ''}</div>`;
+}
+// Learning / Filters sheet: checkbox rows with counts; the primary button
+// states the live result of the draft.
+function filtersSheet() {
+  const courses = allCourses();
+  const count = (group, value) => courses.filter(course => (group === 'status' ? courseState(course) : courseType(course)) === value).length;
+  const row = (group, value, label) => { const on = draft[group].includes(value); return `<button class="check-row" role="checkbox" aria-checked="${on}" data-draft="${group}:${value}"><span class="u-label-medium c-primary">${label} (${count(group, value)})</span><span class="check-box${on ? ' is-checked' : ''}" aria-hidden="true">${on ? icon('checkmark') : ''}</span></button>`; };
+  const shown = courses.filter(course => matchesFilters(course, draft)).length;
+  return `<button class="sheet-scrim" data-action="close-filters" aria-label="Close filters" tabindex="-1"></button><section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><header class="sheet__header"><span class="sheet__grabber" aria-hidden="true"></span><h2 id="sheet-title" class="u-heading-x-small" tabindex="-1">Filters</h2></header><h3 class="sheet__heading u-heading-small">Status</h3>${STATUSES.map(([v, l]) => row('status', v, l)).join('')}<hr class="sheet__divider"><h3 class="sheet__heading u-heading-small">Type</h3>${TYPES.map(([v, l]) => row('type', v, l)).join('')}<footer class="sheet__footer"><button class="btn btn--primary u-label-large" data-action="apply-filters">Show ${coursesLabel(shown)}</button><button class="btn btn--tertiary u-label-large" data-action="reset-filters">Reset</button></footer></section>`;
+}
+// Learning / All courses row: the way in from Learning home.
+function allCoursesRow() {
+  return `<button class="list-row" data-action="all-courses"><span class="list-row__text"><span class="list-row__body"><b class="u-label-medium c-primary">All courses</b><small class="u-paragraph-small c-secondary">Every course available to you, any time</small></span><span class="u-label-medium c-primary">${allCourses().length}</span></span><span class="list-row__control">${icon('chevron_right_small')}</span></button>`;
+}
 // Flow's recommended set: chosen by Uber, unnamed, shown with a done count.
 function recommendedHeader(seeAll) {
   const set = recommendedCourses(), done = set.filter(course => courseComplete(course.id)).length;
-  return `<div>${sectionTitle('Recommended for you', seeAll ? '<button class="link u-paragraph-small" data-action="library">See all</button>' : '')}<p class="u-paragraph-small c-secondary">Optional courses picked for you by Uber · ${done} of ${set.length} done</p></div>`;
+  return `<div>${sectionTitle('Recommended for you', seeAll ? '<button class="link u-paragraph-small" data-action="see-recommended">See all</button>' : '')}<p class="u-paragraph-small c-secondary">Optional courses picked for you by Uber · ${done} of ${set.length} done</p></div>`;
 }
 function discovery() {
   const firstName = learnerFirstName();
   const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', '<span class="u-paragraph-small c-secondary">30 days on</span>')}${milestone({ kicker: 'Not scored for points', title: 'Five-question retention check', body: `Review what you remember from ${COURSE_TITLE}.`, next: true, action: 'retention-intro' })}` : '';
-  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${requiredSection({ home: true })}<section class="recommended">${recommendedHeader(true)}<div class="carousel">${recommendedCourses().map(catalogCard).join('')}</div></section>${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}</div>`;
+  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${requiredSection({ home: true })}<section class="recommended">${recommendedHeader(true)}<div class="carousel">${recommendedCourses().map(catalogCard).join('')}</div></section>${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${allCoursesRow()}</div>`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
 }
 function libraryView() {
   const more = moreCourses();
-  const groups = `<section class="course-group">${requiredSection()}</section><section class="course-group">${recommendedHeader(false)}${recommendedCourses().map(catalogCard).join('')}</section>${more.length ? `<section class="course-group">${sectionTitle('More courses')}${more.map(catalogCard).join('')}</section>` : ''}`;
-  shell({ nav: navHeader('Course library', 'discover'), body: `${kicker('Course library')}${heading('Explore learning')}${lead('Courses available for your profile.')}${groups}`, footer: stepFooter({ label: 'Back to learning home', action: 'discover' }) });
+  const shown = allCourses().filter(course => matchesFilters(course, filters));
+  let list;
+  if (!filterCount(filters)) list = `<section class="course-group">${requiredSection()}</section><section class="course-group">${recommendedHeader(false)}${recommendedCourses().map(catalogCard).join('')}</section>${more.length ? `<section class="course-group">${sectionTitle('More courses')}${more.map(catalogCard).join('')}</section>` : ''}`;
+  else if (shown.length) list = `<div class="stack-8">${shown.map(course => catalogCard(course)).join('')}</div>`;
+  else list = `<div class="no-results"><h2 class="u-heading-small c-primary">No courses match these filters</h2><p class="u-paragraph-medium c-secondary">Try fewer filters, or clear them to see every course.</p><button class="pill-btn u-label-medium" data-action="reset-filters">Clear filters</button></div>`;
+  shell({ nav: navHeader('All courses', 'discover'), body: `${heading('All courses')}${lead('Every course available to you, any time.')}${filterBar()}${resultsLine(shown.length)}${list}`, footer: stepFooter({ label: 'Back to learning home', action: 'discover' }) });
+  if (sheetOpen) { root.insertAdjacentHTML('beforeend', filtersSheet()); root.querySelector('#sheet-title').focus({ preventScroll: true }); }
 }
 function roadSafetyView() {
-  shell({ nav: navHeader('Road safety', 'library'), body: `${kicker('Available soon')}${heading('Road safety fundamentals')}${lead('This course is not available yet. We’ll show it here when it is ready.')}${banner('accent', 'circle_i', 'Your learning record stays accurate', 'Road Safety does not add points, count toward your weekly goal, or unlock badges until its completion can be confirmed.')}`, footer: stepFooter({ label: 'Back to course library', action: 'library' }) });
+  shell({ nav: navHeader('Road safety', 'library'), body: `${kicker('Available soon')}${heading('Road safety fundamentals')}${lead('This course is not available yet. We’ll show it here when it is ready.')}${banner('accent', 'circle_i', 'Your learning record stays accurate', 'Road Safety does not add points, count toward your weekly goal, or unlock badges until its completion can be confirmed.')}`, footer: stepFooter({ label: 'Back to all courses', action: 'library' }) });
 }
 function lessonRow(lesson, i) {
   const status = lessonStatus(i);
@@ -481,17 +528,25 @@ root.addEventListener('click', e => {
   if (el.dataset.assessmentChoice !== undefined) { state.assessmentResponses[assessmentMode] ||= []; state.assessmentResponses[assessmentMode][assessmentIndex] = +el.dataset.assessmentChoice; save(); assessment(); return; }
   if (el.dataset.lesson !== undefined) { const i = +el.dataset.lesson; openStep(i, state.started && state.lesson === i ? state.step : 0); return; }
   if (el.dataset.progressTab) { progressTab = el.dataset.progressTab; rewardsView(); return; }
+  if (el.dataset.filter) { const [group, value] = el.dataset.filter.split(':'); filters = { ...filters, [group]: filters[group].includes(value) ? filters[group].filter(v => v !== value) : [...filters[group], value] }; libraryView(); root.querySelector(`[data-filter="${el.dataset.filter}"]`)?.focus(); return; }
+  if (el.dataset.draft) { const [group, value] = el.dataset.draft.split(':'); draft = { ...draft, [group]: draft[group].includes(value) ? draft[group].filter(v => v !== value) : [...draft[group], value] }; libraryView(); root.querySelector(`[data-draft="${el.dataset.draft}"]`)?.focus(); return; }
   if (el.dataset.choice !== undefined) { selected = +el.dataset.choice; activity(); root.querySelector('[data-action="check"]')?.focus(); return; }
   if (el.dataset.card !== undefined) { selected = +el.dataset.card; activity(); root.querySelector('[data-place]')?.focus(); return; }
   if (el.dataset.place !== undefined) { if (selected !== null) { placement[selected] = +el.dataset.place; selected = null; activity(); } return; }
   if (el.dataset.move) { const [i, d] = el.dataset.move.split(',').map(Number); [order[i], order[i + d]] = [order[i + d], order[i]]; activity(); root.querySelector(`[data-move="${i + d},${d}"]`)?.focus(); return; }
   const action = el.dataset.action;
-  const go = (next) => { errorState = ''; view = next; render(); };
+  const go = (next) => { errorState = ''; if (next !== 'library') sheetOpen = false; view = next; render(); };
   if (action === 'discover') go('discover');
   if (action === 'course' || action === 'overview') go('overview');
   if (action === 'rewards') { progressTab = 'progress'; go('rewards'); }
   if (action === 'habit') { progressTab = 'habit'; go('rewards'); }
   if (action === 'library') go('library');
+  if (action === 'all-courses') { filters = noFilters(); go('library'); }
+  if (action === 'see-recommended') { filters = { status: [], type: ['recommended'] }; go('library'); }
+  if (action === 'open-filters') { draft = { status: [...filters.status], type: [...filters.type] }; sheetOpen = true; libraryView(); }
+  if (action === 'close-filters') { sheetOpen = false; libraryView(); root.querySelector('[data-action="open-filters"]')?.focus(); }
+  if (action === 'apply-filters') { filters = draft; sheetOpen = false; libraryView(); }
+  if (action === 'reset-filters') { filters = noFilters(); sheetOpen = false; libraryView(); }
   if (action === 'road-safety') go('road-safety');
   if (action === 'course-page') { if (el.dataset.course) { openCourse = courseById(el.dataset.course); courseFrom = view === 'discover' ? 'discover' : 'library'; } go('course-page'); }
   if (action === 'course-soon') go('course-soon');
@@ -533,7 +588,7 @@ root.addEventListener('click', e => {
     timer = setInterval(() => { tick++; const time = root.querySelector('#video-time'), bar = root.querySelector('#video-progress'); if (!time) return stopVideo(); const current = Math.min(media.duration, Math.round(media.duration * tick / 12)); time.textContent = `${Math.floor(current / 60)}:${String(current % 60).padStart(2, '0')} / ${media.runtime}`; if (bar) bar.style.width = `${Math.min(100, tick / 12 * 100)}%`; if (tick >= 12) { stopVideo(); watched = true; activity(); } }, 1000);
   }
 });
-root.addEventListener('keydown', e => { const list = root.querySelector('#dropdown-options'); if (!list || list.hidden) return; const opts = [...list.querySelectorAll('button')]; const i = opts.indexOf(document.activeElement); if (e.key === 'Escape') { list.hidden = true; const trigger = root.querySelector('[data-action="dropdown"]'); trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); } if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) { e.preventDefault(); opts[e.key === 'Home' ? 0 : e.key === 'End' ? opts.length - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length].focus(); } });
+root.addEventListener('keydown', e => { if (e.key === 'Escape' && sheetOpen) { sheetOpen = false; libraryView(); root.querySelector('[data-action="open-filters"]')?.focus(); return; } const list = root.querySelector('#dropdown-options'); if (!list || list.hidden) return; const opts = [...list.querySelectorAll('button')]; const i = opts.indexOf(document.activeElement); if (e.key === 'Escape') { list.hidden = true; const trigger = root.querySelector('[data-action="dropdown"]'); trigger.setAttribute('aria-expanded', 'false'); trigger.focus(); } if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) { e.preventDefault(); opts[e.key === 'Home' ? 0 : e.key === 'End' ? opts.length - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length].focus(); } });
 root.addEventListener('dragstart', e => { const el = e.target.closest('[data-card],[data-sort]'); if (!el || checked) return; dragged = { type: el.dataset.card !== undefined ? 'card' : 'sort', index: +(el.dataset.card ?? el.dataset.sort) }; el.classList.add(dragged.type === 'card' ? 'is-selected' : 'is-dragging'); e.dataTransfer.setData('text/plain', String(dragged.index)); });
 root.addEventListener('dragover', e => { const target = e.target.closest('[data-zone],[data-sort]'); if (target) { e.preventDefault(); root.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over')); target.classList.add('is-drag-over'); } });
 root.addEventListener('dragleave', e => { e.target.closest('[data-zone],[data-sort]')?.classList.remove('is-drag-over'); });
@@ -578,10 +633,15 @@ const demos = {
   matching: () => { placement = { 0: 0 }; selected = 1; }
 };
 function applyPreview(name, params = new URLSearchParams()) {
-  previewing = true; errorState = ''; resetActivity();
+  previewing = true; errorState = ''; resetActivity(); filters = noFilters(); sheetOpen = false;
   const lesson = Number(params.get('lesson')), step = Number(params.get('step'));
   if (name === 'discover') { state = freshState(); view = 'discover'; }
-  else if (name === 'library') { seed('mid-course'); view = 'library'; }
+  else if (name === 'library') {
+    seed('mid-course'); view = 'library';
+    const list = (key, allowed) => (params.get(key) || '').split(',').filter(v => allowed.some(([a]) => a === v));
+    filters = { status: list('status', STATUSES), type: list('type', TYPES) };
+    sheetOpen = params.get('sheet') === 'filters'; draft = sheetOpen ? { status: [...filters.status], type: [...filters.type] } : null;
+  }
   else if (name === 'road-safety') { state = freshState(); view = 'road-safety'; }
   else if (name === 'overview') { seed(params.get('stage') === 'complete' ? 'complete' : 'mid-course'); view = 'overview'; }
   else if (name === 'intro') { state = freshState(); view = 'intro'; }
@@ -607,7 +667,7 @@ function applyPreview(name, params = new URLSearchParams()) {
 
 // Review panel: every prepared state, plus each activity and recovery state.
 const panel = document.querySelector('#review-panel');
-const figmaScreens = [['discover', 'Learning home'], ['library', 'Course library'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['course', 'Course details · optional', 'id=2'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
+const figmaScreens = [['discover', 'Learning home'], ['library', 'All courses'], ['library', 'All courses · filters open', 'sheet=filters&status=in-progress&type=required'], ['library', 'All courses · filtered', 'status=in-progress&type=required'], ['library', 'All courses · no results', 'status=completed&type=recommended'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['course', 'Course details · optional', 'id=2'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
 panel.innerHTML = `<h2>Figma screens</h2>${figmaScreens.map(([p, label, q]) => `<button data-preview="${p}" data-query="${q || ''}">${label}</button>`).join('')}<h2>Every activity</h2>${lessons.map((l, n) => l.steps.map((a, s) => `<button data-preview="activity" data-query="lesson=${n}&step=${s}">${n + 1}.${s + 1} ${a.type} · ${esc(a.title)}</button>`).join('')).join('')}<h2>Recovery states</h2>${Object.keys(errors).map(k => `<button data-error="${k}">${errors[k][0]}</button>`).join('')}<h2>Prototype controls</h2><button data-reset>Reset local progress</button>`;
 document.querySelector('#review-toggle').addEventListener('click', e => { panel.hidden = !panel.hidden; e.target.setAttribute('aria-expanded', !panel.hidden); });
 panel.addEventListener('click', e => {

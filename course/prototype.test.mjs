@@ -240,3 +240,59 @@ test('the Required section holds several mandatory courses, with a done count', 
   assert.equal(document.querySelector('h1').textContent, 'Regional safety training');
   assert.match(text(), /Required · Safety/);
 });
+
+// All courses with filters, added 2026-10-01 (Uber Eats pattern, PRD: display
+// completed and ongoing learning).
+test('All courses lists every course and narrows it with one-tap filters', async () => {
+  const { click } = await loadPage('?preview=library');
+  assert.equal(document.querySelector('h1').textContent, 'All courses');
+  assert.match(document.querySelector('.results-line').textContent, /^7 courses$/);
+  assert.equal(document.querySelectorAll('.course-group').length, 3);
+  click('[data-filter="type:required"]');
+  assert.match(document.querySelector('.results-line').textContent, /^2 coursesReset$/);
+  assert.equal(document.querySelector('[data-action="open-filters"]').textContent, 'Filters · 1');
+  assert.equal(document.querySelectorAll('.course-group').length, 0);
+  assert.equal(document.querySelectorAll('.course-card').length, 2);
+  click('[data-filter="status:in-progress"]');
+  assert.deepEqual([...document.querySelectorAll('.course-card .u-label-large')].map(t => t.textContent), ['Sexual misconduct education']);
+  click('[data-action="reset-filters"]');
+  assert.match(document.querySelector('.results-line').textContent, /^7 courses$/);
+});
+
+test('the Filters sheet edits a draft and shows the live result before applying', async () => {
+  const { click } = await loadPage('?preview=library');
+  click('[data-action="open-filters"]');
+  assert.ok(document.querySelector('.sheet[role="dialog"]'));
+  assert.deepEqual([...document.querySelectorAll('.check-row')].map(r => r.textContent), ['Not started (6)', 'In progress (1)', 'Completed (0)', 'Required (2)', 'Recommended for you (4)', 'Other optional (1)']);
+  click('[data-draft="type:recommended"]');
+  assert.equal(document.querySelector('[data-draft="type:recommended"]').getAttribute('aria-checked'), 'true');
+  assert.equal(document.querySelector('[data-action="apply-filters"]').textContent, 'Show 4 courses');
+  assert.match(document.querySelector('.results-line').textContent, /^7 courses$/, 'the list waits for Apply');
+  click('[data-draft="status:completed"]');
+  assert.equal(document.querySelector('[data-action="apply-filters"]').textContent, 'Show 0 courses');
+  click('[data-action="apply-filters"]');
+  assert.equal(document.querySelector('.sheet'), null);
+  assert.match(document.querySelector('.no-results').textContent, /No courses match these filters/);
+  click('.no-results [data-action="reset-filters"]');
+  assert.match(document.querySelector('.results-line').textContent, /^7 courses$/);
+});
+
+test('Learning home leads into All courses: the row shows everything, See all opens Recommended', async () => {
+  const { click } = await loadPage();
+  assert.match(document.querySelector('.list-row').textContent, /All coursesEvery course available to you, any time7/);
+  click('[data-action="see-recommended"]');
+  assert.equal(document.querySelector('[data-filter="type:recommended"]').getAttribute('aria-pressed'), 'true');
+  assert.match(document.querySelector('.results-line').textContent, /^4 courses/);
+  click('[data-action="discover"]');
+  click('[data-action="all-courses"]');
+  assert.match(document.querySelector('.results-line').textContent, /^7 courses$/);
+});
+
+test('All courses previews match the Figma states', async () => {
+  await loadPage('?preview=library&sheet=filters&status=in-progress&type=required');
+  assert.ok(document.querySelector('.sheet'));
+  assert.equal(document.querySelector('[data-action="apply-filters"]').textContent, 'Show 1 course');
+  await loadPage('?preview=library&status=completed&type=recommended');
+  assert.ok(document.querySelector('.no-results'));
+  assert.match(document.querySelector('.results-line').textContent, /^0 coursesReset$/);
+});
