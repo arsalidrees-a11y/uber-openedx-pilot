@@ -288,14 +288,17 @@ shield, not the check); upcoming lessons cannot be opened early; previews
 prepared states carry real dates, so the streak, weekly goal and standing are
 computed by `gamification.js`, never typed in.
 
-Catalogue and badges, added 2026-09-29: `course/catalog.js` holds four
-curricula of four courses. Only Sexual misconduct education has content; the
-other courses are placeholders ("Content coming soon"). A badge is earned for
-a whole curriculum, never for one course, and the retention check awards none.
-Optional courses carry ratings, reviews and Trending (the numbers are
-illustrative); required and sensitive courses carry completion proof only and
-are never rated. Previews: `course&id=5`, `rate&id=5` (`stars=0` for the empty
-prompt) and `curriculum-complete`.
+Catalogue, reworked to the PRD on 2026-10-01: `course/catalog.js` holds the
+required course, Flow's recommended set and Road safety. Flow is Uber's
+internal tool that picks each driver's optional courses; the set has no name
+and is not a curriculum, so the home screen shows it as "Recommended for you"
+with a done count, in a carousel. Its four courses are illustrative
+placeholders beyond pilot scope (the PRD allows two course shells). Badges are
+the PRD's three: Applied, Thorough and Retained, and the 30-day check earns
+Retained. Ratings, reviews, Trending, social proof and curricula are parked:
+their components stay in the Figma library, on no screen, and the code was
+removed (it is in git history before this date). Optional course preview:
+`course&id=2`.
 
 The layout follows the Uber and Uber Eats apps, studied on Mobbin. See
 `UBER-PATTERNS.md`: the course page is Uber's Safety checkup, the course

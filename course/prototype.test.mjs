@@ -111,17 +111,17 @@ test('standing uses four visual bands and identifies its illustrative cohort', a
   assert.match(document.querySelector('.standing-panel').textContent, /Illustrative cohort/);
 });
 
-test('the 30-day retention check is saved to the record but awards no badge', async () => {
+test('retention check earns the badge only after a passing result is saved', async () => {
   const { click } = await loadPage('?preview=retention');
-  assert.match(text(), /doesn’t add points or award a badge/);
   click('[data-action="start-retention"]');
   for (const answer of [0, 1, 2, 0, 1]) {
     click(`[data-assessment-choice="${answer}"]`);
     click('[data-action="assessment-next"]');
   }
-  assert.equal(document.querySelector('.step-footer .btn').textContent, 'Save result');
+  assert.match(text(), /Save result and view badge/);
   click('[data-action="finish-retention"]');
-  assert.match(document.querySelector('.learning-stats').textContent, /0 of 4Badges/);
+  const retained = [...document.querySelectorAll('.badge-row')].find(row => /Retained/.test(row.textContent));
+  assert.ok(retained.classList.contains('is-earned'));
 });
 
 // Logic fixed on 2026-09-29, when the prototype was rebuilt to match Figma.
@@ -135,7 +135,7 @@ test('the course hero shows a plain shield until the course is complete', async 
   await loadPage('?preview=overview&stage=complete');
   assert.equal(document.querySelector('.safety-hero').dataset.state, 'complete');
   assert.match(text(), /7 of 7 lessons complete/);
-  assert.match(text(), /250 points from this course · 0 badges earned/);
+  assert.match(text(), /250 points from this course · 2 badges earned/);
   assert.equal(document.querySelector('.step-footer .btn').textContent, 'Review course');
   assert.equal(document.querySelectorAll('.lesson-row.is-complete').length, 7);
 });
@@ -182,78 +182,6 @@ test('mid-course numbers agree on every screen', async () => {
   assert.match(text(), /total is now 70 points/);
 });
 
-// Social proof, ratings and curriculum badges, added 2026-09-29.
-test('home calls out trending optional courses with ratings; the required course shows proof, never stars', async () => {
-  await loadPage();
-  const required = document.querySelector('.course-card');
-  assert.match(required.textContent, /1,240 drivers rated 4\.9\+ took this/);
-  assert.equal(required.querySelector('.rating, .trending-tag'), null);
-  assert.match(text(), /Trending now/);
-  const trending = [...document.querySelectorAll('.course-card[data-course]')];
-  assert.deepEqual(trending.map(card => card.querySelector('.u-label-large').textContent), ['Course 5', 'Course 9']);
-  assert.match(trending[0].querySelector('.rating').textContent, /4\.8· 212 drivers/);
-  assert.match(trending[1].querySelector('.rating').textContent, /4\.7· 180 drivers/);
-  assert.equal(document.querySelectorAll('.course-card .trending-tag').length, 2);
-  assert.match(document.querySelector('.learning-stats').textContent, /0 of 4Badges/);
-});
-
-test('the library groups sixteen courses into four curricula', async () => {
-  await loadPage('?preview=library');
-  const groups = [...document.querySelectorAll('.curriculum-group')];
-  assert.equal(groups.length, 4);
-  assert.deepEqual(groups.map(group => group.querySelectorAll('.course-card').length), [4, 4, 4, 4]);
-  assert.deepEqual(groups.map(group => group.querySelector('.curriculum-header b').textContent), ['Safety essentials', 'Curriculum 2', 'Curriculum 3', 'Curriculum 4']);
-  assert.match(groups[0].querySelector('.curriculum-header').textContent, /0 of 4 courses · Badge when all 4 are done/);
-});
-
-test('course details for the required course show proof and curriculum progress, not stars', async () => {
-  await loadPage('?preview=overview');
-  assert.ok(document.querySelector('.social-proof'));
-  assert.equal(document.querySelector('.rating, .rating-input, .review'), null);
-  assert.match(document.querySelector('.curriculum-header').textContent, /Safety essentials0 of 4 courses/);
-});
-
-test('an optional course page shows its rating, reviews and placeholder lessons', async () => {
-  const { click } = await loadPage('?preview=course&id=5');
-  assert.equal(document.querySelector('h1').textContent, 'Course 5');
-  assert.match(document.querySelector('.course-page__rating').textContent, /4\.8· 212 driversTrending/);
-  assert.match(text(), /Completed by 480 drivers rated 4\.9\+/);
-  assert.match(text(), /From 212 drivers/);
-  assert.equal(document.querySelectorAll('.review').length, 3);
-  assert.equal(document.querySelectorAll('.lesson-row').length, 4);
-  assert.equal(document.querySelectorAll('.lesson-row.is-upcoming').length, 3);
-  assert.match(document.querySelector('.curriculum-header').textContent, /Curriculum 2/);
-  click('[data-action="course-soon"]');
-  assert.match(text(), /Content coming soon/);
-});
-
-test('rating an optional course needs a star before it can be submitted', async () => {
-  const { click } = await loadPage('?preview=rate&id=5&stars=0');
-  const submit = () => document.querySelector('[data-action="submit-rating"]');
-  assert.ok(submit().disabled);
-  click('[data-stars="4"]');
-  assert.equal(document.querySelectorAll('.rating-input [aria-checked="true"]').length, 1);
-  assert.match(document.querySelector('.rating-input').textContent, /Good/);
-  assert.ok(!submit().disabled);
-  click('[data-action="submit-rating"]');
-  assert.ok(document.querySelector('.personal-greeting'));
-});
-
-test('a badge is earned only when all four courses in a curriculum are complete', async () => {
-  await loadPage('?preview=complete');
-  assert.match(text(), /Curriculum progress/);
-  assert.match(document.querySelector('.curriculum-header').textContent, /1 of 4 courses/);
-  await loadPage('?preview=curriculum-complete');
-  assert.match(document.querySelector('.check-result').textContent, /Curriculum complete/);
-  assert.match(document.querySelector('.curriculum-header').textContent, /Badge earned · 4 of 4 courses/);
-  document.querySelector('[data-action="badges"]').click();
-  const headers = [...document.querySelectorAll('.curriculum-header')];
-  assert.equal(headers.length, 4);
-  assert.deepEqual(headers.map(header => header.classList.contains('is-complete')), [true, false, false, false]);
-  document.querySelector('[data-action="discover"]').click();
-  assert.match(document.querySelector('.learning-stats').textContent, /1 of 4Badges/);
-});
-
 test('the home header shows the Uber wordmark in place of a text brand', async () => {
   await loadPage();
   const logo = document.querySelector('.discovery-header__logo');
@@ -261,4 +189,41 @@ test('the home header shows the Uber wordmark in place of a text brand', async (
   assert.equal(logo.getAttribute('aria-label'), 'Uber');
   assert.equal(logo.querySelectorAll('svg path').length, 4);
   assert.equal(document.querySelector('.discovery-header').textContent.trim(), 'S');
+});
+
+// Reworked to the PRD on 2026-10-01: Flow's recommended set, three badges, no
+// ratings, reviews, social proof or curricula.
+test('home shows Flow’s recommended set as one carousel with a done count, and no ratings or proof', async () => {
+  await loadPage();
+  const section = document.querySelector('.recommended');
+  assert.ok(document.querySelector('.course-card').compareDocumentPosition(section) & 4, 'the set follows the required course');
+  assert.match(section.textContent, /Recommended for you/);
+  assert.match(section.textContent, /Optional courses picked for you by Uber · 0 of 4 done/);
+  assert.deepEqual([...section.querySelectorAll('.carousel .course-card')].map(card => card.querySelector('.u-label-large').textContent), ['Course 2', 'Course 3', 'Course 4', 'Course 5']);
+  assert.equal(document.querySelector('.rating, .trending-tag, .social-proof, .review, .curriculum-header'), null);
+  assert.doesNotMatch(text(), /Trending|drivers rated|curriculum/i);
+  assert.match(document.querySelector('.learning-stats').textContent, /0 of 3Badges/);
+});
+
+test('the library lists Required, Recommended for you and More courses', async () => {
+  await loadPage('?preview=library');
+  const groups = [...document.querySelectorAll('.course-group')];
+  assert.deepEqual(groups.map(group => group.querySelector('h2').textContent), ['Required', 'Recommended for you', 'More courses']);
+  assert.deepEqual(groups.map(group => group.querySelectorAll('.course-card').length), [1, 4, 1]);
+  assert.match(groups[2].textContent, /Road safety fundamentals/);
+});
+
+test('an optional course page shows only its outline: no ratings, proof or reviews', async () => {
+  const { click } = await loadPage('?preview=course&id=2');
+  assert.equal(document.querySelector('h1').textContent, 'Course 2');
+  assert.equal(document.querySelector('.rating, .social-proof, .review, .curriculum-header'), null);
+  assert.equal(document.querySelectorAll('.lesson-row').length, 4);
+  click('[data-action="course-soon"]');
+  assert.match(text(), /Content coming soon/);
+});
+
+test('the badges tab shows the three PRD badges', async () => {
+  await loadPage('?preview=rewards&tab=badges');
+  assert.deepEqual([...document.querySelectorAll('.badge-row__name')].map(name => name.textContent), ['Applied', 'Thorough', 'Retained']);
+  assert.match(text(), /1 of 5 correct practice activities/);
 });

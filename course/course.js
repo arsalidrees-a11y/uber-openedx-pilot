@@ -1,5 +1,5 @@
-import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, activityCount, earnedBadgeKeys, curriculumProgress, habitSummary, demoComparison, COHORT_BANDS, ELIGIBLE_ACTIVITY_TYPES } from './gamification.js';
-import { CURRICULA, courseById, courseByNumber, curriculumOf, trendingCourses } from './catalog.js';
+import { createLearningRecord, recordActivity, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, activityCount, earnedBadgeKeys, habitSummary, demoComparison, COHORT_BANDS, ELIGIBLE_ACTIVITY_TYPES } from './gamification.js';
+import { courseByNumber, courseById, recommendedCourses, moreCourses } from './catalog.js';
 import { icon } from './icons.js';
 
 // Source: United States Mandatory Sexual Misconduct Education .docx.pdf.
@@ -124,13 +124,12 @@ const root = document.querySelector('#course');
 const KEY = `uber-us-mandatory-course-${variant.toLowerCase()}-v3`;
 const COURSE_ID = 'sexual-misconduct';
 const COURSE_TITLE = 'Sexual misconduct education';
-const freshState = () => ({ lesson: 0, step: 0, completed: [], started: false, baselineDone: false, finalCheckDone: false, finalCheckScore: null, retentionCheckDone: false, retentionScore: null, responses: {}, assessmentResponses: { baseline: [], final: [], retention: [] }, ratings: {}, learningRecord: createLearningRecord() });
+const freshState = () => ({ lesson: 0, step: 0, completed: [], started: false, baselineDone: false, finalCheckDone: false, finalCheckScore: null, retentionCheckDone: false, retentionScore: null, responses: {}, assessmentResponses: { baseline: [], final: [], retention: [] }, learningRecord: createLearningRecord() });
 let state = freshState();
 try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && Array.isArray(saved.completed) && saved.lesson >= 0 && saved.lesson < lessons.length && saved.step >= 0 && saved.step < lessons[saved.lesson].steps.length) state = { ...state, ...saved }; } catch {}
 let view = 'discover', progressTab = 'progress', errorState = '', selected = null, checked = false, correct = false, placement = {}, order = [0, 1, 2], dragged = null, watched = false, playing = false, tick = 0, timer, assessmentMode = 'baseline', assessmentIndex = 0;
-// The optional course on screen, where its page was opened from, and the
-// rating being drafted for it.
-let openCourse = courseByNumber(5), courseFrom = 'library', draftStars = 0, draftReview = '';
+// The optional course on screen and where its page was opened from.
+let openCourse = courseByNumber(2), courseFrom = 'library';
 // A preview shows a prepared state for review. It never writes over the
 // learner's saved progress: save() is off until the prototype is reset.
 let previewing = false;
@@ -154,10 +153,19 @@ function lessonStatus(i) { return state.completed.includes(i) ? 'complete' : i =
 function completedActivities() { return lessons.reduce((sum, lesson, i) => sum + (state.completed.includes(i) ? lesson.steps.length : i === state.lesson && state.started ? state.step : 0), 0); }
 const learningPoints = () => pointsTotal(state.learningRecord);
 const lessonPoints = (i) => state.learningRecord.activities.filter(a => a.courseId === COURSE_ID && a.activityId.startsWith(`${i}.`)).length * 10;
-// One badge per curriculum, earned when all four of its courses are complete.
-const earnedBadgeCount = () => earnedBadgeKeys(state.learningRecord).length;
+// The PRD's three account-level badges (up to three allowed).
+function badgeStates() {
+  const earned = earnedBadgeKeys(state.learningRecord);
+  const correctPractice = state.learningRecord.activities.filter(a => a.correct).length;
+  const earnedCopy = 'Earned across your courses';
+  return [
+    { key: 'applied', name: 'Applied', state: earned.includes('applied') ? 'earned' : correctPractice ? 'progress' : 'locked', detail: earned.includes('applied') ? earnedCopy : correctPractice ? `${correctPractice} of 5 correct practice activities` : 'Complete five practice activities correctly' },
+    { key: 'thorough', name: 'Thorough', state: earned.includes('thorough') ? 'earned' : lessonsDone() ? 'progress' : 'locked', detail: earned.includes('thorough') ? earnedCopy : 'Complete an eligible course and its required check' },
+    { key: 'retained', name: 'Retained', state: earned.includes('retained') ? 'earned' : 'locked', detail: earned.includes('retained') ? earnedCopy : 'Pass a check 30 days after course completion' }
+  ];
+}
+const earnedBadgeCount = () => badgeStates().filter(b => b.state === 'earned').length;
 const courseComplete = (id) => Boolean(state.learningRecord.courses[id]?.completedAt);
-const SAFETY = curriculumOf(COURSE_ID);
 function retentionDue() { const completedAt = state.learningRecord.courses[COURSE_ID]?.completedAt; return Boolean(completedAt && Date.now() >= new Date(completedAt).getTime() + 30 * 86400000) && !state.retentionCheckDone; }
 const DEMO_LEARNER_FIRST_NAME = 'Sam';
 function learnerFirstName() {
@@ -192,26 +200,11 @@ function ring(done, total, complete) {
   const r = 22, c = 2 * Math.PI * r, pct = complete ? 1 : done / total;
   return `<span class="ring${complete ? ' is-complete' : ''}" role="img" aria-label="${done} of ${total} lessons complete"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="ring__track" cx="24" cy="24" r="${r}"/>${pct ? `<circle class="ring__value" cx="24" cy="24" r="${r}" stroke-dasharray="${(pct * c).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 24 24)"/>` : ''}</svg>${complete ? icon('checkmark') : `<b class="u-label-small" aria-hidden="true">${done}/${total}</b>`}</span>`;
 }
-// Learning / Rating, Trending tag, Social proof and Review. Stars and Trending
-// are for optional courses only; required and sensitive courses get proof.
-function rating({ value, count }) { return `<span class="rating">${icon('star')}<b class="u-label-small c-primary">${value.toFixed(1)}</b><span class="u-paragraph-small c-secondary">· ${count.toLocaleString('en-US')} drivers</span></span>`; }
-const trendingTag = () => `<span class="trending-tag u-label-x-small">${icon('chart_line')}Trending</span>`;
-function socialProof(text) { return `<span class="social-proof">${icon('person_multiple')}<span class="u-paragraph-small">${esc(text)}</span></span>`; }
-function review(r) { return `<div class="review"><span class="review__head">${icon('star')}<b class="u-label-small c-primary">${r.rating}</b><span class="u-paragraph-x-small c-tertiary">· ${esc(r.age)}</span></span><p class="u-paragraph-small c-primary">${esc(r.text)}</p></div>`; }
-const STAR_WORDS = ['Tap a star to rate', 'Poor', 'Fair', 'Okay', 'Good', 'Great'];
-function ratingInput(value) {
-  return `<div class="rating-input"><div class="rating-input__stars" role="radiogroup" aria-label="Rate this course">${[1, 2, 3, 4, 5].map(n => `<button role="radio" aria-checked="${n === value}" aria-label="${n} ${n === 1 ? 'star' : 'stars'}" data-stars="${n}">${icon(n <= value ? 'star' : 'star_outlined')}</button>`).join('')}</div><span class="u-paragraph-small c-secondary">${STAR_WORDS[value]}</span></div>`;
+function courseCard({ kicker, title, description, done, total, complete = false, action, course = '' }) {
+  return `<button class="course-card" data-action="${action}"${course ? ` data-course="${course}"` : ''}><span class="course-card__body"><span class="u-label-x-small c-secondary">${esc(kicker)}</span><span class="u-label-large c-primary">${esc(title)}</span><span class="u-paragraph-small c-secondary">${esc(description)}</span></span>${ring(done, total, complete)}</button>`;
 }
-// Learning / Curriculum header: four courses, one badge.
-function curriculumHeader(curriculum) {
-  const done = curriculumProgress(state.learningRecord, curriculum), total = curriculum.courses.length;
-  const stage = done === total ? 'complete' : done ? 'in-progress' : 'not-started';
-  const meta = stage === 'complete' ? `Badge earned · ${total} of ${total} courses` : `${done} of ${total} courses · Badge when all ${total} are done`;
-  return `<div class="curriculum-header is-${stage}"><span class="curriculum-header__art">${icon('badge_checkmark')}</span><span class="curriculum-header__body"><b class="u-heading-x-small c-primary">${esc(curriculum.name)}</b><span class="u-paragraph-small c-secondary">${meta}</span><span class="curriculum-header__meter" role="img" aria-label="${done} of ${total} courses complete">${curriculum.courses.map((_, i) => `<i class="${i < done ? 'is-done' : ''}"></i>`).join('')}</span></span></div>`;
-}
-function courseCard({ kicker, title, description, done, total, complete = false, action, course = '', stars = null, trending = false, proof = '' }) {
-  const meta = stars ? `<span class="course-card__meta">${rating(stars)}${trending ? trendingTag() : ''}</span>` : '';
-  return `<button class="course-card" data-action="${action}"${course ? ` data-course="${course}"` : ''}><span class="course-card__body"><span class="u-label-x-small c-secondary">${esc(kicker)}</span><span class="u-label-large c-primary">${esc(title)}</span><span class="u-paragraph-small c-secondary">${esc(description)}</span>${meta}${proof ? socialProof(proof) : ''}</span>${ring(done, total, complete)}</button>`;
+function badgeRow(b) {
+  return `<div class="badge-row is-${b.state === 'progress' ? 'in-progress' : b.state}"><span class="badge-row__art">${icon(b.state === 'locked' ? 'lock' : 'badge_checkmark')}</span><span class="badge-row__body"><b class="badge-row__name u-label-large">${esc(b.name)}</b><small class="u-paragraph-small c-tertiary">${esc(b.detail)}</small></span></div>`;
 }
 function sectionTitle(title, trailing = '') { return `<div class="section-title"><h2 class="u-heading-small">${esc(title)}</h2>${trailing}</div>`; }
 function milestone({ kicker = '', title, body, next = false, action = '' }) {
@@ -234,7 +227,7 @@ function weeklyGoal(kicker = 'Weekly learning goal') {
 function learningStats() {
   const habit = habitSummary(state.learningRecord);
   const tile = (value, label) => `<span><b class="u-heading-small c-primary">${esc(value)}</b><small class="u-paragraph-x-small c-secondary">${label}</small></span>`;
-  return `<button class="learning-stats" data-action="rewards" aria-label="View progress across all courses">${tile(learningPoints(), 'Points')}${tile(habit.weekStreak, 'Week streak')}${tile(`${earnedBadgeCount()} of ${CURRICULA.length}`, 'Badges')}</button>`;
+  return `<button class="learning-stats" data-action="rewards" aria-label="View progress across all courses">${tile(learningPoints(), 'Points')}${tile(habit.weekStreak, 'Week streak')}${tile(`${earnedBadgeCount()} of 3`, 'Badges')}</button>`;
 }
 function safetyHero(complete) { return `<div class="safety-hero" data-state="${complete ? 'complete' : 'not-complete'}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i>${icon(complete ? 'shield_check' : 'shield')}</div>`; }
 function activityHeader(mode) {
@@ -277,23 +270,29 @@ const lead = (text) => `<p class="lead u-paragraph-medium">${esc(text)}</p>`;
 function requiredCourseCard({ kicker = 'Required · Safety' } = {}) {
   const status = courseStatus(), cur = currentLesson();
   const description = status === 'not-started' ? '7 lessons' : status === 'complete' ? 'Complete' : status === 'final-pending' ? 'Next: Final check' : `Next: ${lessons[cur].title}`;
-  return courseCard({ kicker, title: COURSE_TITLE, description, done: lessonsDone(), total: lessons.length, complete: status === 'complete', action: 'course', proof: courseById(COURSE_ID).cardProof });
+  return courseCard({ kicker, title: COURSE_TITLE, description, done: lessonsDone(), total: lessons.length, complete: status === 'complete', action: 'course' });
 }
 // Every other course in the catalogue. Road safety hands off to its own
 // provider; the placeholders open a course page with no content yet.
 function catalogCard(course) {
   if (course.id === COURSE_ID) return requiredCourseCard();
   const done = courseComplete(course.id);
-  return courseCard({ kicker: course.kicker, title: course.title, description: course.description, done: done ? course.lessonCount : 0, total: course.lessonCount, complete: done, action: course.external ? 'road-safety' : 'course-page', course: course.external ? '' : course.id, stars: course.rating, trending: course.trending, proof: '' });
+  return courseCard({ kicker: course.kicker, title: course.title, description: course.description, done: done ? course.lessonCount : 0, total: course.lessonCount, complete: done, action: course.external ? 'road-safety' : 'course-page', course: course.external ? '' : course.id });
+}
+// Flow's recommended set: chosen by Uber, unnamed, shown with a done count.
+function recommendedHeader(seeAll) {
+  const set = recommendedCourses(), done = set.filter(course => courseComplete(course.id)).length;
+  return `<div>${sectionTitle('Recommended for you', seeAll ? '<button class="link u-paragraph-small" data-action="library">See all</button>' : '')}<p class="u-paragraph-small c-secondary">Optional courses picked for you by Uber · ${done} of ${set.length} done</p></div>`;
 }
 function discovery() {
   const firstName = learnerFirstName();
   const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', '<span class="u-paragraph-small c-secondary">30 days on</span>')}${milestone({ kicker: 'Not scored for points', title: 'Five-question retention check', body: `Review what you remember from ${COURSE_TITLE}.`, next: true, action: 'retention-intro' })}` : '';
-  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${sectionTitle('Required')}${requiredCourseCard({ kicker: 'Safety' })}${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}${sectionTitle('Trending now', '<button class="link u-paragraph-small" data-action="library">See all</button>')}${trendingCourses().map(catalogCard).join('')}</div>`;
+  root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span><button class="avatar u-label-medium" data-action="rewards" aria-label="Open ${firstName ? `${esc(firstName)}’s` : 'your'} learning progress">${firstName ? esc(firstName.slice(0, 1).toUpperCase()) : '·'}</button></header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${sectionTitle('Required')}${requiredCourseCard({ kicker: 'Safety' })}<section class="recommended">${recommendedHeader(true)}<div class="carousel">${recommendedCourses().map(catalogCard).join('')}</div></section>${retention}${sectionTitle('This week', '<span class="u-paragraph-small c-secondary">2 learning days</span>')}${weeklyGoal()}${sectionTitle('Your progress', '<span class="u-paragraph-small c-secondary">Across all courses</span>')}${learningStats()}</div>`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
 }
 function libraryView() {
-  const groups = CURRICULA.map(curriculum => `<section class="curriculum-group">${curriculumHeader(curriculum)}${curriculum.courses.map(id => catalogCard(courseById(id))).join('')}</section>`).join('');
+  const more = moreCourses();
+  const groups = `<section class="course-group">${sectionTitle('Required')}${requiredCourseCard()}</section><section class="course-group">${recommendedHeader(false)}${recommendedCourses().map(catalogCard).join('')}</section>${more.length ? `<section class="course-group">${sectionTitle('More courses')}${more.map(catalogCard).join('')}</section>` : ''}`;
   shell({ nav: navHeader('Course library', 'discover'), body: `${kicker('Course library')}${heading('Explore learning')}${lead('Courses available for your profile.')}${groups}`, footer: stepFooter({ label: 'Back to learning home', action: 'discover' }) });
 }
 function roadSafetyView() {
@@ -313,36 +312,22 @@ function overview() {
   const badges = earnedBadgeCount();
   const record = milestone({ kicker: 'Shared across courses', title: 'Your learning record', body: `${coursePoints(state.learningRecord, COURSE_ID)} points from this course · ${badges} ${badges === 1 ? 'badge' : 'badges'} earned`, next: true, action: 'rewards' });
   const primary = { 'not-started': { label: 'Begin course', action: 'course-intro' }, 'in-progress': { label: 'Continue course', action: 'start' }, 'final-pending': { label: 'Complete final check', action: 'final-check' }, complete: { label: 'Review course', action: 'review' } }[status];
-  shell({ nav: navHeader('Course details', 'discover'), hero: safetyHero(status === 'complete'), bodyClass: 'screen-body--roomy', body: `${kicker('Required · Safety')}${heading(COURSE_TITLE)}${lead('Practical guidance for respectful boundaries, awareness, and safe reporting.')}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}<p class="u-paragraph-small c-tertiary">7 lessons · 6 required videos · 33 activities</p>${socialProof(courseById(COURSE_ID).proof)}${record}${curriculumHeader(SAFETY)}${groups}`, footer: stepFooter(primary) });
+  shell({ nav: navHeader('Course details', 'discover'), hero: safetyHero(status === 'complete'), bodyClass: 'screen-body--roomy', body: `${kicker('Required · Safety')}${heading(COURSE_TITLE)}${lead('Practical guidance for respectful boundaries, awareness, and safe reporting.')}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}<p class="u-paragraph-small c-tertiary">7 lessons · 6 required videos · 33 activities</p>${record}${groups}`, footer: stepFooter(primary) });
 }
 // Course details for an optional course. Only the required course has
 // content so far, so every lesson here reads "Content coming soon".
 function coursePage() {
-  const course = openCourse, curriculum = curriculumOf(course.id);
+  const course = openCourse;
   const lessonRows = Array.from({ length: course.lessonCount }, (_, i) => {
     const content = `<span class="lesson-row__status" aria-hidden="true"><i></i></span><span class="lesson-row__content"><span class="lesson-row__body"><b class="u-label-medium c-primary">Lesson ${i + 1}</b><small class="u-paragraph-small c-secondary">Content coming soon</small></span>${i === 0 ? `<span class="chevron">${icon('chevron_right_small')}</span>` : ''}</span>`;
     return i === 0 ? `<button class="lesson-row is-current" data-action="course-soon">${content}</button>` : `<div class="lesson-row is-upcoming" aria-label="Lesson ${i + 1}, not yet available">${content}</div>`;
   }).join('');
-  const reviews = course.reviews ? `<section class="group">${sectionTitle('Reviews', `<span class="u-paragraph-small c-secondary">From ${course.rating.count.toLocaleString('en-US')} drivers</span>`)}${course.reviews.map(review).join('')}</section>` : '';
-  const meta = course.rating ? `<div class="course-page__rating">${rating(course.rating)}${course.trending ? trendingTag() : ''}</div>` : '';
-  shell({ nav: navHeader('Course details', courseFrom), bodyClass: 'screen-body--roomy', body: `${kicker(course.kicker)}${heading(course.title)}${lead('Course description coming soon.')}${meta}${course.proof ? socialProof(course.proof) : ''}<p class="u-paragraph-small c-tertiary">${course.lessonCount} lessons · about 20 minutes</p>${curriculumHeader(curriculum)}${reviews}<section class="group"><h2 class="u-heading-small">Lessons</h2>${lessonRows}</section>`, footer: stepFooter({ label: 'Start course', action: 'course-soon' }) });
+  shell({ nav: navHeader('Course details', courseFrom), bodyClass: 'screen-body--roomy', body: `${kicker(course.kicker)}${heading(course.title)}${lead('Course description coming soon.')}<p class="u-paragraph-small c-tertiary">${course.lessonCount} lessons · about 20 minutes</p><section class="group"><h2 class="u-heading-small">Lessons</h2>${lessonRows}</section>`, footer: stepFooter({ label: 'Start course', action: 'course-soon' }) });
 }
 // Starting a placeholder course: the same "not available yet" pattern as
 // Road safety, until the course has content.
 function courseSoonView() {
   shell({ nav: navHeader(openCourse.title, 'course-page'), body: `${kicker('Content coming soon')}${heading(openCourse.title)}${lead('The lessons for this course are not ready yet. We’ll show them here when they are.')}`, footer: stepFooter({ label: 'Back to course', action: 'course-page' }) });
-}
-// Rate this course: shown when an optional course is completed. Required and
-// sensitive courses never ask for stars.
-function rateView() {
-  const course = openCourse;
-  shell({ nav: navHeader(course.title, 'course-page'), body: `${checkResult({ kicker: 'Course complete', title: course.title, body: `You finished all ${course.lessonCount === 4 ? 'four' : course.lessonCount} lessons. Your points are in your learning record.` })}<h2 class="u-heading-small">How was this course?</h2>${ratingInput(draftStars)}<label class="field"><span class="field__label-row"><span class="u-label-medium">Add a one-line review (optional)</span><span id="review-count" class="field__count u-label-medium">${draftReview.length}/120</span></span><textarea id="review" class="field__input u-paragraph-medium" maxlength="120" rows="2" placeholder="What stood out?">${esc(draftReview)}</textarea><small class="field__hint u-paragraph-small">Shown to other drivers without your name</small></label>`, footer: stepFooter({ label: 'Submit rating', action: 'submit-rating', disabled: !draftStars }, { label: 'Skip', action: 'discover' }) });
-}
-// Curriculum complete: the moment a badge is earned.
-function curriculumCompleteView() {
-  const curriculum = CURRICULA.find(c => earnedBadgeKeys(state.learningRecord).includes(c.id)) || SAFETY;
-  const next = CURRICULA.find(c => !earnedBadgeKeys(state.learningRecord).includes(c.id));
-  shell({ nav: navHeader(curriculum.name, 'discover'), body: `${checkResult({ kicker: 'Curriculum complete', title: curriculum.name, body: `You completed all ${curriculum.courses.length === 4 ? 'four' : curriculum.courses.length} courses in this curriculum.` })}${curriculumHeader(curriculum)}${next ? milestone({ kicker: 'Next curriculum', title: next.name, body: `${next.courses.length} courses · Badge when all ${next.courses.length} are done`, next: true, action: 'library' }) : ''}`, footer: stepFooter({ label: 'View badges', action: 'badges' }, { label: 'Learning home', action: 'discover' }) });
 }
 function courseIntro() {
   const steps = [['01', 'Start with a quick check', 'Five questions establish a baseline. They do not add or remove points.'], ['02', 'Learn and practise', 'Watch required videos, make decisions, and review the source guidance.'], ['03', 'Confirm what you learned', 'A five-question final check measures learning gain.']];
@@ -359,7 +344,7 @@ const scoreOf = (mode) => assessments[mode].reduce((sum, question, i) => sum + (
 function assessmentResult() {
   if (assessmentMode === 'retention') {
     const score = scoreOf('retention'), passed = score >= 4;
-    shell({ nav: navHeader('Retention check', 'discover'), body: `${checkResult({ kicker: '30-day retention check', score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: `You answered ${score} of 5 questions correctly. ${passed ? 'Save your result to your learning record.' : 'Review the course, then try another check.'}`, result: passed ? 'passed' : 'retry' })}<p class="u-paragraph-small c-secondary">This check measures retained learning. It doesn’t add points or award a badge.</p>`, footer: passed ? stepFooter({ label: 'Save result', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
+    shell({ nav: navHeader('Retention check', 'discover'), body: `${checkResult({ kicker: '30-day retention check', score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: `You answered ${score} of 5 questions correctly. ${passed ? 'Save your result to earn the Retained badge.' : 'Review the course, then try another check.'}`, result: passed ? 'passed' : 'retry' })}<p class="u-paragraph-small c-secondary">This check measures retained learning. It does not add points.</p>`, footer: passed ? stepFooter({ label: 'Save result and view badge', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
     return;
   }
   const score = scoreOf('final'), passed = score >= 4, baseline = scoreOf('baseline');
@@ -422,7 +407,8 @@ function completion() {
   const status = courseStatus();
   const back = { label: 'Back to course', action: 'overview' };
   if (status === 'complete') {
-    shell({ nav: navHeader(COURSE_TITLE, 'overview'), body: `${checkResult({ kicker: 'Course complete', title: 'You completed the course', body: 'You completed all seven lessons in the United States mandatory safety education.' })}${progress(`${lessons.length} of ${lessons.length} lessons complete`, 100)}${milestone({ title: 'Course contribution recorded', body: `${coursePoints(state.learningRecord, COURSE_ID)} points from this course are in your shared record.` })}<section class="group"><h2 class="u-heading-x-small">Curriculum progress</h2>${curriculumHeader(SAFETY)}</section>${note('Your commitment', 'Keep conversations respectful, follow stated boundaries, and report concerns safely.')}`, footer: stepFooter({ label: 'View learning progress', action: 'rewards' }, back) });
+    const thorough = badgeStates().find(b => b.key === 'thorough');
+    shell({ nav: navHeader(COURSE_TITLE, 'overview'), body: `${checkResult({ kicker: 'Course complete', title: 'You completed the course', body: 'You completed all seven lessons in the United States mandatory safety education.' })}${progress(`${lessons.length} of ${lessons.length} lessons complete`, 100)}${milestone({ title: 'Course contribution recorded', body: `${coursePoints(state.learningRecord, COURSE_ID)} points from this course are in your shared record.` })}${thorough.state === 'earned' ? `<section class="group"><h2 class="u-heading-x-small">Badge unlocked</h2>${badgeRow(thorough)}</section>` : ''}${note('Your commitment', 'Keep conversations respectful, follow stated boundaries, and report concerns safely.')}`, footer: stepFooter({ label: 'View learning progress', action: 'rewards' }, back) });
     return;
   }
   const lessonTitle = lessons[state.lesson].title, contribution = lessonPoints(state.lesson);
@@ -444,7 +430,7 @@ function rewardsView() {
     const habit = habitSummary(state.learningRecord);
     panel = `${pointsTotalCard('Week streak', 'Consecutive goal weeks', habit.weekStreak)}${weeklyGoal()}<p class="u-paragraph-small c-secondary">A learning day requires the first completion of an eligible activity. The goal is two different days in a Monday–Sunday week. Finishing all available learning also meets that week’s goal. A week with no eligible learning pauses the streak. One missed active week in eight can be forgiven; earned points and badges never disappear.</p>`;
   } else if (progressTab === 'badges') {
-    panel = `<p class="lead u-paragraph-medium">Earn a badge for each curriculum you finish: four curricula, sixteen courses.</p><div class="stack-8">${CURRICULA.map(curriculumHeader).join('')}</div>`;
+    panel = `<p class="lead u-paragraph-medium">Three account-level badges recognise applied practice, course completion, and retained knowledge.</p><div>${badgeStates().map(badgeRow).join('')}</div>${retentionDue() ? '<button class="btn btn--primary u-label-large" data-action="retention-intro">Take your 30-day check</button>' : ''}`;
   } else {
     const standing = demoComparison(state.learningRecord);
     const bands = COHORT_BANDS.map((range, index) => { const current = standing.bandIndex === index; return `<div class="cohort__band${current ? ' is-current' : ''}" role="listitem" aria-label="${range}${current ? ', your example band' : ''}"><span class="cohort__block">${current ? '<b class="u-label-x-small">You</b>' : ''}</span><span class="standing-band-label ${current ? 'u-label-x-small c-primary' : 'u-paragraph-x-small c-tertiary'}">${range}</span></div>`; }).join('');
@@ -456,7 +442,8 @@ function rewardsView() {
 }
 function retentionIntro() {
   const due = retentionDue();
-  shell({ nav: navHeader('Retention check', 'discover'), body: `${kicker('30 days on · Not scored for points')}${heading(due ? 'Still with you?' : 'Come back in 30 days')}${lead(due ? `Five new questions check what stayed with you from ${COURSE_TITLE}.` : 'Your retention check becomes available 30 days after you complete the course.')}${note('What this check does', 'It measures what stayed with you. It doesn’t add points or award a badge, and you can review the course first.')}`, footer: due ? stepFooter({ label: 'Start retention check', action: 'start-retention' }, { label: 'Not now', action: 'discover' }) : stepFooter({ label: 'Back to learning home', action: 'discover' }) });
+  const retained = badgeStates().find(b => b.key === 'retained');
+  shell({ nav: navHeader('Retention check', 'discover'), body: `${kicker('30 days on · Not scored for points')}${heading(due ? 'Still with you?' : 'Come back in 30 days')}${lead(due ? `Five new questions check what stayed with you from ${COURSE_TITLE}.` : 'Your retention check becomes available 30 days after you complete the course.')}${badgeRow({ ...retained, detail: 'Answer at least four of five questions correctly to earn it. You can review the course and try again if needed.' })}`, footer: due ? stepFooter({ label: 'Start retention check', action: 'start-retention' }, { label: 'Not now', action: 'discover' }) : stepFooter({ label: 'Back to learning home', action: 'discover' }) });
 }
 function resumeView() {
   shell({ nav: navHeader('Progress saved', 'discover'), body: `${kicker('Progress saved')}${heading('Pick up where you left off')}${lead(`You completed ${completedActivities()} of ${totalSteps} activities. Come back whenever you’re ready.`)}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}`, footer: stepFooter({ label: 'Resume where you left off', action: 'start' }, { label: 'Back to learning home', action: 'discover' }) });
@@ -475,17 +462,16 @@ const errors = {
 function render() {
   stopVideo();
   if (errorState) { const e = errors[errorState]; shell({ nav: navHeader(COURSE_TITLE, 'discover'), bodyClass: 'screen-body--centre', body: emptyState(e[0], e[1]), footer: stepFooter({ label: e[2], action: 'recover' }) }); return; }
-  ({ discover: discovery, library: libraryView, 'road-safety': roadSafetyView, 'retention-intro': retentionIntro, overview, intro: courseIntro, assessment, 'assessment-result': assessmentResult, activity, complete: completion, rewards: rewardsView, exit: resumeView, 'course-page': coursePage, 'course-soon': courseSoonView, rate: rateView, 'curriculum-complete': curriculumCompleteView }[view] || discovery)();
+  ({ discover: discovery, library: libraryView, 'road-safety': roadSafetyView, 'retention-intro': retentionIntro, overview, intro: courseIntro, assessment, 'assessment-result': assessmentResult, activity, complete: completion, rewards: rewardsView, exit: resumeView, 'course-page': coursePage, 'course-soon': courseSoonView }[view] || discovery)();
 }
 
 // ---------- Interaction ----------
-root.addEventListener('input', e => { if (e.target.id === 'review') { draftReview = e.target.value; root.querySelector('#review-count').textContent = `${draftReview.length}/120`; return; } if (e.target.id !== 'answer') return; state.responses[`${state.lesson}-${state.step}`] = e.target.value; save(); const check = root.querySelector('[data-action="check"]'); if (check) check.disabled = !e.target.value.trim(); const count = root.querySelector('#count'); if (count) count.textContent = `${e.target.value.length}/300`; });
+root.addEventListener('input', e => { if (e.target.id !== 'answer') return; state.responses[`${state.lesson}-${state.step}`] = e.target.value; save(); const check = root.querySelector('[data-action="check"]'); if (check) check.disabled = !e.target.value.trim(); const count = root.querySelector('#count'); if (count) count.textContent = `${e.target.value.length}/300`; });
 root.addEventListener('click', e => {
   const el = e.target.closest('button'); if (!el || el.disabled) return;
   if (el.dataset.assessmentChoice !== undefined) { state.assessmentResponses[assessmentMode] ||= []; state.assessmentResponses[assessmentMode][assessmentIndex] = +el.dataset.assessmentChoice; save(); assessment(); return; }
   if (el.dataset.lesson !== undefined) { const i = +el.dataset.lesson; openStep(i, state.started && state.lesson === i ? state.step : 0); return; }
   if (el.dataset.progressTab) { progressTab = el.dataset.progressTab; rewardsView(); return; }
-  if (el.dataset.stars) { draftStars = +el.dataset.stars; rateView(); root.querySelector(`[data-stars="${draftStars}"]`)?.focus(); return; }
   if (el.dataset.choice !== undefined) { selected = +el.dataset.choice; activity(); root.querySelector('[data-action="check"]')?.focus(); return; }
   if (el.dataset.card !== undefined) { selected = +el.dataset.card; activity(); root.querySelector('[data-place]')?.focus(); return; }
   if (el.dataset.place !== undefined) { if (selected !== null) { placement[selected] = +el.dataset.place; selected = null; activity(); } return; }
@@ -500,8 +486,6 @@ root.addEventListener('click', e => {
   if (action === 'road-safety') go('road-safety');
   if (action === 'course-page') { if (el.dataset.course) { openCourse = courseById(el.dataset.course); courseFrom = view === 'discover' ? 'discover' : 'library'; } go('course-page'); }
   if (action === 'course-soon') go('course-soon');
-  if (action === 'submit-rating' && draftStars) { state.ratings = { ...state.ratings, [openCourse.id]: { stars: draftStars, review: draftReview.trim() } }; save(); go('discover'); }
-  if (action === 'badges') { progressTab = 'badges'; go('rewards'); }
   if (action === 'retention-intro') go('retention-intro');
   if (action === 'course-intro') go('intro');
   if (action === 'baseline') { assessmentMode = 'baseline'; assessmentIndex = 0; go('assessment'); }
@@ -510,8 +494,8 @@ root.addEventListener('click', e => {
   if (action === 'assessment-next') { const questions = assessments[assessmentMode]; if (assessmentIndex < questions.length - 1) { assessmentIndex++; render(); } else if (assessmentMode === 'baseline') { state.baselineDone = true; save(); openStep(0, 0); } else { const score = scoreOf(assessmentMode); if (assessmentMode === 'retention') state.retentionScore = score; else state.finalCheckScore = score; view = 'assessment-result'; save(); render(); } }
   if (action === 'retry-final') { state.assessmentResponses.final = []; state.finalCheckScore = null; assessmentMode = 'final'; assessmentIndex = 0; view = 'assessment'; save(); render(); }
   if (action === 'retry-retention') { state.assessmentResponses.retention = []; state.retentionScore = null; assessmentMode = 'retention'; assessmentIndex = 0; view = 'assessment'; save(); render(); }
-  if (action === 'finish-course') { state.finalCheckDone = true; recordCourseCompletion(state.learningRecord, COURSE_ID); save(); go(earnedBadgeKeys(state.learningRecord).includes(SAFETY.id) ? 'curriculum-complete' : 'complete'); }
-  if (action === 'finish-retention') { if (recordRetentionCheck(state.learningRecord, { courseId: COURSE_ID, score: state.retentionScore })) state.retentionCheckDone = true; save(); go('discover'); }
+  if (action === 'finish-course') { state.finalCheckDone = true; recordCourseCompletion(state.learningRecord, COURSE_ID); save(); go('complete'); }
+  if (action === 'finish-retention') { if (recordRetentionCheck(state.learningRecord, { courseId: COURSE_ID, score: state.retentionScore })) state.retentionCheckDone = true; save(); progressTab = 'badges'; go('rewards'); }
   if (action === 'begin-lessons') openStep(0, 0);
   if (action === 'start') { const cur = currentLesson(); if (cur === null) openStep(0, 0); else openStep(cur, state.lesson === cur ? state.step : 0); }
   if (action === 'review') openStep(0, 0);
@@ -585,7 +569,7 @@ const demos = {
   matching: () => { placement = { 0: 0 }; selected = 1; }
 };
 function applyPreview(name, params = new URLSearchParams()) {
-  previewing = true; errorState = ''; resetActivity(); draftStars = 0; draftReview = '';
+  previewing = true; errorState = ''; resetActivity();
   const lesson = Number(params.get('lesson')), step = Number(params.get('step'));
   if (name === 'discover') { state = freshState(); view = 'discover'; }
   else if (name === 'library') { seed('mid-course'); view = 'library'; }
@@ -602,21 +586,19 @@ function applyPreview(name, params = new URLSearchParams()) {
   else if (name === 'retention') { seed('complete', { weeksBack: 5 }); view = 'retention-intro'; }
   else if (name === 'rewards') { seed('mid-course'); progressTab = params.get('tab') || 'progress'; view = 'rewards'; }
   else if (name === 'offline') { seed('mid-course'); errorState = 'offline'; }
-  else if (name === 'course' || name === 'rate') {
-    const course = courseByNumber(params.get('id')) || courseByNumber(5);
+  else if (name === 'course') {
+    const course = courseByNumber(params.get('id')) || courseByNumber(2);
     if (course.id === COURSE_ID) return applyPreview('overview', params);
     if (course.external) return applyPreview('road-safety', params);
-    state = freshState(); openCourse = course; courseFrom = 'library'; view = name === 'course' ? 'course-page' : 'rate';
-    if (name === 'rate') { recordCourseCompletion(state.learningRecord, course.id, new Date().toISOString(), false); draftStars = params.has('stars') ? Math.min(5, Math.max(0, Number(params.get('stars')) || 0)) : 4; draftReview = draftStars ? 'Clear and quick. Worth doing before a shift.' : ''; }
+    state = freshState(); openCourse = course; courseFrom = 'library'; view = 'course-page';
   }
-  else if (name === 'curriculum-complete') { seed('complete'); for (const id of SAFETY.courses.slice(1)) recordCourseCompletion(state.learningRecord, id, new Date().toISOString(), false); view = 'curriculum-complete'; }
   else { previewing = false; return false; }
   return true;
 }
 
 // Review panel: every prepared state, plus each activity and recovery state.
 const panel = document.querySelector('#review-panel');
-const figmaScreens = [['discover', 'Learning home'], ['library', 'Course library'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['course', 'Course details · optional', 'id=5'], ['rate', 'Rate this course', 'id=5'], ['curriculum-complete', 'Curriculum complete'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
+const figmaScreens = [['discover', 'Learning home'], ['library', 'Course library'], ['road-safety', 'Road safety'], ['overview', 'Course details'], ['overview', 'Course details · complete', 'stage=complete'], ['intro', 'Course introduction'], ['resume', 'Save and resume'], ['baseline', 'Knowledge check question', 'demo=selected'], ['final-result', 'Check result · final'], ['lesson-complete', 'Lesson complete', 'lesson=1'], ['complete', 'Course complete'], ['course', 'Course details · optional', 'id=2'], ['retention', 'Retention invite'], ['rewards', 'Learning progress · Progress', 'tab=progress'], ['rewards', 'Learning progress · Habit', 'tab=habit'], ['rewards', 'Learning progress · Badges', 'tab=badges'], ['rewards', 'Learning progress · Standing', 'tab=standing'], ['offline', 'System state · offline']];
 panel.innerHTML = `<h2>Figma screens</h2>${figmaScreens.map(([p, label, q]) => `<button data-preview="${p}" data-query="${q || ''}">${label}</button>`).join('')}<h2>Every activity</h2>${lessons.map((l, n) => l.steps.map((a, s) => `<button data-preview="activity" data-query="lesson=${n}&step=${s}">${n + 1}.${s + 1} ${a.type} · ${esc(a.title)}</button>`).join('')).join('')}<h2>Recovery states</h2>${Object.keys(errors).map(k => `<button data-error="${k}">${errors[k][0]}</button>`).join('')}<h2>Prototype controls</h2><button data-reset>Reset local progress</button>`;
 document.querySelector('#review-toggle').addEventListener('click', e => { panel.hidden = !panel.hidden; e.target.setAttribute('aria-expanded', !panel.hidden); });
 panel.addEventListener('click', e => {

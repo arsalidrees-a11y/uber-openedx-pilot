@@ -31,10 +31,11 @@ The learning experience should feel like an operational tool that happens to tea
 
 ## Gamification
 
-- One account-level system spans every course: points, learning streak, cohort standing, and one badge per curriculum.
+- One account-level system spans every course: points, learning streak, cohort standing, and three lifecycle badges.
 - Courses contribute points; they do not create competing scores.
-- Badges belong to curricula, not courses: four curricula of four courses (sixteen in all), and a badge when every course in a curriculum is complete. A course advances its curriculum's badge but never earns one alone. The 30-day retention check awards no badge.
-- Social proof is aggregate and anonymous. Optional courses show an average rating with a driver count, short anonymous reviews and a Trending tag. Required and sensitive courses show completion proof only ("Completed by 1,240 drivers rated 4.9+"): no stars, no Trending, no rating prompt.
+- The badge set is Consistent, Thorough, and Retained. A course can advance these badges but does not own them.
+- Uber's Flow tool picks the optional courses each driver is recommended, from their experience and other factors. The set has no name and is not a curriculum: Learning home shows it as "Recommended for you" with a done count, in a carousel of course cards; the library lists it in full.
+- Ratings, reviews, the Trending tag, social proof and curricula are parked (PRD scope, 2026-10-01): their components stay in the Figma library but appear on no screen or prototype view.
 - Correct practice can award points. Baseline and final measurement do not award points, so experiment results stay interpretable.
 - Progress messages state the action and its consequence: “Correct · +10 points” or “Lesson complete · +40 points”.
 

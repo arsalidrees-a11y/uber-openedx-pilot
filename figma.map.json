@@ -52,7 +52,7 @@
       "variants": [
         "--locked"
       ],
-      "status": "retired 2026-09-29: badges are per curriculum now, drawn with Learning / Curriculum header (22717:753)"
+      "status": "built in Figma 2026-09-28 on page 22637:8 (❖ Learning Components); in use again from 2026-10-01 for Applied, Thorough and Retained"
     },
     "u-acc": {
       "figmaNode": null,
@@ -225,6 +225,7 @@
       "person_multiple": "22716:663",
       "chart_line": "22716:666",
       "star_outlined": "22716:669"
-    }
+    },
+    "_parked": "Rating, Social proof, Trending tag, Review, Rating input and Curriculum header stay in the library but are on no screen (PRD scope, 2026-10-01)."
   }
 }
