@@ -20,6 +20,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .c-primary { color: var(--u-content-primary); }
 .c-secondary { color: var(--u-content-secondary); }
 .c-tertiary { color: var(--u-content-tertiary); }
+.c-positive { color: var(--u-content-positive); }
 
 /* ---------- Review workspace (not part of the product) ---------- */
 .review-bar { display: none; align-items: center; gap: var(--u-space-24); min-height: 68px; padding: var(--u-space-12) var(--u-space-32); border-bottom: 1px solid var(--u-border-opaque); background: var(--u-background-primary); }
@@ -50,12 +51,11 @@ body:not(.review-mode) .course-shell { height: min(844px, 100dvh); }
 .nav-header__action .uicon { width: 20px; height: 20px; }
 .nav-header__title { position: absolute; left: 50%; max-width: calc(100% - 128px); overflow: hidden; transform: translateX(-50%); color: var(--u-content-primary); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Discovery header (Learning home): 72 tall, brand + 40 avatar */
+/* Discovery header (Learning home): 72 tall, the Uber wordmark + stat chips */
 .discovery-header { display: flex; flex: none; align-items: center; justify-content: space-between; min-height: 72px; padding: var(--u-space-16); }
 /* The Uber wordmark, 24px tall, in the text colour so it follows the theme */
 .discovery-header__logo { display: flex; color: var(--u-content-primary); }
 .discovery-header__logo .uicon { width: 69px; max-width: none; height: 24px; }
-.avatar { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--u-background-inverse-primary); color: var(--u-content-inverse-primary); }
 
 /* Learning / Step footer: 12 16 16, gap 12, dots then actions */
 .step-footer { display: flex; flex: none; flex-direction: column; align-items: center; gap: var(--u-space-12); padding: var(--u-space-12) var(--u-space-16) var(--u-space-16); background: var(--u-background-primary); }
@@ -106,6 +106,9 @@ body:not(.review-mode) .course-shell { height: min(844px, 100dvh); }
 .banner--positive .banner__art { color: var(--u-content-positive); }
 /* Base Banner, Text button layout: a pill on the right (green 100 on positive light) */
 .banner__action { flex: none; min-height: 36px; margin: 0 var(--u-space-16) 0 0; padding: 0 var(--u-space-12); border: 0; border-radius: var(--u-radius-pill); background: var(--u-green-100); color: var(--u-content-primary); }
+/* Base Banner, Icon button layout: a dismiss button on the right */
+.banner__dismiss { display: grid; flex: none; place-items: center; width: 48px; height: 48px; margin-right: var(--u-space-8); padding: 0; border: 0; border-radius: 50%; background: none; color: var(--u-content-primary); }
+.banner__dismiss .uicon { width: 20px; height: 20px; }
 .banner__art { display: grid; place-items: center; flex: none; align-self: stretch; width: 56px; padding: var(--u-space-16); }
 .banner__text { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); padding: var(--u-space-16) var(--u-space-16) var(--u-space-16) 0; color: var(--u-content-primary); }
 
@@ -160,17 +163,6 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .ring__value { fill: none; stroke: var(--u-background-accent); stroke-width: 4; }
 .ring.is-complete .ring__value { stroke: var(--u-background-positive); }
 .ring .uicon { position: relative; width: 20px; height: 20px; color: var(--u-content-positive); }
-
-/* Learning / Weekly goal: 16 padding, gap 12, 1px Border / Opaque */
-.weekly-goal { display: flex; flex-direction: column; gap: var(--u-space-12); width: 100%; padding: var(--u-space-16); border: 1px solid var(--u-border-opaque); border-radius: var(--u-radius-md); background: var(--u-background-primary); text-align: left; }
-.weekly-goal__meter { display: flex; gap: var(--u-space-4); }
-.weekly-goal__meter i { flex: 1; height: 6px; border-radius: 3px; background: var(--u-background-tertiary); }
-.weekly-goal__meter i.is-done { background: var(--u-background-accent); }
-.weekly-goal.is-met .weekly-goal__meter i { background: var(--u-background-positive); }
-
-/* Learning / Learning stats: three tiles, gap 8 */
-.learning-stats { display: flex; gap: var(--u-space-8); width: 100%; padding: 0; border: 0; background: none; text-align: left; }
-.learning-stats > span { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-2); padding: var(--u-space-16); border-radius: var(--u-radius-md); background: var(--u-background-secondary); }
 
 /* Learning / Safety hero: 390 × 180, Blue 900 with four rings and a white disc */
 .safety-hero { position: relative; flex: none; height: 180px; overflow: hidden; background: var(--u-blue-900); }
@@ -256,10 +248,6 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .gain { display: flex; gap: var(--u-space-8); }
 .gain > span { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); padding: var(--u-space-16); border-radius: var(--u-radius-md); background: var(--u-background-secondary); }
 
-/* Learning / Points total: label left, figure right, on Background / Secondary */
-.points-total { display: flex; align-items: center; justify-content: space-between; gap: var(--u-space-16); padding: var(--u-space-16); border-radius: var(--u-radius-md); background: var(--u-background-secondary); }
-.points-total > span { display: flex; flex-direction: column; gap: var(--u-space-2); }
-
 /* Learning / Contribution row and Badge row: rows with a bottom hairline */
 .contribution-row, .badge-row, .resource-row { display: flex; align-items: center; gap: var(--u-space-16); padding: var(--u-space-16) 0; border-bottom: 1px solid var(--u-border-opaque); }
 .contribution-row__body, .badge-row__body, .resource-row__body { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); min-width: 0; }
@@ -269,13 +257,89 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .badge-row__art .uicon { width: 28px; height: 28px; }
 .badge-row.is-earned .badge-row__art { background: var(--u-background-positive-light); color: var(--u-content-positive); }
 .badge-row.is-locked .badge-row__name { color: var(--u-content-secondary); }
+.badge-row .progress__bar { margin-top: var(--u-space-4); }
 
-/* Learning / Cohort bands */
-.cohort { display: flex; flex-direction: column; gap: var(--u-space-12); }
-.cohort__bands { display: flex; gap: var(--u-space-4); }
-.cohort__band { display: flex; flex: 1; flex-direction: column; align-items: center; gap: var(--u-space-8); }
-.cohort__block { display: grid; place-items: center; width: 100%; height: 56px; border-radius: var(--u-radius-sm); background: var(--u-background-tertiary); color: var(--u-content-on-color); }
-.cohort__band.is-current .cohort__block { background: var(--u-background-inverse-primary); }
+/* ---------- Learning home and Your progress (2026-10-02) ---------- */
+
+/* Learning / Stat chip: 32 tall pill, 16 icon, Label / Small on Background / Secondary */
+.stat-chips { display: flex; gap: var(--u-space-8); }
+.stat-chip { display: inline-flex; align-items: center; gap: var(--u-space-4); min-height: 32px; padding: var(--u-space-8) var(--u-space-12) var(--u-space-8) var(--u-space-8); border: 0; border-radius: var(--u-radius-pill); background: var(--u-background-secondary); color: var(--u-content-primary); }
+.stat-chip .uicon { width: 16px; height: 16px; }
+
+/* Learning / Thumbnail: placeholder course image (Card 160, Tile 120) */
+.thumbnail { display: grid; flex: none; place-items: center; background: var(--u-background-tertiary); color: var(--u-content-tertiary); }
+.thumbnail--card { height: 160px; }
+.thumbnail--card .uicon { width: 40px; height: 40px; }
+.thumbnail--tile { height: 120px; }
+.thumbnail--tile .uicon { width: 32px; height: 32px; }
+
+/* Learning / Continue card: radius 12, Background / Secondary, thumbnail, body 16 gap 16 */
+.continue-card { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--u-radius-md); background: var(--u-background-secondary); }
+.continue-card__body { display: flex; flex-direction: column; gap: var(--u-space-16); padding: var(--u-space-16); }
+.continue-card__info { display: flex; flex-direction: column; gap: var(--u-space-4); }
+.continue-card__progress { display: flex; flex-direction: column; gap: var(--u-space-8); }
+
+/* Learning / Course tile: 240 wide in a carousel that runs to the screen edge */
+.carousel { display: flex; align-items: flex-start; gap: var(--u-space-8); margin-right: calc(-1 * var(--u-space-16)); padding-right: var(--u-space-16); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.carousel::-webkit-scrollbar { display: none; }
+.course-tile { display: flex; flex: 0 0 240px; flex-direction: column; overflow: hidden; padding: 0; border: 0; border-radius: var(--u-radius-md); background: var(--u-background-secondary); text-align: left; scroll-snap-align: start; }
+.course-tile__body { display: flex; flex-direction: column; gap: var(--u-space-12); padding: var(--u-space-12); }
+.course-tile__info { display: flex; flex-direction: column; gap: var(--u-space-2); }
+.course-tile__footer { display: flex; flex-direction: column; gap: var(--u-space-8); }
+
+/* Learning / This week: 16 padding, gap 16, 1px Border / Opaque; seven 28 day marks */
+.this-week { display: flex; flex-direction: column; gap: var(--u-space-16); width: 100%; padding: var(--u-space-16); border: 1px solid var(--u-border-opaque); border-radius: var(--u-radius-md); background: var(--u-background-primary); text-align: left; }
+.this-week__days { display: flex; justify-content: space-between; }
+.day { display: flex; flex-direction: column; align-items: center; gap: var(--u-space-4); }
+/* Learning / _Day: Learned (check), Today (2px ring), Missed (grey), Upcoming (1.5px ring) */
+.day__mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--u-content-positive); }
+.day__mark .uicon { width: 28px; height: 28px; }
+.day__mark.is-today { box-shadow: inset 0 0 0 2px var(--u-content-primary); }
+.day__mark.is-missed { background: var(--u-background-tertiary); }
+.day__mark.is-upcoming { box-shadow: inset 0 0 0 1.5px var(--u-border-opaque); }
+
+/* Learning / Week history and _Week cell: eight 28-tall cells, dates below */
+.week-history { display: flex; flex-direction: column; gap: var(--u-space-8); }
+.week-history__weeks, .week-history__dates { display: flex; gap: var(--u-space-4); }
+.week-history__dates > * { flex: 1; text-align: center; }
+.week-cell { display: grid; flex: 1; place-items: center; height: 28px; border-radius: 6px; background: var(--u-background-secondary); color: var(--u-content-on-color); }
+.week-cell .uicon { width: 16px; height: 16px; }
+.week-cell.is-met { background: var(--u-background-positive); }
+.week-cell.is-forgiven { border: 1px dashed var(--u-border-positive); background: var(--u-background-positive-light); }
+.week-cell.is-missed { background: var(--u-background-tertiary); }
+.week-cell.is-paused { box-shadow: inset 0 0 0 1px var(--u-border-opaque); }
+.week-cell.is-current { border: 1.5px dashed var(--u-content-primary); background: transparent; }
+
+/* Learning / Stat tile: 16 padding, gap 2, Heading / Medium over Paragraph / Small */
+.stat-tiles { display: flex; gap: var(--u-space-8); }
+.stat-tile { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-2); padding: var(--u-space-16); border-radius: var(--u-radius-md); background: var(--u-background-secondary); }
+
+/* Learning / Leaderboard row: 12 padding, gap 12, 24 rank, 32 avatar; You on grey */
+.leaderboard { display: flex; flex-direction: column; gap: var(--u-space-4); }
+.lb-row { display: flex; align-items: center; gap: var(--u-space-12); padding: var(--u-space-12); border-radius: var(--u-radius-sm); }
+.lb-row.is-you { background: var(--u-background-secondary); }
+.lb-row__rank { flex: none; width: 24px; color: var(--u-content-secondary); text-align: center; }
+.lb-row__avatar { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--u-background-tertiary); color: var(--u-content-tertiary); }
+.lb-row.is-you .lb-row__avatar { background: var(--u-background-inverse-primary); color: var(--u-content-on-color); }
+.lb-row__avatar .uicon { width: 18px; height: 18px; }
+.lb-row__body { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: var(--u-space-4); min-width: 0; color: var(--u-content-primary); }
+.lb-tag { padding: var(--u-space-2) var(--u-space-8); border-radius: var(--u-radius-pill); background: var(--u-background-positive-light); color: var(--u-content-positive); }
+.lb-gap { display: flex; align-items: center; gap: var(--u-space-4); height: 24px; padding-left: var(--u-space-20); }
+.lb-gap i { width: 4px; height: 4px; border-radius: 50%; background: var(--u-content-tertiary); }
+
+/* Learning / Badge medal: Small 64 (32 art), Large 96 (48 art); earned green, locked grey */
+.badge-shelf { display: flex; justify-content: space-between; padding: 0 var(--u-space-16); }
+.badge-shelf__item { display: flex; flex-direction: column; align-items: center; gap: var(--u-space-8); }
+.badge-medal { display: grid; flex: none; place-items: center; border-radius: 50%; background: var(--u-background-secondary); box-shadow: inset 0 0 0 1px var(--u-border-opaque); color: var(--u-content-tertiary); }
+.badge-medal.is-earned { background: var(--u-background-positive-light); box-shadow: none; color: var(--u-content-positive); }
+.badge-medal--small { width: 64px; height: 64px; }
+.badge-medal--small .uicon { width: 32px; height: 32px; }
+.badge-medal--large { width: 96px; height: 96px; }
+.badge-medal--large .uicon { width: 48px; height: 48px; }
+
+/* Badge earned: centred, 24 padding, gap 12; words gap 4. Calm: no confetti. */
+.celebration { display: flex; flex-direction: column; align-items: center; gap: var(--u-space-12); padding: var(--u-space-24); text-align: center; }
+.celebration__words { display: flex; flex-direction: column; gap: var(--u-space-4); }
 
 /* Learning / Activity header: 24 mode icon on Background / Secondary + Label / Small */
 .activity-header { display: flex; align-items: center; gap: var(--u-space-8); color: var(--u-content-secondary); }

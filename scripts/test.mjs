@@ -177,8 +177,8 @@ t('course cards use the Base card radius, 12px', () => {
   const radiusTokens = [...COURSE_CSS.matchAll(/--course-radius:\s*([^;]+)/g)]
     .map((match) => match[1].trim());
   const cardSelectors = [
-    '.course-card', '.weekly-goal', '.learning-stats > span', '.milestone',
-    '.check-result', '.gain > span', '.points-total', '.note', '.feedback',
+    '.course-card', '.continue-card', '.course-tile', '.this-week', '.stat-tile', '.milestone',
+    '.check-result', '.gain > span', '.note', '.feedback',
     '.answer', '.video-player', '.match-card', '.drop-zone', '.sort-row',
   ];
   const authoredRules = [...COURSE_CSS.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map((match) => ({

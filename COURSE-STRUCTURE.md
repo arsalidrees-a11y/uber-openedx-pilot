@@ -65,7 +65,7 @@ Version B changes the learning behavior, not the approved content. Every source 
 7. **Feedback** confirms the source principle and allows a retry when required.
 8. **Lesson completion** records what the lesson contributed to the course and shows the next lesson.
 9. **Final knowledge check** uses three equivalent source-backed questions after all lessons. It remains outside the points system.
-10. **Learning progress** is the only gamification layer. It combines points and one streak across courses, 3 pilot milestone badges, and an anonymous learner-cohort band. The current course contributes to this record while retaining its own completion percentage.
+10. **Your progress** is the only gamification layer. It combines points, one week streak, three curriculum badges, and an anonymous start-month leaderboard. The current course contributes to this record while retaining its own completion percentage.
 11. **Course completion** confirms all 7 lessons and the final check, and retains access to support resources and lesson review.
 12. **Exit and resume** saves the last completed activity. An unfinished mandatory video restarts, as required by the source.
 
@@ -205,13 +205,13 @@ Gamification supports completion and mastery but does not compete with the safet
 | Moment | Learner experience | Octalysis role | Constraint |
 |---|---|---|---|
 | Course discovery | Assignment connects to active profile, location, and required learning | Epic Meaning and Calling | Recommendation signals must be explainable |
-| Each eligible completed activity | Adds 10 points to the learner total after first verified completion or a correct practice answer | Development and Accomplishment | Resource-only screens, retry, review, speed, and assessment answers do not add points |
-| Incorrect practice | Immediate explanation and Try again | Empowerment of Creativity and Feedback | No public failure state or point loss |
+| Lesson finished for the first time | Results screen: 10 points per step plus 5 per question right first time, shown as "+45 points" and "100% correct" | Development and Accomplishment | Repeats, checks, speed and time spent add nothing; before a lesson only its length shows |
+| Incorrect practice | Right or wrong with a short explanation, then continue | Empowerment of Creativity and Feedback | No retry or requeue; a wrong first answer only misses the bonus |
 | Save and resume | Progress and achievements persist | Ownership and Possession | An unfinished source video restarts |
-| Five correct practice completions | Applied badge | Development and Accomplishment | Awarded once at account level, not per course |
-| Verified course completion and final check | Thorough badge | Development and Accomplishment | No celebratory overlay during sensitive content |
-| Pass a five-question check 30 days later with at least four correct | Retained badge | Development and Accomplishment | The delayed check gives no points |
-| Learning progress | One cross-course weekly goal and week streak, total points, three account badges, four illustrative cohort bands (1–25%, 26–50%, 51–75%, 76–100%), and per-course contribution | Social Influence and Relatedness | This is the only gamification dashboard; no names, exact ranks, or shaming |
+| Half the curriculum's lessons finished | Halfway badge | Development and Accomplishment | Badges belong to the curriculum (Flow's required set) |
+| Every curriculum course and its final check finished | Complete badge | Development and Accomplishment | Celebrated once on return home, never inside a lesson |
+| Pass the 30-day check (opens 30 days after Complete), four of five | Retained badge | Development and Accomplishment | The check gives no points; retakes allowed after review |
+| Your progress | One full-page sheet with Points, Streak (last 8 weeks), Badges and Leaderboard tabs, opened from the home stat chips | Social Influence and Relatedness | The only gamification dashboard; the leaderboard is a start-month group with random names, top 3 and your neighbours |
 | Learning home | Flow's set as the Required list, with a done count; all caught up once done | Development and Accomplishment | Flow (Uber) chooses the set; optional courses live in All courses |
 | Upcoming badge | Visible locked state | Scarcity and Impatience | No artificial deadline |
 | Progressive reveal | Next lesson and milestone appear after completion | Unpredictability and Curiosity | Required information is never hidden for suspense |

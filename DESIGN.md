@@ -31,13 +31,13 @@ The learning experience should feel like an operational tool that happens to tea
 
 ## Gamification
 
-- One account-level system spans every course: points, learning streak, cohort standing, and three lifecycle badges.
+- One account-level system spans every course: points, a week streak, a start-month leaderboard, and three badges per curriculum (GAMIFICATION-PLAN.md).
 - Courses contribute points; they do not create competing scores.
-- The badge set is Consistent, Thorough, and Retained. A course can advance these badges but does not own them.
+- The badges are Halfway, Complete and Retained, earned in order across the curriculum (Flow's required set); courses advance them but do not own them.
 - Uber's Flow tool assigns each driver a set of courses from their experience and other factors; every course in that set is required for that driver. Learning home lists only that set, as "Required" with a done count, and says "You're all caught up" once it is done. Everything else is optional and lives in All courses.
 - Ratings, reviews, the Trending tag, social proof and curricula are parked (PRD scope, 2026-10-01): their components stay in the Figma library but appear on no screen or prototype view.
-- Correct practice can award points. Baseline and final measurement do not award points, so experiment results stay interpretable.
-- Progress messages state the action and its consequence: “Correct · +10 points” or “Lesson complete · +40 points”.
+- A lesson pays on its results screen: 10 points per step plus 5 per question right first time. Before a lesson, show its length ("4 steps · 3 min"), never points. Baseline, final and 30-day checks do not award points, so experiment results stay interpretable.
+- Results are plain figures, "+45 points" and "100% correct", with no praise labels, timers or speed. A new badge gets one calm screen on the way back home.
 
 ## Components and states
 

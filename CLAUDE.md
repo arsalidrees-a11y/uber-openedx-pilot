@@ -285,19 +285,37 @@ course progress is lessons complete out of 7; the course is complete only when
 all lessons **and** the final check are done (until then the hero shows a plain
 shield, not the check); upcoming lessons cannot be opened early; previews
 (`?preview=`, the review panel) never write over saved progress; and the
-prepared states carry real dates, so the streak, weekly goal and standing are
-computed by `gamification.js`, never typed in.
+prepared states carry real dates, so points, the week streak, badges and the
+leaderboard are computed by `gamification.js`, never typed in.
 
 Catalogue, reworked to the PRD on 2026-10-01: `course/catalog.js` holds the
 courses. Flow is Uber's internal tool that assigns each driver a set of
 courses; every course in that set is required for that driver, so Learning
 home lists only the set, as "Required" with a done count, then shows "You're
 all caught up" once it is done. Everything else is optional and lives in All
-courses. The demo driver's set is the two required courses; Courses 2–5 are
-illustrative optional placeholders. Badges are the PRD's three: Applied,
-Thorough and Retained, and the 30-day check earns Retained. Ratings, reviews,
-Trending, social proof and curricula are parked: their components stay in the
-Figma library, on no screen, and the code was removed (it is in git history before this date). Optional course preview:
+courses. The demo driver's set is the two required courses;
+Courses 2–5 are illustrative optional placeholders.
+
+Gamification (2026-10-02, from the client's "Driver Learning Gamification
+Metrics" doc; GAMIFICATION-PLAN.md restates it): a lesson pays once, on its
+results screen, 10 points per step plus 5 per question right first time
+(lessons show "4 steps · 3 min" before, never points; wrong answers explain
+and continue, no retry). Week streak: 2 learning days a week, one missed week
+in eight forgiven, paused when nothing required is left. Three badges per
+curriculum (Flow's required set): Halfway, Complete, Retained (the 30-day
+check opens 30 days after Complete), celebrated once on the way back home.
+Leaderboard: total points in an illustrative Chicago September group of 30.
+Learning home: stat chips (points, streak, badges) open the full-page "Your
+progress" sheet (Points, Streak, Badges, Leaderboard tabs); then the Continue
+card, the Required carousel, This week and All courses. Ratings, reviews,
+Trending, social proof and curricula as named groups stay parked. Previews:
+`discover` (mid-course), `discover&stage=new|new-curriculum|caught-up`,
+`badge&badge=halfway`, `progress&tab=points|streak|badges|leaderboard`,
+`lesson-complete&lesson=1`. The demo data reproduces the Figma numbers (95
+points mid-course, a 2-week streak with one forgiven week, 360 for the whole
+course). A high-fidelity pass of Home and Your progress is on the Figma page
+"02 · Hi-fi" for review; the prototype follows "01 · UI" until it is approved.
+Optional course preview:
 `course&id=2`. The Required section holds every mandatory course (Uber's
 curriculum map adds region-specific ones, e.g. Chicago or California), with a
 done count once there is more than one; "Regional safety training" is an
