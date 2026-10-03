@@ -619,19 +619,19 @@ function resumeView() {
   shell({ nav: navHeader(COURSE_TITLE, 'discover'), body: `${heading('Progress saved')}${lead(`${cur === null ? '' : `Lesson ${cur + 1} keeps your place. `}Come back whenever you’re ready.`)}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}`, footer: stepFooter({ label: cur === null ? 'Resume' : `Resume lesson ${cur + 1}`, action: 'start' }, { label: 'Back to learning home', action: 'discover' }) });
 }
 const errors = {
-  loading: ['Loading your course', 'Your course and saved progress are being retrieved.', 'Finish loading'],
-  timeout: ['This is taking longer than expected', 'We could not finish loading your course. Your saved progress has not changed.', 'Try again'],
-  empty: ['No course assigned yet', 'Your available learning will appear here when a course is assigned.', 'Back to course'],
-  enrollment: ['We could not open this course', 'Your enrollment could not be confirmed. Try again or return to available learning.', 'Try again'],
+  loading: ['Loading your course', 'Your course and saved progress are on their way.', 'Finish loading'],
+  timeout: ['This is taking longer than expected', 'We couldn’t finish loading your course. Your saved progress hasn’t changed.', 'Try again'],
+  empty: ['No required courses yet', 'They’ll appear here when Uber assigns them. Optional courses are open any time.', 'See all courses', 'all-courses'],
+  enrollment: ['We couldn’t open this course', 'Your enrollment couldn’t be confirmed.', 'Try again'],
   offline: ['You’re offline', 'Reconnect to load the next step. Your progress is saved.', 'Try again'],
-  expired: ['Your session has ended', 'Reopen learning from the Uber app to sign in again. Your saved course progress will be available after sign-in.', 'Back to learning home'],
-  denied: ['This course isn’t available', 'Your account does not have access to this course. Return to your available learning.', 'Back to course'],
-  unsupported: ['This view isn’t supported', 'Open learning in a supported version of the Uber app.', 'Back to course'],
+  expired: ['Your session has ended', 'Open learning again from the Uber app to sign back in. Your progress is saved.', 'Close'],
+  denied: ['This course isn’t available', 'Your account doesn’t have access to this course.', 'Back to all courses', 'all-courses'],
+  unsupported: ['Update the Uber app', 'This version can’t open learning. Update the app, then try again.', 'Close'],
   media: ['The video couldn’t load', 'Check your connection and try loading the video again.', 'Retry video']
 };
 function render() {
   stopVideo();
-  if (errorState) { const e = errors[errorState]; shell({ nav: navHeader(COURSE_TITLE, 'discover'), bodyClass: 'screen-body--centre', body: emptyState(e[0], e[1]), footer: stepFooter({ label: e[2], action: 'recover' }) }); return; }
+  if (errorState) { const e = errors[errorState]; shell({ nav: navHeader(COURSE_TITLE, 'discover'), bodyClass: 'screen-body--centre', body: emptyState(e[0], e[1]), footer: stepFooter({ label: e[2], action: e[3] || 'recover' }) }); return; }
   // A newly earned badge is celebrated once, on the way back to Learning home.
   if (view === 'discover' && nextCelebration(record())) view = 'badge';
   ({ discover: discovery, badge: badgeView, library: libraryView, 'road-safety': roadSafetyView, 'retention-intro': retentionIntro, overview, intro: courseIntro, assessment, 'assessment-result': assessmentResult, activity, complete: completion, progress: progressView, exit: resumeView, 'course-page': coursePage, 'course-soon': courseSoonView }[view] || discovery)();
@@ -669,7 +669,7 @@ root.addEventListener('click', e => {
   if (action === 'celebrated-badges') { markCelebrated(record()); save(); progressTab = 'badges'; progressFrom = 'discover'; go('progress'); }
   if (action === 'dismiss-notice') { state.newCurriculum = false; save(); discovery(); }
   if (action === 'library') go('library');
-  if (action === 'all-courses') { filters = noFilters(); go('library'); }
+  if (action === 'all-courses') { errorState = ''; filters = noFilters(); go('library'); }
   if (action === 'open-filters') { draft = { status: [...filters.status], type: [...filters.type] }; sheetOpen = true; libraryView(); }
   if (action === 'close-filters') { sheetOpen = false; libraryView(); root.querySelector('[data-action="open-filters"]')?.focus(); }
   if (action === 'apply-filters') { filters = draft; sheetOpen = false; libraryView(); }
@@ -832,6 +832,7 @@ function applyPreview(name, params = new URLSearchParams()) {
   else if (name === 'retention') { const w = seedComplete({ weeksBack: 5 }); seedRegionalDone(w(1, 2)); updateBadges(w(1, 2)); markCelebrated(record()); view = 'retention-intro'; }
   else if (name === 'progress' || name === 'rewards') { seedMidCourse(); const tab = params.get('tab') || 'points'; progressTab = LEGACY_TABS[tab] || tab; progressFrom = 'discover'; view = 'progress'; }
   else if (name === 'offline') { seedMidCourse(); errorState = 'offline'; }
+  else if (name === 'state' && errors[params.get('state')]) { seedMidCourse(); errorState = params.get('state'); }
   else if (name === 'course') {
     const course = courseByNumber(params.get('id')) || courseByNumber(2);
     if (course.id === COURSE_ID) return applyPreview('overview', params);

@@ -313,7 +313,7 @@ card, the Required carousel, This week and All courses. Ratings, reviews,
 Trending, social proof and curricula as named groups stay parked. Previews:
 `discover` (mid-course), `discover&stage=new|new-curriculum|caught-up`,
 `badge&badge=halfway`, `progress&tab=points|streak|badges|leaderboard`,
-`lesson-complete&lesson=1`. Previews run on a fixed clock, Wednesday 28
+`lesson-complete&lesson=1`, and any system state with `state&state=loading|timeout|empty|enrollment|offline|expired|denied|unsupported|media`. Previews run on a fixed clock, Wednesday 28
 October 2026 (`PREVIEW_NOW` in course.js), so this month's leaderboard and
 the week tracker read the same whatever the real date. The demo data reproduces the Figma numbers (95
 points mid-course, a 2-week streak with one forgiven week, 360 for the whole

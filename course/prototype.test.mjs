@@ -418,3 +418,13 @@ test('labels never repeat the nav, the section, the button or each other', async
   await loadPage('?preview=activity&lesson=6&step=2');
   assert.equal(all('h1').length, 1);
 });
+
+test('system states use plain words, and the empty and no-access states lead to All courses', async () => {
+  const { click } = await loadPage('?preview=state&state=empty');
+  assert.match(text(), /No required courses yetThey’ll appear here when Uber assigns them\. Optional courses are open any time\./);
+  click('[data-action="all-courses"]');
+  assert.equal(document.querySelector('h1').textContent, 'All courses');
+  await loadPage('?preview=state&state=enrollment');
+  assert.match(text(), /We couldn’t open this courseYour enrollment couldn’t be confirmed\./);
+  assert.doesNotMatch(text(), /could not|does not|available learning/);
+});
