@@ -317,11 +317,15 @@ Trending, social proof and curricula as named groups stay parked. Previews:
 October 2026 (`PREVIEW_NOW` in course.js), so this month's leaderboard and
 the week tracker read the same whatever the real date. The demo data reproduces the Figma numbers (95
 points mid-course, a 2-week streak with one forgiven week, 360 for the whole
-course). The high-fidelity Home and Your progress (approved 2026-10-03) are on
-the Figma page "02 · Hi-fi", built from the library's `Learning / Hi-fi / …`
-components (section "Hi-fi · Home and progress" on ❖ Learning Components) and
-its Brand.uber art. The mid-fi screens on "01 · UI" stay as they are, and the
-prototype follows "01 · UI".
+course). The high-fidelity design of every screen, plus edge cases and system
+states, is on the Figma page "02 · Hi-fi", built from the library's
+`Learning / Hi-fi / …` components (section "Hi-fi · Home and progress" on
+❖ Learning Components) and its Brand.uber art. That page is v2 (2026-10-03):
+the weekly goal ring, the course path as a journey, week progress on results,
+course tints, and the rules behind a button and sheet on each Your progress tab.
+v1 is frozen on "02 · Hi-fi · v1"; v2 only added library components, so the
+archive is unchanged. The mid-fi screens on "01 · UI" stay as they are, and
+the prototype follows "01 · UI".
 Optional course preview:
 `course&id=2`. The Required section holds every mandatory course (Uber's
 curriculum map adds region-specific ones, e.g. Chicago or California), with a
