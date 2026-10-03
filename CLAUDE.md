@@ -317,8 +317,11 @@ Trending, social proof and curricula as named groups stay parked. Previews:
 October 2026 (`PREVIEW_NOW` in course.js), so this month's leaderboard and
 the week tracker read the same whatever the real date. The demo data reproduces the Figma numbers (95
 points mid-course, a 2-week streak with one forgiven week, 360 for the whole
-course). A high-fidelity pass of Home and Your progress is on the Figma page
-"02 · Hi-fi" for review; the prototype follows "01 · UI" until it is approved.
+course). The high-fidelity Home and Your progress (approved 2026-10-03) are on
+the Figma page "02 · Hi-fi", built from the library's `Learning / Hi-fi / …`
+components (section "Hi-fi · Home and progress" on ❖ Learning Components) and
+its Brand.uber art. The mid-fi screens on "01 · UI" stay as they are, and the
+prototype follows "01 · UI".
 Optional course preview:
 `course&id=2`. The Required section holds every mandatory course (Uber's
 curriculum map adds region-specific ones, e.g. Chicago or California), with a
