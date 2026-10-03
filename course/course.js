@@ -273,7 +273,7 @@ function continueCard() {
     if (!next) return '';
     return continueCardMarkup({ kicker: `Lesson 1 of ${next.lessonCount}`, title: next.title, meta: stepsText(4), label: 'Start', action: 'course-page', course: next.id });
   }
-  if (status === 'final-pending') return continueCardMarkup({ kicker: 'Last step', title: 'Final check', meta: `${COURSE_TITLE} · 5 questions · about 3 min`, pct: 100, done: lessons.length, label: 'Start check', action: 'final-check' });
+  if (status === 'final-pending') return continueCardMarkup({ kicker: 'Last step', title: 'Final check', meta: `${COURSE_TITLE} · 5 questions · about 3 min`, pct: 100, done: lessons.length, label: 'Start final check', action: 'final-check' });
   const cur = currentLesson(), lesson = lessons[cur];
   if (status === 'not-started') return continueCardMarkup({ kicker: `Lesson 1 of ${lessons.length}`, title: lesson.title, meta: `${COURSE_TITLE} · ${stepsText(lesson.steps.length)}`, label: 'Start', action: state.baselineDone ? 'start' : 'course-intro' });
   return continueCardMarkup({ kicker: `Lesson ${cur + 1} of ${lessons.length}`, title: lesson.title, meta: `${COURSE_TITLE} · ${stepsText(lesson.steps.length)}`, pct: coursePercent(), done: lessonsDone(), label: 'Continue', action: 'start' });
@@ -500,11 +500,11 @@ const scoreOf = (mode) => assessments[mode].reduce((sum, question, i) => sum + (
 function assessmentResult() {
   if (assessmentMode === 'retention') {
     const score = scoreOf('retention'), passed = score >= 4;
-    shell({ nav: navHeader('30-day check', 'discover'), body: `${checkResult({ score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: passed ? 'Save your result to earn the Retained badge.' : 'Review the missed topics, then try again, as often as you need.', result: passed ? 'passed' : 'retry' })}`, footer: passed ? stepFooter({ label: 'Save result and view badge', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
+    shell({ nav: navHeader('30-day check', 'discover'), body: `${checkResult({ score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: passed ? '' : 'Review the missed topics, then try again, as often as you need.', result: passed ? 'passed' : 'retry' })}`, footer: passed ? stepFooter({ label: 'Save result and view badge', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
     return;
   }
   const score = scoreOf('final'), passed = score >= 4, baseline = scoreOf('baseline');
-  shell({ nav: navHeader('Final check', 'overview'), body: `${checkResult({ title: passed ? 'Ready to complete' : 'Review, then try again', body: passed ? '' : 'There is no penalty: revisit the lessons, then try again.', result: passed ? 'passed' : 'retry' })}<div class="gain"><span><small class="u-label-small c-secondary">Before</small><b class="u-mono-heading-medium">${baseline}/5</b></span><span><small class="u-label-small c-secondary">Now</small><b class="u-mono-heading-medium">${score}/5</b></span></div>${passed ? '' : note('Review these topics', 'Respecting boundaries · Consent and personal space · Safe reporting')}`, footer: stepFooter(passed ? { label: 'Complete course', action: 'finish-course' } : { label: 'Try final check again', action: 'retry-final' }, { label: 'Back to course', action: 'overview' }) });
+  shell({ nav: navHeader('Final check', 'overview'), body: `${checkResult({ title: passed ? 'Ready to complete' : 'Review, then try again', body: passed ? '' : 'There’s no penalty. Go over these topics, then take the check again.', result: passed ? 'passed' : 'retry' })}<div class="gain"><span><small class="u-label-small c-secondary">Before</small><b class="u-mono-heading-medium">${baseline}/5</b></span><span><small class="u-label-small c-secondary">Now</small><b class="u-mono-heading-medium">${score}/5</b></span></div>${passed ? '' : note('Review these topics', 'Respecting boundaries · Consent and personal space · Safe reporting')}`, footer: stepFooter(passed ? { label: 'Complete course', action: 'finish-course' } : { label: 'Try final check again', action: 'retry-final' }, { label: 'Back to course', action: 'overview' }) });
 }
 function activityMode(type) { return type === 'reading' ? 'Learn' : type === 'video' ? 'Watch' : type === 'resources' ? 'Lesson recap' : 'Practice'; }
 function activity() {
@@ -564,9 +564,10 @@ function ready(a) {
 // Lesson results: two plain figures, "+45 points" and "100% correct".
 function lessonResults(i) {
   const award = lastAward && lastAward.lessonId === i ? lastAward : null;
-  const points = statTile(`+${award ? award.points : 0}`, 'points');
-  const accuracy = award && award.questions ? statTile(`${Math.round(award.firstTryCorrect / award.questions * 100)}%`, 'correct') : statTile(`${lessons[i].steps.length}`, 'steps finished');
-  return `${statTiles(points, accuracy)}${award ? '' : '<p class="u-paragraph-small c-secondary">Repeating a lesson earns no points.</p>'}`;
+  // A repeat earns nothing, so it shows what was reviewed and says why once.
+  if (!award) return `${statTiles(statTile(`${lessons[i].steps.length}`, 'steps reviewed'))}<p class="u-paragraph-small c-secondary">You’ve finished this lesson before, so it adds no points.</p>`;
+  const accuracy = award.questions ? statTile(`${Math.round(award.firstTryCorrect / award.questions * 100)}%`, 'correct') : statTile(`${lessons[i].steps.length}`, 'steps finished');
+  return statTiles(statTile(`+${award.points}`, 'points'), accuracy);
 }
 function completion() {
   const status = courseStatus();

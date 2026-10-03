@@ -193,8 +193,8 @@ test('a wrong first answer explains and continues: no retry, no bonus; a repeat 
   click('.step-footer .btn--tertiary');
   click('[data-lesson="1"]');
   click('[data-action="next"]');
-  assert.deepEqual(all('.stat-tile').map(t => t.textContent)[0], '+0points');
-  assert.match(text(), /Repeating a lesson earns no points/);
+  assert.deepEqual(all('.stat-tile').map(t => t.textContent), ['4steps reviewed'], 'a repeat shows what was reviewed, not +0');
+  assert.match(text(), /You’ve finished this lesson before, so it adds no points\./);
 });
 
 test('the numeric "not quite" state continues instead of retrying', async () => {
