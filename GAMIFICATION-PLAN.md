@@ -14,7 +14,7 @@ each group gets its own curriculum, and we never change the grouping.
 | Metric | Unit | Earned by | Resets | Optional courses count |
 |---|---|---|---|---|
 | Points | Points | Finishing a lesson, plus a bonus for first-try correct answers | Never | Yes |
-| Leaderboard | Rank in a start-month group of about 30 | Total points | Never | Yes |
+| Leaderboard | Rank in a start-month group of about 30 | Points earned this month | 1st of every month | Yes |
 | Week streak | Weeks | Learning on 2 days in a Monday–Sunday week | A second missed week in any eight | Yes |
 | Badges | 3 per curriculum | Curriculum milestones | Never | No |
 
@@ -43,14 +43,14 @@ Demo data: lessons have 4–8 steps (lesson 1: 5, lessons 2–6: 4, lesson 7: 8)
 
 ## Leaderboard
 
-- Ranked by total points within a group of about 30 drivers in the same city who started learning in the same month. Groups are separate from curriculum groups and stay together once formed.
-- A month with fewer than 20 new drivers joins the previous month's group.
-- Drivers who finish every available course are marked "All courses done" at the top.
+- Ranked by points earned this month; everyone starts again on the 1st of every month. Lifetime points still build up and show on the Points tab.
+- Why monthly: drivers with more required courses would otherwise build an all-time lead, and optional courses don't get the same attention as required ones.
+- Group: about 30 drivers who started learning in the same month. The group stays together whatever curriculum changes follow, because a driver's curriculum can change at any time. A month with fewer than 20 new drivers joins the previous month's group.
 - Anonymous: the driver's own row reads "You"; others get a random name such as "Driver 4821". No real names or photos.
 - Shown: the top 3, then the driver's own rank with the drivers just above and below.
-- Drivers with zero points are hidden. No reset.
+- Drivers with no points this month are hidden. No "All courses done" marker.
 
-This replaces the four anonymous position bands.
+This replaces the four anonymous position bands (updated 2026-10-02 to the monthly rule).
 
 ## Week streak
 
@@ -81,7 +81,7 @@ Three per curriculum, earned in order. Only curriculum courses count.
 | Badges | Three new badges; earlier ones stay | No change |
 | Finished courses | Count toward the new curriculum if their content is unchanged | — |
 | Week streak | Continues from where it paused | Continues from where it paused |
-| Points, leaderboard | No change | No change |
+| Points, leaderboard | No change (the leaderboard resets monthly anyway) | No change |
 | Driver sees | A one-time notice on home, and the new courses under Required | The new course under Required |
 
 ## Road safety
@@ -94,7 +94,7 @@ The externally tracked HTML5 course adds no points, learning days or badges unle
 - **Development and Accomplishment:** lesson results, points, and three curriculum badges.
 - **Empowerment and Feedback:** right or wrong with a short explanation, then on.
 - **Ownership:** persistent points and badges across courses and sessions.
-- **Social Influence:** an anonymous start-month leaderboard; no names, photos or public profiles.
+- **Social Influence:** an anonymous start-month leaderboard of this month's points, reset on the 1st; no names, photos or public profiles.
 - **Scarcity:** locked badges shown greyed, without deadlines.
 - **Loss Avoidance:** points and badges are never lost; one missed week in eight is forgiven.
 
@@ -106,7 +106,7 @@ The server-authoritative learner record exposes:
 
 - total points, with per-lesson awards (base and bonus) and per-course totals;
 - learning days, the current streak, the longest streak, and the state of each of the last eight weeks;
-- leaderboard group id, rank, and the visible rows (top 3, neighbours), with pseudonymous names;
+- leaderboard group id (start month), this month's points and rank, and the visible rows (top 3, neighbours), with pseudonymous names;
 - per-curriculum lesson progress and badge awards with timestamps;
 - per-course lesson completion.
 
@@ -114,9 +114,9 @@ Each point event needs a stable learner, course, lesson, step count, first-try c
 
 ## Open questions (from the doc)
 
-For Uber: leaderboard groups by city and start month; more than one curriculum at a time; courses repeated across curricula; whether road safety counts; whether Flow can signal a new versus an updated curriculum; curriculum renewal or expiry.
+For Uber: leaderboard groups by start month; more than one curriculum at a time; courses repeated across curricula; whether road safety counts; whether Flow can signal a new versus an updated curriculum; curriculum renewal or expiry.
 
-For the Open edX team: passing city and start month in the token; first-try correctness for the bonus; per-curriculum progress; one course in two curricula; detecting unchanged content via course versions; scheduling the 30-day check; HTML5 completion.
+For the Open edX team: passing the start month in the token; first-try correctness for the bonus; per-curriculum progress; one course in two curricula; detecting unchanged content via course versions; scheduling the 30-day check; HTML5 completion.
 
 ## Experiment measures
 

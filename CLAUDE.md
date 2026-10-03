@@ -304,14 +304,18 @@ and continue, no retry). Week streak: 2 learning days a week, one missed week
 in eight forgiven, paused when nothing required is left. Three badges per
 curriculum (Flow's required set): Halfway, Complete, Retained (the 30-day
 check opens 30 days after Complete), celebrated once on the way back home.
-Leaderboard: total points in an illustrative Chicago September group of 30.
+Leaderboard (revised 2026-10-02): points earned this month, reset on the 1st,
+in an illustrative group of 30 drivers who started the same month; lifetime
+points stay on the Points tab.
 Learning home: stat chips (points, streak, badges) open the full-page "Your
 progress" sheet (Points, Streak, Badges, Leaderboard tabs); then the Continue
 card, the Required carousel, This week and All courses. Ratings, reviews,
 Trending, social proof and curricula as named groups stay parked. Previews:
 `discover` (mid-course), `discover&stage=new|new-curriculum|caught-up`,
 `badge&badge=halfway`, `progress&tab=points|streak|badges|leaderboard`,
-`lesson-complete&lesson=1`. The demo data reproduces the Figma numbers (95
+`lesson-complete&lesson=1`. Previews run on a fixed clock, Wednesday 28
+October 2026 (`PREVIEW_NOW` in course.js), so this month's leaderboard and
+the week tracker read the same whatever the real date. The demo data reproduces the Figma numbers (95
 points mid-course, a 2-week streak with one forgiven week, 360 for the whole
 course). A high-fidelity pass of Home and Your progress is on the Figma page
 "02 · Hi-fi" for review; the prototype follows "01 · UI" until it is approved.

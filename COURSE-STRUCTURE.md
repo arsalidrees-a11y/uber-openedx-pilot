@@ -211,7 +211,7 @@ Gamification supports completion and mastery but does not compete with the safet
 | Half the curriculum's lessons finished | Halfway badge | Development and Accomplishment | Badges belong to the curriculum (Flow's required set) |
 | Every curriculum course and its final check finished | Complete badge | Development and Accomplishment | Celebrated once on return home, never inside a lesson |
 | Pass the 30-day check (opens 30 days after Complete), four of five | Retained badge | Development and Accomplishment | The check gives no points; retakes allowed after review |
-| Your progress | One full-page sheet with Points, Streak (last 8 weeks), Badges and Leaderboard tabs, opened from the home stat chips | Social Influence and Relatedness | The only gamification dashboard; the leaderboard is a start-month group with random names, top 3 and your neighbours |
+| Your progress | One full-page sheet with Points, Streak (last 8 weeks), Badges and Leaderboard tabs, opened from the home stat chips | Social Influence and Relatedness | The only gamification dashboard; the leaderboard ranks this month's points in a start-month group (reset on the 1st), with random names, top 3 and your neighbours |
 | Learning home | Flow's set as the Required list, with a done count; all caught up once done | Development and Accomplishment | Flow (Uber) chooses the set; optional courses live in All courses |
 | Upcoming badge | Visible locked state | Scarcity and Impatience | No artificial deadline |
 | Progressive reveal | Next lesson and milestone appear after completion | Unpredictability and Curiosity | Required information is never hidden for suspense |

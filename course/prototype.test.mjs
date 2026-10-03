@@ -100,7 +100,7 @@ test('a new badge is celebrated once, calmly, on the way back home', async () =>
   const { click } = await loadPage('?preview=badge&badge=halfway');
   assert.equal(document.querySelector('h1').textContent, 'Halfway');
   assert.match(text(), /Badge earnedHalfwayYou’ve finished half of your required lessons\./);
-  assert.match(text(), /Earned \d+ \w+ \d{4}/);
+  assert.match(text(), /Earned 26 October 2026/, 'previews run on Wednesday 28 October 2026');
   assert.doesNotMatch(text(), /congrat|amazing|awesome/i);
   click('[data-action="celebrated"]');
   assert.ok(document.querySelector('.continue-card'), 'back on Learning home');
@@ -158,12 +158,14 @@ test('Badges: three curriculum badges in order, Halfway in progress', async () =
   assert.doesNotMatch(text(), /Applied|Thorough/);
 });
 
-test('Leaderboard: start-month group, anonymous names, top 3 and your neighbours', async () => {
+test('Leaderboard: this month’s points in a start-month group, top 3 and your neighbours', async () => {
   await loadPage('?preview=progress&tab=leaderboard');
-  assert.match(text(), /Chicago · Started learning in September · 30 drivers/);
-  assert.deepEqual(all('.stat-tile').map(t => t.textContent), ['9thyour rank', '95your points']);
-  assert.deepEqual(all('.leaderboard > *').map(r => r.classList.contains('lb-gap') ? '…' : r.textContent), ['1Driver 2210All courses done610', '2Driver 4821540', '3Driver 1307455', '…', '8Driver 9013120', '9You95', '10Driver 337880']);
+  assert.match(text(), /Started learning in October · 30 drivers/);
+  assert.doesNotMatch(text(), /Chicago|All courses done/);
+  assert.deepEqual(all('.stat-tile').map(t => t.textContent), ['9thyour rank this month', '95your points this month']);
+  assert.deepEqual(all('.leaderboard > *').map(r => r.classList.contains('lb-gap') ? '…' : r.textContent), ['1Driver 2210610', '2Driver 4821540', '3Driver 1307455', '…', '8Driver 9013120', '9You95', '10Driver 337880']);
   assert.ok(document.querySelector('.lb-row.is-you'));
+  assert.match(text(), /Everyone starts again on 1 November, and your total points stay on the Points tab/);
 });
 
 // ---------- Lessons: length before, points after, no retry ----------

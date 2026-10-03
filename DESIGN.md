@@ -31,7 +31,7 @@ The learning experience should feel like an operational tool that happens to tea
 
 ## Gamification
 
-- One account-level system spans every course: points, a week streak, a start-month leaderboard, and three badges per curriculum (GAMIFICATION-PLAN.md).
+- One account-level system spans every course: points, a week streak, a monthly start-month leaderboard, and three badges per curriculum (GAMIFICATION-PLAN.md).
 - Courses contribute points; they do not create competing scores.
 - The badges are Halfway, Complete and Retained, earned in order across the curriculum (Flow's required set); courses advance them but do not own them.
 - Uber's Flow tool assigns each driver a set of courses from their experience and other factors; every course in that set is required for that driver. Learning home lists only that set, as "Required" with a done count, and says "You're all caught up" once it is done. Everything else is optional and lives in All courses.

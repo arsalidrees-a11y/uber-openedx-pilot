@@ -8,7 +8,8 @@
 // missed week in any eight is forgiven; a second resets the streak. The streak
 // pauses while nothing in the curriculum is left.
 // Badges: three per curriculum, in order: Halfway, Complete, Retained.
-// Leaderboard: total points within a start-month group of about 30 drivers.
+// Leaderboard: points earned this month, within a group of about 30 drivers who
+// started learning the same month; it resets on the 1st. Lifetime points stay.
 export const POINTS_PER_STEP = 10;
 export const FIRST_TRY_BONUS = 5;
 export const WEEKLY_DAY_GOAL = 2;
@@ -175,34 +176,40 @@ export function habitSummary(record, now = new Date().toISOString()) {
   };
 }
 
-// ---------- Leaderboard: a start-month group of about 30 drivers ----------
-// Illustrative group until the pilot passes city and start month in the token.
+// ---------- Leaderboard: this month's points, in a start-month group ----------
+// Ranked by points earned this calendar month; everyone starts again on the
+// 1st (2026-10-02), so drivers with more required courses can't build an
+// all-time lead. The group is about 30 drivers who started learning the same
+// month and stays together whatever curriculum changes follow. Drivers with
+// no points this month are hidden. Illustrative group until the pilot passes
+// the start month in the token.
+const monthOf = (value, timeZone) => dateInZone(value, timeZone).slice(0, 7);
+const monthName = (value, timeZone) => new Date(value).toLocaleDateString('en-US', { month: 'long', timeZone });
+export const pointsThisMonth = (record, now = new Date().toISOString()) =>
+  record.lessons.filter(lesson => monthOf(lesson.completedAt, record.timeZone) === monthOf(now, record.timeZone)).reduce((sum, lesson) => sum + lesson.points, 0);
 export const DEMO_GROUP = {
-  city: 'Chicago',
-  month: 'September',
   drivers: [
-    { name: 'Driver 2210', points: 610, done: true }, { name: 'Driver 4821', points: 540 }, { name: 'Driver 1307', points: 455 },
-    { name: 'Driver 6650', points: 390 }, { name: 'Driver 5172', points: 310 }, { name: 'Driver 8034', points: 250 },
-    { name: 'Driver 2846', points: 175 }, { name: 'Driver 9013', points: 120 }, { name: 'Driver 3378', points: 80 },
-    { name: 'Driver 7419', points: 60 }, { name: 'Driver 1185', points: 45 }, { name: 'Driver 6203', points: 45 },
-    { name: 'Driver 4467', points: 40 }, { name: 'Driver 3921', points: 0 }, { name: 'Driver 8810', points: 0 },
-    { name: 'Driver 2054', points: 0 }, { name: 'Driver 7736', points: 0 }, { name: 'Driver 5598', points: 0 },
-    { name: 'Driver 1642', points: 0 }, { name: 'Driver 9381', points: 0 }, { name: 'Driver 4105', points: 0 },
-    { name: 'Driver 6877', points: 0 }, { name: 'Driver 3260', points: 0 }, { name: 'Driver 8492', points: 0 },
-    { name: 'Driver 5014', points: 0 }, { name: 'Driver 7128', points: 0 }, { name: 'Driver 2399', points: 0 },
-    { name: 'Driver 9957', points: 0 }, { name: 'Driver 1733', points: 0 }
-  ]
+    ['Driver 2210', 610], ['Driver 4821', 540], ['Driver 1307', 455], ['Driver 6650', 390], ['Driver 5172', 310],
+    ['Driver 8034', 250], ['Driver 2846', 175], ['Driver 9013', 120], ['Driver 3378', 80], ['Driver 7419', 60],
+    ['Driver 1185', 45], ['Driver 6203', 45], ['Driver 4467', 40], ['Driver 3921', 0], ['Driver 8810', 0],
+    ['Driver 2054', 0], ['Driver 7736', 0], ['Driver 5598', 0], ['Driver 1642', 0], ['Driver 9381', 0],
+    ['Driver 4105', 0], ['Driver 6877', 0], ['Driver 3260', 0], ['Driver 8492', 0], ['Driver 5014', 0],
+    ['Driver 7128', 0], ['Driver 2399', 0], ['Driver 9957', 0], ['Driver 1733', 0]
+  ].map(([name, points]) => ({ name, points }))
 };
-export function leaderboard(record, group = DEMO_GROUP, { done = false } = {}) {
-  const you = { name: 'You', points: pointsTotal(record), done, you: true };
+export function leaderboard(record, group = DEMO_GROUP, { now = new Date().toISOString() } = {}) {
+  const tz = record.timeZone;
+  const you = { name: 'You', points: pointsThisMonth(record, now), you: true };
   const ranked = [...group.drivers, you]
     .filter(driver => driver.points > 0)
-    .sort((a, b) => (b.done ? 1 : 0) - (a.done ? 1 : 0) || b.points - a.points || (a.you ? -1 : b.you ? 1 : 0))
+    .sort((a, b) => b.points - a.points || (a.you ? -1 : b.you ? 1 : 0))
     .map((driver, i) => ({ ...driver, rank: i + 1 }));
   const mine = ranked.find(driver => driver.you) || null;
-  const show = new Set([0, 1, 2]);
+  const show = new Set([0, 1, 2].filter(i => i < ranked.length));
   if (mine) [mine.rank - 2, mine.rank - 1, mine.rank].forEach(i => { if (i >= 0 && i < ranked.length) show.add(i); });
   const rows = [];
   [...show].sort((a, b) => a - b).forEach((i, n, all) => { if (n && i - all[n - 1] > 1) rows.push({ gap: true }); rows.push(ranked[i]); });
-  return { city: group.city, month: group.month, size: group.drivers.length + 1, rank: mine?.rank || null, rows };
+  const started = Object.values(record.courses).map(course => course.assignedAt).filter(Boolean).sort()[0] || now;
+  const next = new Date(now); next.setUTCDate(1); next.setUTCMonth(next.getUTCMonth() + 1);
+  return { month: monthName(now, tz), startMonth: monthName(started, tz), resetsOn: `1 ${monthName(next.toISOString(), 'UTC')}`, size: group.drivers.length + 1, rank: mine?.rank || null, rows };
 }

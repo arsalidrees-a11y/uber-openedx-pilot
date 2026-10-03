@@ -72,14 +72,20 @@ test('badges belong to the curriculum and are earned in order: Halfway, Complete
   assert.deepEqual(earnedBadgeKeys(record), ['halfway', 'complete', 'retained']);
 });
 
-test('the leaderboard ranks by total points, hides zero-point drivers and shows the top 3 and your neighbours', () => {
-  const record = createLearningRecord(monday, 'UTC');
-  assert.equal(leaderboard(record).rank, null, 'no points, not listed');
-  recordLesson(record, { courseId: 'sexual-misconduct', lessonId: 0, steps: 5, completedAt: monday });
-  recordLesson(record, { courseId: 'sexual-misconduct', lessonId: 1, steps: 4, questions: 1, firstTryCorrect: 1, completedAt: monday });
-  const board = leaderboard(record);
+test('the leaderboard ranks this month’s points, resets on the 1st, and hides zero-point drivers', () => {
+  const record = createLearningRecord('2026-10-05T09:00:00Z', 'UTC');
+  recordLesson(record, { courseId: 'sexual-misconduct', lessonId: 0, steps: 4, completedAt: '2026-09-28T12:00:00Z' });
+  assert.equal(leaderboard(record, undefined, { now: '2026-10-28T12:00:00Z' }).rank, null, 'September points don’t count in October');
+  recordLesson(record, { courseId: 'sexual-misconduct', lessonId: 1, steps: 5, completedAt: '2026-10-05T12:00:00Z' });
+  recordLesson(record, { courseId: 'sexual-misconduct', lessonId: 2, steps: 4, questions: 1, firstTryCorrect: 1, completedAt: '2026-10-20T12:00:00Z' });
+  assert.equal(pointsTotal(record), 40 + 50 + 45, 'lifetime points keep building');
+  const board = leaderboard(record, undefined, { now: '2026-10-28T12:00:00Z' });
   assert.equal(board.rank, 9);
   assert.equal(board.size, 30);
+  assert.equal(board.month, 'October');
+  assert.equal(board.startMonth, 'October');
+  assert.equal(board.resetsOn, '1 November');
   assert.deepEqual(board.rows.map(r => r.gap ? '…' : `${r.rank} ${r.name} ${r.points}`), ['1 Driver 2210 610', '2 Driver 4821 540', '3 Driver 1307 455', '…', '8 Driver 9013 120', '9 You 95', '10 Driver 3378 80']);
-  assert.equal(board.rows[0].done, true);
+  assert.ok(board.rows.every(r => !('done' in r)), 'no "All courses done" marker');
+  assert.equal(leaderboard(record, undefined, { now: '2026-11-02T12:00:00Z' }).rank, null, 'everyone starts again on the 1st');
 });

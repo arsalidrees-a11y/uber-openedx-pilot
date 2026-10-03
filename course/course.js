@@ -1,4 +1,4 @@
-import { createLearningRecord, recordStep, recordLesson, lessonAward, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, awardBadges, badgeEarned, earnedBadgeKeys, nextCelebration, markCelebrated, retentionOpensAt, habitSummary, leaderboard, lessonMinutes, QUESTION_TYPES, BADGES } from './gamification.js';
+import { createLearningRecord, recordStep, recordLesson, lessonAward, recordCourseCompletion, recordRetentionCheck, pointsTotal, coursePoints, awardBadges, badgeEarned, earnedBadgeKeys, nextCelebration, markCelebrated, retentionOpensAt, habitSummary, leaderboard, pointsThisMonth, lessonMinutes, QUESTION_TYPES, BADGES } from './gamification.js';
 import { courseByNumber, courseById, requiredCourses, optionalCourses } from './catalog.js';
 import { icon } from './icons.js';
 
@@ -126,7 +126,14 @@ const root = document.querySelector('#course');
 const KEY = `uber-us-mandatory-course-${variant.toLowerCase()}-v4`;
 const COURSE_ID = 'sexual-misconduct';
 const COURSE_TITLE = 'Sexual misconduct education';
-const freshState = () => ({ lesson: 0, step: 0, completed: [], started: false, baselineDone: false, finalCheckDone: false, finalCheckScore: null, retentionCheckDone: false, retentionScore: null, responses: {}, answers: {}, newCurriculum: false, assessmentResponses: { baseline: [], final: [], retention: [] }, learningRecord: createLearningRecord() });
+// Prepared states run on a fixed date so they reproduce the Figma screens
+// whatever the real date: Wednesday 28 October 2026, mid-afternoon. Real use
+// runs on the real clock.
+const PREVIEW_NOW = '2026-10-28T15:00:00';
+let clockOverride = null;
+const now = () => (clockOverride ? new Date(clockOverride) : new Date());
+const nowIso = () => now().toISOString();
+const freshState = () => ({ lesson: 0, step: 0, completed: [], started: false, baselineDone: false, finalCheckDone: false, finalCheckScore: null, retentionCheckDone: false, retentionScore: null, responses: {}, answers: {}, newCurriculum: false, assessmentResponses: { baseline: [], final: [], retention: [] }, learningRecord: createLearningRecord(nowIso()) });
 let state = freshState();
 try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && Array.isArray(saved.completed) && saved.learningRecord?.version === 2 && saved.lesson >= 0 && saved.lesson < lessons.length && saved.step >= 0 && saved.step < lessons[saved.lesson].steps.length) state = { ...state, ...saved }; } catch {}
 let view = 'discover', progressTab = 'points', progressFrom = 'discover', errorState = '', selected = null, checked = false, correct = false, placement = {}, order = [0, 1, 2], dragged = null, watched = false, playing = false, tick = 0, timer, assessmentMode = 'baseline', assessmentIndex = 0;
@@ -171,7 +178,7 @@ function curriculum() {
   const done = courses.reduce((n, c) => n + (c.id === COURSE_ID ? lessonsDone() : courseComplete(c.id) ? c.lessonCount : 0), 0);
   return { lessonsDone: done, lessonsTotal, complete: allRequiredDone() };
 }
-const updateBadges = (now) => awardBadges(record(), curriculum(), now);
+const updateBadges = (at = nowIso()) => awardBadges(record(), curriculum(), at);
 const BADGE_ART = { halfway: 'route_flag', complete: 'badge_checkmark', retained: 'arrow_counter_clockwise' };
 const BADGE_COPY = {
   halfway: 'You’ve finished half of your required lessons. Keep going at your own pace.',
@@ -189,14 +196,14 @@ function badgeStates() {
   });
 }
 const earnedBadgeCount = () => earnedBadgeKeys(record()).length;
-function retentionDue() { const opens = retentionOpensAt(record()); return Boolean(opens && Date.now() >= new Date(opens).getTime()) && !badgeEarned(record(), 'retained'); }
+function retentionDue() { const opens = retentionOpensAt(record()); return Boolean(opens && now().getTime() >= new Date(opens).getTime()) && !badgeEarned(record(), 'retained'); }
 const DEMO_LEARNER_FIRST_NAME = 'Sam';
 function learnerFirstName() {
   const supplied = globalThis.learnerProfile?.firstName ?? new URLSearchParams(location.search).get('firstName') ?? DEMO_LEARNER_FIRST_NAME;
   return typeof supplied === 'string' ? supplied.trim().split(/\s+/)[0].slice(0, 32) : '';
 }
 function personalGreeting() {
-  const hour = new Date().getHours();
+  const hour = now().getHours();
   const salutation = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const name = learnerFirstName();
   return `${salutation}${name ? `, ${esc(name)}` : ''}.`;
@@ -249,7 +256,7 @@ function note(title, body) { return `<div class="note"><b class="u-label-medium"
 function banner(style, iconName, title, body, action = '') { return `<div class="banner banner--${style}"><span class="banner__art">${icon(iconName)}</span><div class="banner__text"><b class="u-label-medium">${esc(title)}</b><p class="u-paragraph-medium">${esc(body)}</p></div>${action}</div>`; }
 // Learning / Stat chip: points, week streak and badges in the home header.
 function statChips() {
-  const habit = habitSummary(record());
+  const habit = habitSummary(record(), nowIso());
   const chip = (tab, iconName, value, label) => `<button class="stat-chip" data-action="progress" data-tab="${tab}" aria-label="${esc(label)}">${icon(iconName)}<span class="u-label-small">${esc(value)}</span></button>`;
   return `<div class="stat-chips">${chip('points', 'lightning', learningPoints(), `Points: ${learningPoints()}`)}${chip('streak', 'calendar', habit.weekStreak, `Week streak: ${habit.weekStreak}`)}${chip('badges', 'badge_checkmark', `${earnedBadgeCount()}/3`, `Badges: ${earnedBadgeCount()} of 3`)}</div>`;
 }
@@ -289,7 +296,7 @@ function courseTile(course) {
 const carousel = (courses) => `<div class="carousel">${courses.map(courseTile).join('')}</div>`;
 // Learning / This week: the week streak goal, two learning days Monday to Sunday.
 function thisWeek() {
-  const h = habitSummary(record()), n = h.weekStreak;
+  const h = habitSummary(record(), nowIso()), n = h.weekStreak;
   let title, body;
   if (allRequiredDone()) { title = 'Streak paused'; body = `Nothing required is left, so your ${n}-week streak is safe. Optional courses still count as learning days.`; }
   else if (h.met) { title = 'Goal met this week'; body = `Your streak grows to ${n + 1} weeks when the week ends.`; }
@@ -299,17 +306,18 @@ function thisWeek() {
   const days = h.days.map((d, i) => { const s = d.learned ? 'learned' : d.today ? 'today' : d.past ? 'missed' : 'upcoming'; return `<span class="day"><span class="day__mark is-${s}">${s === 'learned' ? icon('circle_check_uber') : ''}</span><span class="u-label-x-small ${d.today ? 'c-primary' : 'c-tertiary'}">${letters[i]}</span></span>`; }).join('');
   return `<button class="this-week" data-action="progress" data-tab="streak"><span class="u-label-large c-primary">${esc(title)}</span><span class="this-week__days" role="img" aria-label="${h.learningDays} learning ${h.learningDays === 1 ? 'day' : 'days'} this week">${days}</span><span class="u-paragraph-small c-secondary">${esc(body)}</span></button>`;
 }
-const streakLabel = () => { const n = habitSummary(record()).weekStreak; return n ? `${n}-week streak` : 'No streak yet'; };
+const streakLabel = () => { const n = habitSummary(record(), nowIso()).weekStreak; return n ? `${n}-week streak` : 'No streak yet'; };
 // Learning / Week history: the last eight weeks, newest on the right.
 function weekHistory() {
-  const h = habitSummary(record());
+  const h = habitSummary(record(), nowIso());
   const label = (w, i) => i === 7 ? 'Now' : new Date(`${w.start}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   return `<div class="week-history" role="img" aria-label="Last eight weeks: ${h.weeks.map(w => w.state).join(', ')}"><div class="week-history__weeks">${h.weeks.map(w => `<span class="week-cell is-${w.state}">${w.state === 'met' ? icon('circle_check_uber') : ''}</span>`).join('')}</div><div class="week-history__dates">${h.weeks.map((w, i) => `<span class="u-label-x-small ${i === 7 ? 'c-primary' : 'c-tertiary'}">${label(w, i)}</span>`).join('')}</div></div>`;
 }
 // Learning / Leaderboard row: You, others under a random name, and a gap.
+// (The library's Done variant is unused since the monthly reset.)
 function leaderboardRow(row) {
   if (row.gap) return '<div class="lb-gap" aria-hidden="true"><i></i><i></i><i></i></div>';
-  return `<div class="lb-row${row.you ? ' is-you' : ''}"><span class="lb-row__rank u-label-medium">${row.rank}</span><span class="lb-row__avatar" aria-hidden="true">${icon('person')}</span><span class="lb-row__body"><b class="u-label-medium">${esc(row.name)}</b>${row.done ? '<span class="lb-tag u-label-x-small">All courses done</span>' : ''}</span><b class="u-label-medium c-primary">${row.points}</b></div>`;
+  return `<div class="lb-row${row.you ? ' is-you' : ''}"><span class="lb-row__rank u-label-medium">${row.rank}</span><span class="lb-row__avatar" aria-hidden="true">${icon('person')}</span><span class="lb-row__body"><b class="u-label-medium">${esc(row.name)}</b></span><b class="u-label-medium c-primary">${row.points}</b></div>`;
 }
 function safetyHero(complete) { return `<div class="safety-hero" data-state="${complete ? 'complete' : 'not-complete'}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i>${icon(complete ? 'shield_check' : 'shield')}</div>`; }
 function activityHeader(mode) {
@@ -407,7 +415,7 @@ function allCoursesRow() {
 }
 // Base Banner, positive with a text button: every required course is done.
 function caughtUpBanner() {
-  const body = earnedBadgeCount() === 3 ? 'You’ve finished your required courses and earned all three badges.' : `Every required course is done. Your 30-day check opens on ${longDate(retentionOpensAt(record()) || new Date().toISOString())}.`;
+  const body = earnedBadgeCount() === 3 ? 'You’ve finished your required courses and earned all three badges.' : `Every required course is done. Your 30-day check opens on ${longDate(retentionOpensAt(record()) || nowIso())}.`;
   return banner('positive', 'circle_check', 'You’re all caught up', body, '<button class="banner__action u-label-medium" data-action="all-courses">All courses</button>');
 }
 // Base Banner, accent with a dismiss button: a new curriculum, shown once.
@@ -584,15 +592,16 @@ function progressView() {
     const rows = `${contributionRow(COURSE_TITLE, `${lessonsDone()} of ${lessons.length} lessons complete`, `+${coursePoints(record(), COURSE_ID)}`)}${contributionRow(regional.title, courseComplete(regional.id) ? 'Complete' : 'Not started', `${coursePoints(record(), regional.id)}`)}${contributionRow('Road safety fundamentals', 'Tracked outside this app, so it adds no points', '—', true)}`;
     panel = `${statTiles(statTile(learningPoints(), 'total points'), statTile(last ? `+${last.points}` : '0', 'from your last lesson'))}<section class="group"><h2 class="u-heading-x-small">By course</h2>${rows}</section><p class="u-paragraph-small c-secondary">Finish a lesson for the first time to earn 10 points for each step, plus 5 for each question you get right on the first try. Repeats and checks add nothing, and points are never taken away.</p>`;
   } else if (progressTab === 'streak') {
-    const h = habitSummary(record()), weeks = (n) => `${n} ${n === 1 ? 'week' : 'weeks'}`;
+    const h = habitSummary(record(), nowIso()), weeks = (n) => `${n} ${n === 1 ? 'week' : 'weeks'}`;
     panel = `${statTiles(statTile(weeks(h.weekStreak), 'current streak'), statTile(weeks(h.longestStreak), 'longest streak'))}${thisWeek()}<p class="u-label-large c-primary">Last 8 weeks</p>${weekHistory()}<p class="u-paragraph-small c-secondary">Learn on 2 days a week, Monday to Sunday, to keep your streak. Optional courses count too. One missed week in any eight is forgiven (the outlined week); a second one starts your streak again. If nothing required is left, your streak pauses.</p>`;
   } else if (progressTab === 'badges') {
     const badges = badgeStates();
     panel = `<p class="lead u-paragraph-medium">Three badges for your required courses, earned in order. They’re never taken away.</p><div class="badge-shelf">${badges.map(b => `<span class="badge-shelf__item">${badgeMedal(b)}<span class="u-label-small c-secondary">${esc(b.name)}</span></span>`).join('')}</div><div>${badges.map(b => badgeRow(b)).join('')}</div>${retentionDue() ? '<button class="btn btn--primary u-label-large" data-action="retention-intro">Take your 30-day check</button>' : ''}`;
   } else {
-    const board = leaderboard(record(), undefined, { done: allRequiredDone() && optionalCourses().every(c => courseComplete(c.id)) });
-    const totals = board.rank ? statTiles(statTile(ordinal(board.rank), 'your rank'), statTile(learningPoints(), 'your points')) : '<p class="u-paragraph-medium c-secondary">Finish a lesson to join your group’s leaderboard.</p>';
-    panel = `<p class="u-label-x-small c-secondary">${esc(board.city)} · Started learning in ${esc(board.month)} · ${board.size} drivers</p>${totals}<div class="leaderboard">${board.rows.map(leaderboardRow).join('')}</div><p class="u-paragraph-small c-tertiary">Ranked by total points among drivers in your city who started learning the same month. Other drivers’ names are hidden, and drivers with no points yet aren’t listed. Points never reset.</p>`;
+    // This month's points, in a start-month group; resets on the 1st.
+    const board = leaderboard(record(), undefined, { now: nowIso() });
+    const totals = board.rank ? statTiles(statTile(ordinal(board.rank), 'your rank this month'), statTile(pointsThisMonth(record(), nowIso()), 'your points this month')) : '<p class="u-paragraph-medium c-secondary">Finish a lesson this month to join the leaderboard.</p>';
+    panel = `<p class="u-label-x-small c-secondary">Started learning in ${esc(board.startMonth)} · ${board.size} drivers</p>${totals}<div class="leaderboard">${board.rows.map(leaderboardRow).join('')}</div><p class="u-paragraph-small c-tertiary">Ranked by points earned this month. Everyone starts again on ${esc(board.resetsOn)}, and your total points stay on the Points tab. Other drivers’ names are hidden, and drivers with no points this month aren’t listed.</p>`;
   }
   shell({ nav: navHeader('Your progress', 'close-progress', false, 'x'), body: `${tabBar}${panel}`, footer: stepFooter({ label: 'Continue learning', action: 'continue-learning' }) });
 }
@@ -629,7 +638,7 @@ function finishLesson() {
   const i = state.lesson, lesson = lessons[i];
   const questions = lesson.steps.map((step, s) => QUESTION_TYPES.has(step.type) ? s : null).filter(s => s !== null);
   const firstTryCorrect = questions.filter(s => state.answers[`${i}.${s}`] === true).length;
-  lastAward = recordLesson(record(), { courseId: COURSE_ID, lessonId: i, steps: lesson.steps.length, questions: questions.length, firstTryCorrect });
+  lastAward = recordLesson(record(), { courseId: COURSE_ID, lessonId: i, steps: lesson.steps.length, questions: questions.length, firstTryCorrect, completedAt: nowIso() });
   if (!state.completed.includes(i)) state.completed.push(i);
   updateBadges();
 }
@@ -672,8 +681,8 @@ root.addEventListener('click', e => {
   if (action === 'assessment-next') { const questions = assessments[assessmentMode]; if (assessmentIndex < questions.length - 1) { assessmentIndex++; render(); } else if (assessmentMode === 'baseline') { state.baselineDone = true; save(); openStep(0, 0); } else { const score = scoreOf(assessmentMode); if (assessmentMode === 'retention') state.retentionScore = score; else state.finalCheckScore = score; view = 'assessment-result'; save(); render(); } }
   if (action === 'retry-final') { state.assessmentResponses.final = []; state.finalCheckScore = null; assessmentMode = 'final'; assessmentIndex = 0; view = 'assessment'; save(); render(); }
   if (action === 'retry-retention') { state.assessmentResponses.retention = []; state.retentionScore = null; assessmentMode = 'retention'; assessmentIndex = 0; view = 'assessment'; save(); render(); }
-  if (action === 'finish-course') { state.finalCheckDone = true; recordCourseCompletion(record(), COURSE_ID); updateBadges(); save(); go('complete'); }
-  if (action === 'finish-retention') { if (recordRetentionCheck(record(), { score: state.retentionScore })) { state.retentionCheckDone = true; updateBadges(); } save(); go('discover'); }
+  if (action === 'finish-course') { state.finalCheckDone = true; recordCourseCompletion(record(), COURSE_ID, nowIso()); updateBadges(); save(); go('complete'); }
+  if (action === 'finish-retention') { if (recordRetentionCheck(record(), { score: state.retentionScore, completedAt: nowIso() })) { state.retentionCheckDone = true; updateBadges(); } save(); go('discover'); }
   if (action === 'begin-lessons') openStep(0, 0);
   if (action === 'start') { const cur = currentLesson(); if (cur === null) openStep(0, 0); else openStep(cur, state.lesson === cur ? state.step : 0); }
   if (action === 'review') openStep(0, 0);
@@ -690,7 +699,7 @@ root.addEventListener('click', e => {
     activity(); root.querySelector('#feedback')?.scrollIntoView?.({ block: 'nearest' });
   }
   if (action === 'next') {
-    recordStep(record(), { courseId: COURSE_ID, stepId: `${state.lesson}.${state.step}` });
+    recordStep(record(), { courseId: COURSE_ID, stepId: `${state.lesson}.${state.step}`, completedAt: nowIso() });
     if (state.step < lessons[state.lesson].steps.length - 1) openStep(state.lesson, state.step + 1);
     else { finishLesson(); save(); go('complete'); }
   }
@@ -721,7 +730,7 @@ root.addEventListener('drop', e => { const zone = e.target.closest('[data-zone]'
 // screens: 95 points mid-course (lesson 2 paid 45), a 2-week streak with one
 // forgiven week, 360 points for the whole course (one first-try miss in
 // lesson 7, the "not quite" numeric answer).
-function weekStart(weeksAgo, day, hour = 10) { const d = new Date(); d.setHours(hour, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 - weeksAgo * 7 + day); return d.toISOString(); }
+function weekStart(weeksAgo, day, hour = 10) { const d = now(); d.setHours(hour, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 - weeksAgo * 7 + day); return d.toISOString(); }
 // Finish lesson i on the given dates (steps spread across them).
 function seedLesson(i, dates, { wrong = [] } = {}) {
   const lesson = lessons[i];
@@ -779,7 +788,7 @@ const demos = {
 };
 const LEGACY_TABS = { progress: 'points', habit: 'streak', standing: 'leaderboard' };
 function applyPreview(name, params = new URLSearchParams()) {
-  previewing = true; errorState = ''; resetActivity(); filters = noFilters(); sheetOpen = false; lastAward = null;
+  previewing = true; clockOverride = PREVIEW_NOW; errorState = ''; resetActivity(); filters = noFilters(); sheetOpen = false; lastAward = null;
   const lesson = Number(params.get('lesson')), step = Number(params.get('step'));
   if (name === 'discover') {
     const stage = params.get('stage');
@@ -837,7 +846,7 @@ document.querySelector('#review-toggle').addEventListener('click', e => { panel.
 panel.addEventListener('click', e => {
   const el = e.target.closest('button'); if (!el) return;
   if (el.dataset.error) { errorState = el.dataset.error; render(); return; }
-  if (el.dataset.reset !== undefined) { previewing = false; state = freshState(); save(); view = 'discover'; errorState = ''; render(); return; }
+  if (el.dataset.reset !== undefined) { previewing = false; clockOverride = null; state = freshState(); save(); view = 'discover'; errorState = ''; render(); return; }
   applyPreview(el.dataset.preview, new URLSearchParams(el.dataset.query)); render();
 });
 

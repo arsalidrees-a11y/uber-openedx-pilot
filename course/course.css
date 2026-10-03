@@ -323,7 +323,6 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .lb-row.is-you .lb-row__avatar { background: var(--u-background-inverse-primary); color: var(--u-content-on-color); }
 .lb-row__avatar .uicon { width: 18px; height: 18px; }
 .lb-row__body { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: var(--u-space-4); min-width: 0; color: var(--u-content-primary); }
-.lb-tag { padding: var(--u-space-2) var(--u-space-8); border-radius: var(--u-radius-pill); background: var(--u-background-positive-light); color: var(--u-content-positive); }
 .lb-gap { display: flex; align-items: center; gap: var(--u-space-4); height: 24px; padding-left: var(--u-space-20); }
 .lb-gap i { width: 4px; height: 4px; border-radius: 50%; background: var(--u-content-tertiary); }
 
