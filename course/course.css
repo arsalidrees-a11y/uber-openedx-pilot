@@ -252,7 +252,6 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .contribution-row, .badge-row, .resource-row { display: flex; align-items: center; gap: var(--u-space-16); padding: var(--u-space-16) 0; border-bottom: 1px solid var(--u-border-opaque); }
 .contribution-row__body, .badge-row__body, .resource-row__body { display: flex; flex: 1; flex-direction: column; gap: var(--u-space-4); min-width: 0; }
 .badge-row__body { gap: var(--u-space-2); }
-.contribution-row.is-external .contribution-row__value { color: var(--u-content-tertiary); }
 .badge-row__art { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: var(--u-radius-md); background: var(--u-background-secondary); color: var(--u-content-tertiary); }
 .badge-row__art .uicon { width: 28px; height: 28px; }
 .badge-row.is-earned .badge-row__art { background: var(--u-background-positive-light); color: var(--u-content-positive); }

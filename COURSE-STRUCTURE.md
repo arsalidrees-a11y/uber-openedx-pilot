@@ -313,10 +313,10 @@ Primary comparisons are course completion rate, common post-course knowledge sco
 ## Definition of ready
 
 1. All 33 activities can be completed in sequence on a mobile viewport.
-2. Every practice activity supports retry and source-based feedback.
+2. Every practice activity shows right or wrong with source-based feedback, then continues (no retry or requeue).
 3. All 6 videos enforce completion and expose captions and transcript controls.
 4. Lesson and course progress persist across exit and resume.
-5. The single Learning progress view receives contributions from eligible activities across courses, shows this course's contribution, and applies the account-level Applied, Thorough, and Retained badge rules.
+5. Your progress (Points, Streak, Badges, Leaderboard) receives points from every course, shows this course's contribution next to lifetime and this month's points, and applies the curriculum's Halfway, Complete and Retained badge rules (GAMIFICATION-PLAN.md).
 6. Support and reporting resources appear at the relevant recaps.
 7. Keyboard-only and tap-only alternatives work for matching and sorting.
 8. The human-trafficking context warning is visible with the indicators.

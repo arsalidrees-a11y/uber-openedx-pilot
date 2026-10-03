@@ -449,7 +449,7 @@ function libraryView() {
   if (sheetOpen) { root.insertAdjacentHTML('beforeend', filtersSheet()); root.querySelector('#sheet-title').focus({ preventScroll: true }); }
 }
 function roadSafetyView() {
-  shell({ nav: navHeader('Road safety', 'library'), body: `${kicker('Available soon')}${heading('Road safety fundamentals')}${lead('This course is not available yet. We’ll show it here when it is ready.')}${banner('accent', 'circle_i', 'Your learning record stays accurate', 'Road safety doesn’t add points, learning days or badges yet, because its completion is tracked outside this app.')}`, footer: stepFooter({ label: 'Back to all courses', action: 'library' }) });
+  shell({ nav: navHeader('Road safety', 'library'), body: `${kicker('Available soon')}${heading('Road safety fundamentals')}${lead('This course is not available yet. We’ll show it here when it is ready.')}`, footer: stepFooter({ label: 'Back to all courses', action: 'library' }) });
 }
 function lessonRow(lesson, i) {
   const status = lessonStatus(i);
@@ -568,7 +568,7 @@ function completion() {
   const status = courseStatus();
   const back = { label: 'Back to course', action: 'overview' };
   if (status === 'complete') {
-    shell({ nav: navHeader(COURSE_TITLE, 'overview'), body: `${checkResult({ kicker: 'Course complete', title: 'You completed the course', body: 'You completed all seven lessons in the United States mandatory safety education.' })}${progress(`${lessons.length} of ${lessons.length} lessons complete`, 100)}${milestone({ title: 'Course contribution recorded', body: `${coursePoints(record(), COURSE_ID)} points from this course are in your total.` })}${note('Your commitment', 'Keep conversations respectful, follow stated boundaries, and report concerns safely.')}`, footer: stepFooter({ label: 'View learning progress', action: 'progress', tab: 'points' }, back) });
+    shell({ nav: navHeader(COURSE_TITLE, 'overview'), body: `${checkResult({ kicker: 'Course complete', title: 'You completed the course', body: 'You completed all seven lessons in the United States mandatory safety education.' })}${progress(`${lessons.length} of ${lessons.length} lessons complete`, 100)}${milestone({ title: 'Course contribution recorded', body: `${coursePoints(record(), COURSE_ID)} points from this course are in your total.` })}${note('Your commitment', 'Keep conversations respectful, follow stated boundaries, and report concerns safely.')}`, footer: stepFooter({ label: 'See your progress', action: 'progress', tab: 'points' }, back) });
     return;
   }
   if (status === 'final-pending') {
@@ -580,17 +580,16 @@ function completion() {
 }
 // Your progress: one full-page sheet; each home chip opens its tab.
 const PROGRESS_TABS = [['points', 'Points'], ['streak', 'Streak'], ['badges', 'Badges'], ['leaderboard', 'Leaderboard']];
-function contributionRow(title, meta, value, external = false) {
-  return `<div class="contribution-row${external ? ' is-external' : ''}"><span class="contribution-row__body"><b class="u-label-medium c-primary">${esc(title)}</b><small class="u-paragraph-small c-tertiary">${esc(meta)}</small></span><b class="contribution-row__value u-mono-label-medium">${esc(value)}</b></div>`;
+function contributionRow(title, meta, value) {
+  return `<div class="contribution-row"><span class="contribution-row__body"><b class="u-label-medium c-primary">${esc(title)}</b><small class="u-paragraph-small c-tertiary">${esc(meta)}</small></span><b class="contribution-row__value u-mono-label-medium">${esc(value)}</b></div>`;
 }
 function progressView() {
   const tabBar = `<div class="tabs" role="tablist" aria-label="Your progress">${PROGRESS_TABS.map(([key, label]) => `<button role="tab" data-progress-tab="${key}" aria-selected="${progressTab === key}"><span class="u-label-small">${label}</span></button>`).join('')}</div>`;
   let panel = '';
   if (progressTab === 'points') {
-    const last = [...record().lessons].sort((a, b) => a.completedAt.localeCompare(b.completedAt)).at(-1);
     const regional = courseById('regional-safety');
-    const rows = `${contributionRow(COURSE_TITLE, `${lessonsDone()} of ${lessons.length} lessons complete`, `+${coursePoints(record(), COURSE_ID)}`)}${contributionRow(regional.title, courseComplete(regional.id) ? 'Complete' : 'Not started', `${coursePoints(record(), regional.id)}`)}${contributionRow('Road safety fundamentals', 'Tracked outside this app, so it adds no points', '—', true)}`;
-    panel = `${statTiles(statTile(learningPoints(), 'total points'), statTile(last ? `+${last.points}` : '0', 'from your last lesson'))}<section class="group"><h2 class="u-heading-x-small">By course</h2>${rows}</section><p class="u-paragraph-small c-secondary">Finish a lesson for the first time to earn 10 points for each step, plus 5 for each question you get right on the first try. Repeats and checks add nothing, and points are never taken away.</p>`;
+    const rows = `${contributionRow(COURSE_TITLE, `${lessonsDone()} of ${lessons.length} lessons complete`, `+${coursePoints(record(), COURSE_ID)}`)}${contributionRow(regional.title, courseComplete(regional.id) ? 'Complete' : 'Not started', `${coursePoints(record(), regional.id)}`)}`;
+    panel = `${statTiles(statTile(learningPoints(), 'total points'), statTile(pointsThisMonth(record(), nowIso()), 'points this month'))}<section class="group"><h2 class="u-heading-x-small">By course</h2>${rows}</section><p class="u-paragraph-small c-secondary">Finish a lesson for the first time to earn 10 points for each step, plus 5 for each question you get right on the first try. Repeats and checks add nothing, and points are never taken away.</p>`;
   } else if (progressTab === 'streak') {
     const h = habitSummary(record(), nowIso()), weeks = (n) => `${n} ${n === 1 ? 'week' : 'weeks'}`;
     panel = `${statTiles(statTile(weeks(h.weekStreak), 'current streak'), statTile(weeks(h.longestStreak), 'longest streak'))}${thisWeek()}<p class="u-label-large c-primary">Last 8 weeks</p>${weekHistory()}<p class="u-paragraph-small c-secondary">Learn on 2 days a week, Monday to Sunday, to keep your streak. Optional courses count too. One missed week in any eight is forgiven (the outlined week); a second one starts your streak again. If nothing required is left, your streak pauses.</p>`;

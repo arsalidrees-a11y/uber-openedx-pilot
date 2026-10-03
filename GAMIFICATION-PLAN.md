@@ -1,13 +1,17 @@
 # Gamification plan
 
 The client-facing source is the "Driver Learning Gamification Metrics" Google
-Doc (decided 2026-10-01). This file restates it for the build; where the two
-differ, the doc wins.
+Doc (decided 2026-10-01, last aligned 2026-10-03). It has two tabs: Metrics,
+and Assumptions and decisions, which marks every rule not in the PRD, proposal,
+best-practices document or curriculum deck as Proposed, Assumption, To confirm
+or Changes earlier guidance. This file restates both for the build; where the
+two differ, the doc wins.
 
 A driver's **curriculum** is the set of required courses Uber assigns through
-Flow. Uber groups drivers by region, vehicle type, lifecycle stage and product;
-each group gets its own curriculum, and we never change the grouping.
-**Optional courses** are all other courses.
+Flow. Uber groups drivers by region, vehicle type, lifecycle stage and product,
+and each group receives its own curriculum. A driver's curriculum can change at
+any time, even for drivers who started on the same one. **Optional courses**
+are all other courses, open to every driver.
 
 ## At a glance
 
@@ -22,9 +26,10 @@ each group gets its own curriculum, and we never change the grouping.
 
 | Surface | Shows | Does not show |
 |---|---|---|
-| Learning home | Stat chips (points, week streak, badges), the Continue card, the Required carousel, This week | A score per course, points before a lesson |
-| Your progress | One full-page sheet with tabs Points, Streak, Badges, Leaderboard; each home chip opens its tab | A second dashboard |
+| Learning home | Stat chips (lifetime points, week streak, badges), the Continue card, the Required carousel, This week, the All courses row | A score per course, points before a lesson |
+| Your progress | One full-page sheet with tabs Points, Streak, Badges, Leaderboard, replacing the old Learning progress page; each home chip opens its tab. The Points tab shows lifetime points next to this month's | A second dashboard |
 | Course | Lessons complete, next lesson, lesson length ("4 steps · 3 min") | Course streak, course rank, a parallel balance |
+| Course tile and Continue card | A placeholder thumbnail until artwork is supplied | — |
 | Lesson | Step position (the bar counts steps), feedback | Points, streak, rank, badges |
 | Lesson results | "+45 points" and "100% correct", the next lesson | Praise labels, timers, speed |
 
@@ -45,7 +50,7 @@ Demo data: lessons have 4–8 steps (lesson 1: 5, lessons 2–6: 4, lesson 7: 8)
 
 - Ranked by points earned this month; everyone starts again on the 1st of every month. Lifetime points still build up and show on the Points tab.
 - Why monthly: drivers with more required courses would otherwise build an all-time lead, and optional courses don't get the same attention as required ones.
-- Group: about 30 drivers who started learning in the same month. The group stays together whatever curriculum changes follow, because a driver's curriculum can change at any time. A month with fewer than 20 new drivers joins the previous month's group.
+- Group: about 30 drivers who started learning in the same month. The group stays together whatever curriculum changes follow, because a driver's curriculum can change at any time. A month with fewer than 20 new drivers joins the previous month's group, to keep drivers anonymous. Groups don't depend on city, because the pilot runs in one city.
 - Anonymous: the driver's own row reads "You"; others get a random name such as "Driver 4821". No real names or photos.
 - Shown: the top 3, then the driver's own rank with the drivers just above and below.
 - Drivers with no points this month are hidden. No "All courses done" marker.
@@ -54,8 +59,8 @@ This replaces the four anonymous position bands (updated 2026-10-02 to the month
 
 ## Week streak
 
-- A learning day is a day the driver completes any part of a lesson. A week is Monday to Sunday; a streak week has at least 2 learning days.
-- One missed week in any eight is forgiven; a second resets the streak to 0.
+- A learning day is a day the driver completes any part of a lesson. A week is Monday to Sunday in the driver's local time zone; a streak week has at least 2 learning days.
+- One missed week in any eight is forgiven; a second resets the streak to 0. Meeting the goal in 7 of 8 weeks keeps the streak; a second miss in the same eight weeks breaks it.
 - The streak pauses while nothing in the curriculum is left, and continues when new courses are added.
 - Optional courses count as learning days.
 - The Streak tab shows the last eight weeks (met, forgiven, missed, paused, this week), because the forgiveness window is eight weeks. No flames.
@@ -86,7 +91,7 @@ Three per curriculum, earned in order. Only curriculum courses count.
 
 ## Road safety
 
-The externally tracked HTML5 course adds no points, learning days or badges unless an approved verified completion feed is connected (open question for Uber).
+The doc makes no exception for road safety: like every course, it earns points and learning days once it has content, and counts toward badges if it is in the driver's curriculum. Until then its page says only that it is available soon, and it doesn't appear on the Points tab. (The earlier "adds no points" exception and its open question were dropped from the doc on 2026-10-03.)
 
 ## Octalysis mapping and guardrails
 
@@ -112,11 +117,26 @@ The server-authoritative learner record exposes:
 
 Each point event needs a stable learner, course, lesson, step count, first-try correct count, first-award flag, experiment variant and timestamp. The service must be idempotent so replayed events cannot award points twice.
 
-## Open questions (from the doc)
+## To confirm with Uber (from the doc)
 
-For Uber: leaderboard groups by start month; more than one curriculum at a time; courses repeated across curricula; whether road safety counts; whether Flow can signal a new versus an updated curriculum; curriculum renewal or expiry.
+1. Leaderboard groups: drivers who started learning in the same month, ranked by this month's points, independent of curriculum.
+2. More than one curriculum at a time. If so, badges are earned per curriculum.
+3. Repeated courses: one course in more than one curriculum, or assigned again later. If so, it earns points once and counts toward each curriculum's badges. Edly suggests a course re-run for a course that must be repeated.
+4. Whether Flow can say when it sends a new curriculum rather than adding a course to the current one.
+5. Renewal: if a curriculum expires (for example yearly), renewal works like a new curriculum.
 
-For the Open edX team: passing the start month in the token; first-try correctness for the bonus; per-curriculum progress; one course in two curricula; detecting unchanged content via course versions; scheduling the 30-day check; HTML5 completion.
+## Changes to earlier guidance
+
+- The accuracy bonus: the best-practices document advised no points for assessment answers.
+- A ranked, anonymous leaderboard replaces its anonymous cohort band, which advised against exact ranks.
+
+## Technical assumptions (from the doc)
+
+- Open edX knows the month a driver started learning, for leaderboard grouping.
+- Open edX scoring shows whether each question was answered correctly on the first try.
+- Progress can be tracked per curriculum, as assigned by Flow.
+- A check can unlock automatically 30 days after Complete.
+- A change to a course's content can be detected, so finished courses carry over to a new curriculum only if unchanged.
 
 ## Experiment measures
 

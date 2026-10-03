@@ -132,10 +132,10 @@ test('each home chip opens Your progress on its tab, and the close button return
   assert.ok(document.querySelector('.continue-card'));
 });
 
-test('Points: total, last lesson, by course, and how points work', async () => {
+test('Points: lifetime points next to this month’s, by course, and how points work', async () => {
   await loadPage('?preview=progress&tab=points');
-  assert.deepEqual(all('.stat-tile').map(t => t.textContent), ['95total points', '+45from your last lesson']);
-  assert.deepEqual(all('.contribution-row').map(r => r.textContent), ['Sexual misconduct education2 of 7 lessons complete+95', 'Regional safety trainingNot started0', 'Road safety fundamentalsTracked outside this app, so it adds no points—']);
+  assert.deepEqual(all('.stat-tile').map(t => t.textContent), ['95total points', '95points this month']);
+  assert.deepEqual(all('.contribution-row').map(r => r.textContent), ['Sexual misconduct education2 of 7 lessons complete+95', 'Regional safety trainingNot started0']);
   assert.match(text(), /10 points for each step, plus 5 for each question you get right on the first try/);
 });
 
@@ -222,6 +222,7 @@ test('the course hero shows a plain shield until the course is complete', async 
   await loadPage('?preview=complete');
   assert.match(text(), /360 points from this course are in your total\./);
   assert.doesNotMatch(text(), /Badge unlocked/);
+  assert.equal(document.querySelector('.step-footer .btn').textContent, 'See your progress', 'Your progress replaces Learning progress');
   document.querySelector('[data-action="overview"]').click();
   assert.equal(document.querySelector('.safety-hero').dataset.state, 'complete');
   await loadPage('?preview=overview&stage=complete');
@@ -278,10 +279,11 @@ test('previews never overwrite the learner’s saved progress', async () => {
   assert.deepEqual(JSON.parse(localStorage.getItem(KEY)), saved);
 });
 
-test('road safety handoff does not claim points without a verified feed', async () => {
+test('road safety is available soon and makes no exception to how points work', async () => {
   const { click } = await loadPage('?preview=library');
   click('[data-action="road-safety"]');
-  assert.match(text(), /doesn’t add points, learning days or badges yet/);
+  assert.match(text(), /This course is not available yet/);
+  assert.doesNotMatch(text(), /points|learning days|badges/);
   assert.equal(document.querySelector('.step-footer .btn').textContent, 'Back to all courses');
 });
 
