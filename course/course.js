@@ -76,7 +76,7 @@ const lessons = [
     steps: [
       { type: 'reading', title: 'You can make a difference', prompt: 'Notice when a situation may be unsafe.', body: 'Most rides are uneventful, but you may encounter a situation where someone appears to need help. Drivers can play a role in looking out for each other’s safety. Bystander intervention includes three main approaches.' },
       { type: 'video', title: 'Bystander intervention', caption: 'This video introduces direct, distract, and delegate approaches.', transcript: 'Approved source video and transcript to be supplied by the content owner.', lookFor: 'Listen for the three approaches and remember to act only when it is safe.' },
-      { type: 'drag', title: 'Match the three approaches', prompt: 'Place each example with the bystander approach it represents.', cards: ['Clearly name the concerning behavior', 'Create a harmless interruption', 'Ask another person or authority for help'], groups: ['Direct', 'Distract', 'Delegate'], answers: [0, 1, 2], feedback: 'Direct addresses the situation, distract interrupts it, and delegate brings in another person or authority.' },
+      { type: 'drag', title: 'Match the three approaches', prompt: 'Place each action under the bystander approach it shows.', cards: ['Clearly name the concerning behavior', 'Create a harmless interruption', 'Ask another person or authority for help'], groups: ['Direct', 'Distract', 'Delegate'], answers: [0, 1, 2], feedback: 'Direct addresses the situation, distract interrupts it, and delegate brings in another person or authority.' },
       { type: 'resources', title: 'Remember these takeaways', prompt: 'Review the lesson and safety resources.', bullets: ['If a safety issue occurs, you may directly intervene, distract, or delegate.', 'You can report inappropriate behavior to Uber when it is safe to do so.', 'Proactive steps and reporting can help make the community safer.'], resources: [{ label: 'Uber Community Guidelines', href: 'https://www.uber.com/us/en/safety/uber-community-guidelines/' }, { label: 'Uber’s approach to safety', href: 'https://www.uber.com/safety/' }, ...rainnResources] }
     ]
   },
@@ -192,7 +192,7 @@ function badgeStates() {
     if (earned) return { ...b, state: 'earned', detail: `Earned ${longDate(earned.earnedAt)}` };
     if (b.key === 'halfway') return { ...b, state: 'progress', done: c.lessonsDone, need, detail: `${c.lessonsDone} of ${need} lessons · ${need - c.lessonsDone} to go` };
     if (b.key === 'complete') return { ...b, state: 'locked', detail: 'Finish every required course and its final check' };
-    return { ...b, state: 'locked', detail: opens ? `Your 30-day check opens on ${longDate(opens)}` : 'Pass the 30-day check. It opens 30 days after Complete.' };
+    return { ...b, state: 'locked', detail: opens ? `Your 30-day check opens on ${longDate(opens)}` : 'Pass the 30-day check, which opens after Complete.' };
   });
 }
 const earnedBadgeCount = () => earnedBadgeKeys(record()).length;
@@ -424,14 +424,14 @@ function caughtUpBanner() {
 }
 // Base Banner, accent with a dismiss button: a new curriculum, shown once.
 function newCurriculumBanner() {
-  return banner('accent', 'circle_i', 'New required courses', 'Uber gave you a new set of required courses. Your points, streak and earlier badges stay.', `<button class="banner__dismiss" data-action="dismiss-notice" aria-label="Dismiss">${icon('x')}</button>`);
+  return banner('accent', 'circle_i', 'New required courses', 'Find them under Required. Your points, streak and earlier badges stay.', `<button class="banner__dismiss" data-action="dismiss-notice" aria-label="Dismiss">${icon('x')}</button>`);
 }
 // Required first, unfinished before finished.
 const requiredOrdered = () => { const courses = requiredCourses(); return [...courses.filter(c => !courseComplete(c.id)), ...courses.filter(c => courseComplete(c.id))]; };
 function discovery() {
   const caughtUp = allRequiredDone();
   const notice = state.newCurriculum ? newCurriculumBanner() : caughtUp ? caughtUpBanner() : '';
-  const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', trailing('30 days on'))}${milestone({ kicker: 'No points', title: 'Your 30-day check', body: 'Five questions on your required courses.', next: true, action: 'retention-intro' })}` : '';
+  const retention = retentionDue() ? `${sectionTitle('Check what stayed with you', trailing('30 days on'))}${milestone({ title: 'Your 30-day check', body: 'Five questions on your required courses.', next: true, action: 'retention-intro' })}` : '';
   const optional = caughtUp ? `${sectionTitle('Optional', trailing(coursesLabel(optionalCourses().length)))}${carousel(optionalCourses())}` : '';
   root.innerHTML = `<header class="discovery-header"><span class="discovery-header__logo" role="img" aria-label="Uber">${icon('uber_logo')}</span>${statChips()}</header><div class="screen-body screen-body--roomy"><h1 class="personal-greeting u-heading-large">${personalGreeting()}</h1>${notice}${caughtUp ? '' : continueCard()}${sectionTitle('Required', trailing(`${requiredDoneCount()} of ${requiredCourses().length} done`))}${carousel(requiredOrdered())}${optional}${retention}${sectionTitle('This week', trailing(streakLabel()))}${thisWeek()}${allCoursesRow()}</div>`;
   const title = root.querySelector('h1'); if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
@@ -453,12 +453,12 @@ function libraryView() {
   if (sheetOpen) { root.insertAdjacentHTML('beforeend', filtersSheet()); root.querySelector('#sheet-title').focus({ preventScroll: true }); }
 }
 function roadSafetyView() {
-  shell({ nav: navHeader('', 'library'), body: `${kicker('Available soon')}${heading('Road safety fundamentals')}${lead('We’ll show it here when it’s ready.')}`, footer: stepFooter({ label: 'Back to all courses', action: 'library' }) });
+  shell({ nav: navHeader('', 'library'), body: `${kicker('Coming soon')}${heading('Road safety fundamentals')}${lead('We’ll show it here when it’s ready.')}`, footer: stepFooter({ label: 'Back to all courses', action: 'library' }) });
 }
 function lessonRow(lesson, i) {
   const status = lessonStatus(i);
   const inLesson = status === 'current' && state.started && state.lesson === i;
-  const description = status === 'complete' ? 'Complete' : inLesson ? `In progress · ${state.step + 1} of ${lesson.steps.length}` : stepsText(lesson.steps.length);
+  const description = status === 'complete' ? 'Complete' : inLesson ? `In progress · step ${state.step + 1} of ${lesson.steps.length}` : stepsText(lesson.steps.length);
   const mark = status === 'complete' ? icon('circle_check') : '<i></i>';
   const content = `<span class="lesson-row__status" aria-hidden="true">${mark}</span><span class="lesson-row__content"><span class="lesson-row__body"><b class="u-label-medium c-primary">${esc(lesson.title)}</b><small class="u-paragraph-small c-secondary">${esc(description)}</small></span>${status === 'upcoming' ? '' : `<span class="chevron">${icon('chevron_right_small')}</span>`}</span>`;
   return status === 'upcoming' ? `<div class="lesson-row is-upcoming" aria-label="${esc(lesson.title)}, not yet available">${content}</div>` : `<button class="lesson-row is-${status}" data-lesson="${i}">${content}</button>`;
@@ -467,15 +467,15 @@ function overview() {
   const status = courseStatus();
   const groups = [['Foundations', [0, 1]], ['Boundaries', [2, 3, 4]], ['Safe response', [5, 6]]].map(([name, ids]) => `<section class="group"><h2 class="u-heading-small">${name}</h2>${ids.map(i => lessonRow(lessons[i], i)).join('')}</section>`).join('');
   const recordRow = milestone({ title: `${coursePoints(record(), COURSE_ID)} points from this course`, body: 'Part of your total on Your progress', next: true, action: 'progress' });
-  const primary = { 'not-started': { label: 'Begin course', action: 'course-intro' }, 'in-progress': { label: 'Continue course', action: 'start' }, 'final-pending': { label: 'Start final check', action: 'final-check' }, complete: { label: 'Review course', action: 'review' } }[status];
+  const primary = { 'not-started': { label: 'Start course', action: 'course-intro' }, 'in-progress': { label: 'Continue course', action: 'start' }, 'final-pending': { label: 'Start final check', action: 'final-check' }, complete: { label: 'Review course', action: 'review' } }[status];
   shell({ nav: navHeader('Course details', 'discover'), hero: safetyHero(status === 'complete'), bodyClass: 'screen-body--roomy', body: `${kicker('Required · Safety')}${heading(COURSE_TITLE)}${lead('Practical guidance for respectful boundaries, awareness, and safe reporting.')}${progress(`${lessonsDone()} of ${lessons.length} lessons complete`, coursePercent())}<p class="u-paragraph-small c-tertiary">${lessons.length} lessons · 6 required videos · about ${courseMinutes} min</p>${recordRow}${groups}`, footer: stepFooter(primary) });
 }
 // Course details for any other course. Only the required course has
-// content so far, so every lesson here reads "Content coming soon".
+// content so far, so every lesson here reads "Coming soon".
 function coursePage() {
   const course = openCourse;
   const lessonRows = Array.from({ length: course.lessonCount }, (_, i) => {
-    const content = `<span class="lesson-row__status" aria-hidden="true"><i></i></span><span class="lesson-row__content"><span class="lesson-row__body"><b class="u-label-medium c-primary">Lesson ${i + 1}</b><small class="u-paragraph-small c-secondary">Content coming soon</small></span>${i === 0 ? `<span class="chevron">${icon('chevron_right_small')}</span>` : ''}</span>`;
+    const content = `<span class="lesson-row__status" aria-hidden="true"><i></i></span><span class="lesson-row__content"><span class="lesson-row__body"><b class="u-label-medium c-primary">Lesson ${i + 1}</b><small class="u-paragraph-small c-secondary">Coming soon</small></span>${i === 0 ? `<span class="chevron">${icon('chevron_right_small')}</span>` : ''}</span>`;
     return i === 0 ? `<button class="lesson-row is-current" data-action="course-soon">${content}</button>` : `<div class="lesson-row is-upcoming" aria-label="Lesson ${i + 1}, not yet available">${content}</div>`;
   }).join('');
   shell({ nav: navHeader('Course details', courseFrom), bodyClass: 'screen-body--roomy', body: `${kicker(course.kicker)}${heading(course.title)}${lead('Course description coming soon.')}<p class="u-paragraph-small c-tertiary">${course.lessonCount} lessons · about 20 min</p><section class="group"><h2 class="u-heading-small">Lessons</h2>${lessonRows}</section>`, footer: stepFooter({ label: 'Start course', action: 'course-soon' }) });
@@ -483,28 +483,28 @@ function coursePage() {
 // Starting a placeholder course: the same "not available yet" pattern as
 // Road safety, until the course has content.
 function courseSoonView() {
-  shell({ nav: navHeader('', 'course-page'), body: `${kicker('Content coming soon')}${heading(openCourse.title)}${lead('We’ll show the lessons here when they’re ready.')}`, footer: stepFooter({ label: 'Back to course', action: 'course-page' }) });
+  shell({ nav: navHeader('', 'course-page'), body: `${kicker('Coming soon')}${heading(openCourse.title)}${lead('We’ll show the lessons here when they’re ready.')}`, footer: stepFooter({ label: 'Back to course', action: 'course-page' }) });
 }
 function courseIntro() {
-  const steps = [['01', 'Start with a quick check', 'Five questions show what you already know. They don’t add points.'], ['02', 'Learn and practice', 'Watch required videos, make decisions, and review the source guidance.'], ['03', 'Confirm what you learned', 'A five-question final check completes the course.']];
-  shell({ nav: navHeader('Course introduction', 'overview'), body: `${kicker('Before you begin')}${heading('Learn at your own pace')}${lead('This course includes sensitive topics. Pause whenever you need to; completed progress saves automatically.')}<div>${steps.map(([n, t, d]) => `<div class="intro-step"><span class="u-mono-label-small">${n}</span><div><b class="u-label-medium">${t}</b><p class="u-paragraph-small">${d}</p></div></div>`).join('')}</div>${banner('warning', 'alert', 'Take care of yourself', 'Support and reporting resources remain available throughout the course.')}`, footer: stepFooter(state.baselineDone ? { label: 'Start lesson 1', action: 'begin-lessons' } : { label: 'Begin quick check', action: 'baseline' }, { label: 'Back to course', action: 'overview' }) });
+  const steps = [['01', 'Start with a quick check', 'Five questions show what you already know.'], ['02', 'Learn and practice', 'Watch required videos, make decisions, and review the source guidance.'], ['03', 'Confirm what you learned', 'A five-question final check completes the course.']];
+  shell({ nav: navHeader('Course introduction', 'overview'), body: `${kicker('Before you begin')}${heading('Learn at your own pace')}${lead('This course includes sensitive topics. Pause whenever you need to; completed progress saves automatically.')}<div>${steps.map(([n, t, d]) => `<div class="intro-step"><span class="u-mono-label-small">${n}</span><div><b class="u-label-medium">${t}</b><p class="u-paragraph-small">${d}</p></div></div>`).join('')}</div>${banner('warning', 'alert', 'Take care of yourself', 'Support and reporting resources remain available throughout the course.')}`, footer: stepFooter(state.baselineDone ? { label: 'Start lesson 1', action: 'begin-lessons' } : { label: 'Start quick check', action: 'baseline' }, { label: 'Back to course', action: 'overview' }) });
 }
 const assessmentLabel = () => assessmentMode === 'baseline' ? 'Quick check' : assessmentMode === 'retention' ? '30-day check' : 'Final check';
 function assessment() {
   const questions = assessments[assessmentMode], q = questions[assessmentIndex], chosen = state.assessmentResponses?.[assessmentMode]?.[assessmentIndex];
   const last = assessmentIndex === questions.length - 1;
   const next = last ? (assessmentMode === 'baseline' ? 'Start course' : assessmentMode === 'retention' ? 'See what stayed' : 'Finish check') : 'Next question';
-  shell({ nav: navHeader(assessmentLabel(), assessmentMode === 'baseline' ? 'course-intro' : assessmentMode === 'retention' ? 'retention-intro' : 'overview'), body: `${progress(`Question ${assessmentIndex + 1} of ${questions.length}`, Math.round((assessmentIndex + 1) / questions.length * 100), null)}${heading(q.prompt, 'u-heading-medium')}${lead('Choose the best answer. Your result does not change your points.')}<div class="stack-8" role="group" aria-label="Answer choices">${q.options.map((option, i) => answerOption(i, option, chosen === i ? 'selected' : 'default', `data-assessment-choice="${i}"`)).join('')}</div>`, footer: stepFooter({ label: next, action: 'assessment-next', disabled: chosen === undefined }) });
+  shell({ nav: navHeader(assessmentLabel(), assessmentMode === 'baseline' ? 'course-intro' : assessmentMode === 'retention' ? 'retention-intro' : 'overview'), body: `${progress(`Question ${assessmentIndex + 1} of ${questions.length}`, Math.round((assessmentIndex + 1) / questions.length * 100), null)}${heading(q.prompt, 'u-heading-medium')}${lead('Choose the best answer. Your result doesn’t change your points.')}<div class="stack-8" role="group" aria-label="Answer choices">${q.options.map((option, i) => answerOption(i, option, chosen === i ? 'selected' : 'default', `data-assessment-choice="${i}"`)).join('')}</div>`, footer: stepFooter({ label: next, action: 'assessment-next', disabled: chosen === undefined }) });
 }
 const scoreOf = (mode) => assessments[mode].reduce((sum, question, i) => sum + (state.assessmentResponses?.[mode]?.[i] === question.answer ? 1 : 0), 0);
 function assessmentResult() {
   if (assessmentMode === 'retention') {
     const score = scoreOf('retention'), passed = score >= 4;
-    shell({ nav: navHeader('30-day check', 'discover'), body: `${checkResult({ score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: passed ? 'Save your result to earn the Retained badge.' : 'Review the missed topics, then try again, as often as you need.', result: passed ? 'passed' : 'retry' })}<p class="u-paragraph-small c-secondary">This check doesn’t add points.</p>`, footer: passed ? stepFooter({ label: 'Save result and view badge', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
+    shell({ nav: navHeader('30-day check', 'discover'), body: `${checkResult({ score: `${score} / 5`, title: passed ? 'You retained the key ideas' : 'Worth another look', body: passed ? 'Save your result to earn the Retained badge.' : 'Review the missed topics, then try again, as often as you need.', result: passed ? 'passed' : 'retry' })}`, footer: passed ? stepFooter({ label: 'Save result and view badge', action: 'finish-retention' }) : stepFooter({ label: 'Review course', action: 'overview' }, { label: 'Try again', action: 'retry-retention' }) });
     return;
   }
   const score = scoreOf('final'), passed = score >= 4, baseline = scoreOf('baseline');
-  shell({ nav: navHeader('Final check', 'overview'), body: `${checkResult({ title: passed ? 'Ready to complete' : 'Review, then try again', body: passed ? '' : 'There is no penalty: revisit the lessons, then try again.', result: passed ? 'passed' : 'retry' })}<div class="gain"><span><small class="u-label-small c-secondary">Before</small><b class="u-mono-heading-medium">${baseline}/5</b></span><span><small class="u-label-small c-secondary">Now</small><b class="u-mono-heading-medium">${score}/5</b></span></div><p class="u-paragraph-small c-secondary">Checks don’t add points. Passing this one counts toward your Complete badge.</p>${passed ? '' : note('Review these topics', 'Respecting boundaries · Consent and personal space · Safe reporting')}`, footer: stepFooter(passed ? { label: 'Complete course', action: 'finish-course' } : { label: 'Try final check again', action: 'retry-final' }, { label: 'Back to course', action: 'overview' }) });
+  shell({ nav: navHeader('Final check', 'overview'), body: `${checkResult({ title: passed ? 'Ready to complete' : 'Review, then try again', body: passed ? '' : 'There is no penalty: revisit the lessons, then try again.', result: passed ? 'passed' : 'retry' })}<div class="gain"><span><small class="u-label-small c-secondary">Before</small><b class="u-mono-heading-medium">${baseline}/5</b></span><span><small class="u-label-small c-secondary">Now</small><b class="u-mono-heading-medium">${score}/5</b></span></div>${passed ? '' : note('Review these topics', 'Respecting boundaries · Consent and personal space · Safe reporting')}`, footer: stepFooter(passed ? { label: 'Complete course', action: 'finish-course' } : { label: 'Try final check again', action: 'retry-final' }, { label: 'Back to course', action: 'overview' }) });
 }
 function activityMode(type) { return type === 'reading' ? 'Learn' : type === 'video' ? 'Watch' : type === 'resources' ? 'Lesson recap' : 'Practice'; }
 function activity() {
@@ -530,7 +530,7 @@ function activity() {
     content = `<div class="select"><button class="select__trigger" data-action="dropdown" aria-expanded="false" aria-controls="dropdown-options" ${checked ? 'disabled' : ''}><span class="u-paragraph-large${selected === null ? ' is-placeholder' : ''}">${selected === null ? 'Choose the missing phrase' : esc(a.options[selected])}</span>${icon('chevron_down_small')}</button><div id="dropdown-options" class="select__list" role="listbox" aria-label="Missing phrase" hidden>${a.options.map((o, i) => `<button class="u-paragraph-medium" role="option" aria-selected="${selected === i}" data-choice="${i}">${esc(o)}</button>`).join('')}</div></div>`;
   } else if (a.type === 'number') {
     const val = state.responses[`${state.lesson}-${state.step}`] || '';
-    content = `<label class="field"><span class="u-label-large">Your answer</span><input id="answer" class="field__input u-paragraph-large" inputmode="numeric" type="text" value="${esc(val)}" placeholder="Enter a number" ${checked ? 'readonly' : ''}><small class="field__hint u-paragraph-small">Use the information in the source content above.</small></label>`;
+    content = `<label class="field"><span class="u-label-large">Your answer</span><input id="answer" class="field__input u-paragraph-large" inputmode="numeric" type="text" value="${esc(val)}" placeholder="Enter a number" ${checked ? 'readonly' : ''}><small class="field__hint u-paragraph-small">Use what you learned in this lesson.</small></label>`;
   } else if (a.type === 'text') {
     const val = state.responses[`${state.lesson}-${state.step}`] || '';
     content = `<label class="field"><span class="field__label-row"><span class="u-label-medium">Your response</span><span id="count" class="field__count u-label-medium">${val.length}/300</span></span><textarea id="answer" class="field__input u-paragraph-medium" maxlength="300" placeholder="Write your response…" ${checked ? 'readonly' : ''}>${esc(val)}</textarea><small class="field__hint u-paragraph-small">Only you can see this</small></label>`;
@@ -550,7 +550,7 @@ function activity() {
   if (!['reading', 'resources', 'video'].includes(a.type)) {
     // Right or wrong, the driver sees a short explanation and continues: no
     // retry and no requeue. Only a correct first answer earns the bonus.
-    if (checked) content += a.type === 'text' ? feedbackBlock('saved', 'Saved as private practice', a.feedback) : feedbackBlock(correct ? 'correct' : 'incorrect', correct ? 'Correct' : 'Not quite', a.feedback);
+    if (checked) content += a.type === 'text' ? feedbackBlock('saved', 'Saved', a.feedback) : feedbackBlock(correct ? 'correct' : 'incorrect', correct ? 'Correct' : 'Not quite', a.feedback);
     footer = checked ? stepFooter({ label: lastStep ? 'Complete lesson' : 'Continue', action: 'next' }, null, dots) : stepFooter({ label: a.type === 'text' ? 'Save reflection' : 'Check answer', action: 'check', disabled: !ready(a) }, null, dots);
   }
   shell({ nav: navHeader(`Lesson ${state.lesson + 1} of ${lessons.length}`, 'back', true), body: `${activityHeader(activityMode(a.type))}${heading(a.title)}${a.prompt ? lead(a.prompt) : ''}${content}`, footer });
@@ -611,7 +611,7 @@ function progressView() {
 function retentionIntro() {
   const due = retentionDue(), opens = retentionOpensAt(record());
   const retained = badgeStates().find(b => b.key === 'retained');
-  shell({ nav: navHeader('30-day check', 'discover'), body: `${heading(due ? 'Still with you?' : 'Come back in 30 days')}${lead(due ? 'Five questions check what stayed with you from your required courses. They don’t add points.' : `Your 30-day check opens ${opens ? `on ${longDate(opens)}` : '30 days after you finish your required courses'}.`)}${badgeRow({ ...retained, detail: 'Answer four of five correctly to earn it. If you miss some, review those topics and try again, as often as you need.' }, 'lock')}`, footer: due ? stepFooter({ label: 'Start 30-day check', action: 'start-retention' }, { label: 'Not now', action: 'discover' }) : stepFooter({ label: 'Back to learning home', action: 'discover' }) });
+  shell({ nav: navHeader('30-day check', 'discover'), body: `${heading(due ? 'Still with you?' : 'Come back in 30 days')}${lead(due ? 'Five questions check what stayed with you from your required courses.' : `Your 30-day check opens ${opens ? `on ${longDate(opens)}` : '30 days after you finish your required courses'}.`)}${badgeRow({ ...retained, detail: 'Answer four of five correctly to earn it. If you miss some, review those topics and try again, as often as you need.' }, 'lock')}`, footer: due ? stepFooter({ label: 'Start 30-day check', action: 'start-retention' }, { label: 'Not now', action: 'discover' }) : stepFooter({ label: 'Back to learning home', action: 'discover' }) });
 }
 function resumeView() {
   const cur = currentLesson();
@@ -622,7 +622,7 @@ const errors = {
   timeout: ['This is taking longer than expected', 'We could not finish loading your course. Your saved progress has not changed.', 'Try again'],
   empty: ['No course assigned yet', 'Your available learning will appear here when a course is assigned.', 'Back to course'],
   enrollment: ['We could not open this course', 'Your enrollment could not be confirmed. Try again or return to available learning.', 'Try again'],
-  offline: ['You’re offline', 'Reconnect to load the next activity. Your practice progress is saved on this browser.', 'Try again'],
+  offline: ['You’re offline', 'Reconnect to load the next step. Your progress is saved.', 'Try again'],
   expired: ['Your session has ended', 'Reopen learning from the Uber app to sign in again. Your saved course progress will be available after sign-in.', 'Back to learning home'],
   denied: ['This course isn’t available', 'Your account does not have access to this course. Return to your available learning.', 'Back to course'],
   unsupported: ['This view isn’t supported', 'Open learning in a supported version of the Uber app.', 'Back to course'],

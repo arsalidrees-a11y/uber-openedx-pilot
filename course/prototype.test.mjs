@@ -208,7 +208,7 @@ test('course details show lesson length, never points before a lesson', async ()
   assert.match(text(), /7 lessons · 6 required videos · about 25 min/);
   assert.match(text(), /95 points from this course/);
   const descriptions = all('.lesson-row small').map(s => s.textContent);
-  assert.deepEqual(descriptions, ['Complete', 'Complete', 'In progress · 2 of 4', '4 steps · 3 min', '4 steps · 3 min', '4 steps · 3 min', '8 steps · 6 min']);
+  assert.deepEqual(descriptions, ['Complete', 'Complete', 'In progress · step 2 of 4', '4 steps · 3 min', '4 steps · 3 min', '4 steps · 3 min', '8 steps · 6 min']);
 });
 
 test('upcoming lessons are shown but cannot be opened early', async () => {
@@ -246,14 +246,15 @@ test('finishing every lesson is not completion: the final check is still require
   assert.match(document.querySelector('.course-tile').textContent, /7 of 7 lessons/);
 });
 
-test('the final check result says checks add no points but count toward Complete', async () => {
+test('the final check result shows the scores once and doesn’t dwell on what it doesn’t add', async () => {
   await loadPage('?preview=final-result');
-  assert.match(text(), /Checks don’t add points\. Passing this one counts toward your Complete badge\./);
+  assert.match(text(), /Ready to completeBefore2\/5Now5\/5/);
+  assert.doesNotMatch(text(), /points|badge/i, 'no points or badge talk at the success moment');
 });
 
 test('the 30-day check earns Retained only after a passing result is saved', async () => {
   const { click } = await loadPage('?preview=retention');
-  assert.match(text(), /30-day checkStill with you\?Five questions check what stayed with you from your required courses\. They don’t add points\./);
+  assert.match(text(), /30-day checkStill with you\?Five questions check what stayed with you from your required courses\.Retained/);
   click('[data-action="start-retention"]');
   for (const answer of [0, 1, 2, 0, 1]) {
     click(`[data-assessment-choice="${answer}"]`);
@@ -287,7 +288,7 @@ test('previews never overwrite the learner’s saved progress', async () => {
 test('road safety is available soon and makes no exception to how points work', async () => {
   const { click } = await loadPage('?preview=library');
   click('[data-action="road-safety"]');
-  assert.match(text(), /Available soonRoad safety fundamentalsWe’ll show it here when it’s ready\./);
+  assert.match(text(), /Coming soonRoad safety fundamentalsWe’ll show it here when it’s ready\./);
   assert.equal(document.querySelector('.nav-header__title').textContent, '', 'the heading names the page');
   assert.doesNotMatch(text(), /points|learning days|badges/);
   assert.equal(document.querySelector('.step-footer .btn').textContent, 'Back to all courses');
@@ -344,7 +345,7 @@ test('an optional course page shows only its outline: no ratings, proof or revie
   assert.equal(document.querySelector('.rating, .social-proof, .review, .curriculum-header'), null);
   assert.equal(all('.lesson-row').length, 4);
   click('[data-action="course-soon"]');
-  assert.match(text(), /Content coming soon/);
+  assert.match(text(), /Coming soon/);
 });
 
 test('All courses lists every course and narrows it with one-tap filters', async () => {

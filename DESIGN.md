@@ -56,7 +56,7 @@ The learning experience should feel like an operational tool that happens to tea
 
 ## Copy
 
-Audited 2026-10-03 across every screen; `prototype.test.mjs` guards the rules.
+Audited 2026-10-03 across every screen (mid-fi, hi-fi and the prototype); `prototype.test.mjs` guards the rules.
 
 - Say each thing once per screen. A label never repeats the nav title, its section heading, the button under it, or a figure shown elsewhere on the screen (the streak count, a score, a lesson count).
 - Labels state facts ("Lesson 3 of 7"); buttons carry the verbs ("Continue", "Resume lesson 3"). No slogan-like labels such as "Continue learning" on a card.
@@ -65,6 +65,10 @@ Audited 2026-10-03 across every screen; `prototype.test.mjs` guards the rules.
 - One name per thing, as the gamification doc uses it: quick check, final check, 30-day check, Your progress. Not "knowledge check", "retention check", "learning record" or "Learning progress".
 - Plain words over internal ones: not "baseline", "learning gain" or "course contribution".
 - Lengths read "4 steps · 3 min" and "about 20 min".
+- Don't announce what a screen doesn't give. The points rules live on the Points tab; checks reassure once, on the question ("Your result doesn't change your points"), never again on the result or the invite.
+- One word per action and state: "Start" (never "Begin"), "Coming soon" for anything not ready (never "Available soon" or "Content coming soon").
+- Contractions throughout ("doesn't", "isn't"), except in source-backed course guidance, which keeps the source's wording.
+- No internal terms on screen: "Saved", not "Saved as private practice"; "the next step", not "the next activity"; no "browser".
 
 ## Anti-patterns
 
