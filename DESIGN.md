@@ -54,9 +54,21 @@ The learning experience should feel like an operational tool that happens to tea
 - Completion uses one short scale-and-focus transition. Other state changes are immediate or use a 160–220ms ease-out.
 - Motion communicates state; it never celebrates sensitive course content.
 
+## Copy
+
+Audited 2026-10-03 across every screen; `prototype.test.mjs` guards the rules.
+
+- Say each thing once per screen. A label never repeats the nav title, its section heading, the button under it, or a figure shown elsewhere on the screen (the streak count, a score, a lesson count).
+- Labels state facts ("Lesson 3 of 7"); buttons carry the verbs ("Continue", "Resume lesson 3"). No slogan-like labels such as "Continue learning" on a card.
+- When the heading names the page, the nav bar has no title (All courses, Road safety).
+- Cards inside a Required or Optional section show only their category ("Safety", "Driving"); placeholders with no category show none. Filtered results have no sections, so their cards say "Required · Safety".
+- One name per thing, as the gamification doc uses it: quick check, final check, 30-day check, Your progress. Not "knowledge check", "retention check", "learning record" or "Learning progress".
+- Plain words over internal ones: not "baseline", "learning gain" or "course contribution".
+- Lengths read "4 steps · 3 min" and "about 20 min".
+
 ## Anti-patterns
 
 - Do not introduce a second gamification layer inside a course.
-- Do not use exact public rankings or expose learner identities.
+- Do not expose learner identities. The leaderboard is anonymous ("You" and random names), ranks a start-month group of about 30 by this month's points, and resets on the 1st.
 - Do not add decorative progress rings, badges for lesson topics, streak flames, or points to assessments.
 - Do not rewrite or shorten source-backed course guidance merely to make a screen look cleaner.

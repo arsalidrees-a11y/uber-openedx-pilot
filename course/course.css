@@ -326,8 +326,6 @@ textarea.field__input { min-height: 80px; padding: var(--u-space-16); resize: no
 .lb-gap i { width: 4px; height: 4px; border-radius: 50%; background: var(--u-content-tertiary); }
 
 /* Learning / Badge medal: Small 64 (32 art), Large 96 (48 art); earned green, locked grey */
-.badge-shelf { display: flex; justify-content: space-between; padding: 0 var(--u-space-16); }
-.badge-shelf__item { display: flex; flex-direction: column; align-items: center; gap: var(--u-space-8); }
 .badge-medal { display: grid; flex: none; place-items: center; border-radius: 50%; background: var(--u-background-secondary); box-shadow: inset 0 0 0 1px var(--u-border-opaque); color: var(--u-content-tertiary); }
 .badge-medal.is-earned { background: var(--u-background-positive-light); box-shadow: none; color: var(--u-content-positive); }
 .badge-medal--small { width: 64px; height: 64px; }

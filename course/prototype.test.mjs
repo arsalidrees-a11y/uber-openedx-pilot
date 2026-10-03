@@ -44,7 +44,7 @@ test('the home header shows the Uber wordmark and the three stats', async () => 
 test('first visit: a Start card for lesson 1, length only, and no streak yet', async () => {
   await loadPage('?preview=discover&stage=new');
   const card = document.querySelector('.continue-card');
-  assert.match(card.textContent, /Start · Lesson 1 of 7/);
+  assert.match(card.textContent, /^Lesson 1 of 7/, 'the kicker says where the lesson sits; the button carries the verb');
   assert.match(card.textContent, /Helping to create a safe community/);
   assert.match(card.textContent, /Sexual misconduct education · 5 steps · 4 min/);
   assert.doesNotMatch(card.textContent, /point/i, 'points are never shown before a lesson');
@@ -59,7 +59,7 @@ test('mid-course home: chips, Continue card, Required carousel, This week, All c
   assert.deepEqual(chips(), ['95', '2', '0/3']);
   const order = ['.continue-card', '.carousel', '.this-week', '.list-row'].map(s => document.querySelector(s));
   order.slice(1).forEach((el, i) => assert.ok(order[i].compareDocumentPosition(el) & 4));
-  assert.match(document.querySelector('.continue-card').textContent, /Continue · Lesson 3 of 7Conversational boundariesSexual misconduct education · 4 steps · 3 min/);
+  assert.match(document.querySelector('.continue-card').textContent, /^Lesson 3 of 7Conversational boundariesSexual misconduct education · 4 steps · 3 min/);
   assert.match(document.querySelector('.continue-card').textContent, /2 of 7 lessons complete/);
   assert.deepEqual(all('.section-title h2').map(h => h.textContent), ['Required', 'This week']);
   assert.match(text(), /Required0 of 2 done/);
@@ -67,7 +67,8 @@ test('mid-course home: chips, Continue card, Required carousel, This week, All c
   assert.deepEqual(all('.course-tile .course-tile__footer').map(f => f.textContent), ['2 of 7 lessons', '4 lessons']);
   assert.match(text(), /This week2-week streak/);
   assert.match(document.querySelector('.this-week').textContent, /1 of 2 learning days/);
-  assert.match(document.querySelector('.this-week').textContent, /keeps your 2-week streak going/);
+  assert.match(document.querySelector('.this-week').textContent, /keeps your streak going/);
+  assert.doesNotMatch(document.querySelector('.this-week').textContent, /2-week/, 'the count is already in the section title');
   assert.doesNotMatch(text(), /Recommended|Trending|drivers rated|curriculum/i);
 });
 
@@ -76,11 +77,13 @@ test('once every required course and badge is done, home says so and suggests op
   assert.deepEqual(chips(), ['540', '3', '3/3']);
   assert.match(document.querySelector('.banner--positive').textContent, /You’re all caught upYou’ve finished your required courses and earned all three badges\./);
   assert.equal(document.querySelector('.continue-card'), null);
-  assert.deepEqual(all('.section-title h2').map(h => h.textContent), ['Required', 'Optional courses', 'This week']);
+  assert.deepEqual(all('.section-title h2').map(h => h.textContent), ['Required', 'Optional', 'This week']);
   assert.match(text(), /Required2 of 2 done/);
-  assert.match(text(), /Optional courses5 courses/);
+  assert.match(text(), /Optional5 courses/);
+  assert.ok(all('.carousel')[1].querySelectorAll('.course-tile').length > 0);
+  assert.ok(!all('.course-tile .u-label-x-small').some(k => k.textContent === 'Optional'), 'tiles don’t repeat their section');
   assert.match(document.querySelector('.this-week').textContent, /Streak paused/);
-  assert.match(document.querySelector('.this-week').textContent, /your 3-week streak is safe/);
+  assert.match(document.querySelector('.this-week').textContent, /your streak is safe/);
   click('.banner__action');
   assert.equal(document.querySelector('h1').textContent, 'All courses');
 });
@@ -89,7 +92,7 @@ test('a new curriculum shows a one-time notice; the finished course carries over
   const { click } = await loadPage('?preview=discover&stage=new-curriculum');
   assert.deepEqual(chips(), ['360', '2', '1/3']);
   assert.match(document.querySelector('.banner--accent').textContent, /New required courses/);
-  assert.match(document.querySelector('.continue-card').textContent, /Start · Lesson 1 of 4Regional safety training/);
+  assert.match(document.querySelector('.continue-card').textContent, /^Lesson 1 of 4Regional safety training4 steps · 3 min/, 'the meta doesn’t repeat the title');
   assert.match(text(), /Required1 of 2 done/);
   assert.deepEqual(all('.course-tile__footer').map(f => f.textContent), ['4 lessons · New', 'Complete · Carried over']);
   click('[data-action="dismiss-notice"]');
@@ -150,7 +153,7 @@ test('Streak: current and longest, this week, and the last eight weeks with the 
 test('Badges: three curriculum badges in order, Halfway in progress', async () => {
   await loadPage('?preview=progress&tab=badges');
   assert.deepEqual(all('.badge-row__name').map(n => n.textContent), ['Halfway', 'Complete', 'Retained']);
-  assert.deepEqual(all('.badge-shelf__item').map(n => n.textContent), ['Halfway', 'Complete', 'Retained']);
+  assert.equal(document.querySelector('.badge-shelf'), null, 'each badge is shown once');
   const halfway = document.querySelector('.badge-row');
   assert.ok(halfway.classList.contains('is-in-progress'));
   assert.match(halfway.textContent, /2 of 6 lessons · 4 to go/);
@@ -220,7 +223,8 @@ test('the course hero shows a plain shield until the course is complete', async 
   await loadPage('?preview=overview');
   assert.equal(document.querySelector('.safety-hero').dataset.state, 'not-complete');
   await loadPage('?preview=complete');
-  assert.match(text(), /360 points from this course are in your total\./);
+  assert.match(text(), /You completed the courseAll seven lessons and the final check are done\.360 points from this coursePart of your total on Your progress/);
+  assert.doesNotMatch(text(), /Course complete|Course contribution|learning record/);
   assert.doesNotMatch(text(), /Badge unlocked/);
   assert.equal(document.querySelector('.step-footer .btn').textContent, 'See your progress', 'Your progress replaces Learning progress');
   document.querySelector('[data-action="overview"]').click();
@@ -236,9 +240,9 @@ test('finishing every lesson is not completion: the final check is still require
   const { click } = await loadPage('?preview=final-check');
   click('[data-action="overview"]');
   assert.equal(document.querySelector('.safety-hero').dataset.state, 'not-complete');
-  assert.equal(document.querySelector('.step-footer [data-action="final-check"]').textContent, 'Complete final check');
+  assert.equal(document.querySelector('.step-footer [data-action="final-check"]').textContent, 'Start final check');
   click('[data-action="discover"]');
-  assert.match(document.querySelector('.continue-card').textContent, /Next · Final knowledge check/);
+  assert.match(document.querySelector('.continue-card').textContent, /^Last stepFinal check/);
   assert.match(document.querySelector('.course-tile').textContent, /7 of 7 lessons/);
 });
 
@@ -249,7 +253,7 @@ test('the final check result says checks add no points but count toward Complete
 
 test('the 30-day check earns Retained only after a passing result is saved', async () => {
   const { click } = await loadPage('?preview=retention');
-  assert.match(text(), /30-day check · No pointsStill with you\?Five questions check what stayed with you from your required courses\./);
+  assert.match(text(), /30-day checkStill with you\?Five questions check what stayed with you from your required courses\. They don’t add points\./);
   click('[data-action="start-retention"]');
   for (const answer of [0, 1, 2, 0, 1]) {
     click(`[data-assessment-choice="${answer}"]`);
@@ -266,7 +270,8 @@ test('the 30-day check earns Retained only after a passing result is saved', asy
 test('saving and resuming reports progress and reopens the saved activity', async () => {
   const { click } = await loadPage('?preview=activity&lesson=0&step=4');
   click('[data-action="exit"]');
-  assert.match(text(), /You finished 0 of 7 lessons, and lesson 1 keeps your place\./);
+  assert.match(text(), /Progress savedLesson 1 keeps your place\./);
+  assert.equal(document.querySelector('.step-footer .btn').textContent, 'Resume lesson 1');
   click('[data-action="start"]');
   assert.equal(document.querySelector('h1').textContent, 'Remember these takeaways');
 });
@@ -282,7 +287,8 @@ test('previews never overwrite the learner’s saved progress', async () => {
 test('road safety is available soon and makes no exception to how points work', async () => {
   const { click } = await loadPage('?preview=library');
   click('[data-action="road-safety"]');
-  assert.match(text(), /This course is not available yet/);
+  assert.match(text(), /Available soonRoad safety fundamentalsWe’ll show it here when it’s ready\./);
+  assert.equal(document.querySelector('.nav-header__title').textContent, '', 'the heading names the page');
   assert.doesNotMatch(text(), /points|learning days|badges/);
   assert.equal(document.querySelector('.step-footer .btn').textContent, 'Back to all courses');
 });
@@ -293,7 +299,8 @@ test('video uses a posterless player with an accessible fullscreen control', asy
   const player = document.querySelector('.video-player');
   assert.ok(player);
   assert.equal(player.querySelector('img'), null);
-  assert.match(player.querySelector('.video-player__title').textContent, /Required video/);
+  assert.equal(player.querySelector('.video-player__title'), null, 'the lesson heading already names the video');
+  assert.doesNotMatch(text(), /Mandatory video|Watch the complete source video/);
   assert.match(text(), /Finish the video to unlock the next step/);
   const fullscreen = player.querySelector('[data-action="fullscreen"]');
   assert.equal(fullscreen.getAttribute('aria-label'), 'Enter fullscreen');
@@ -378,4 +385,35 @@ test('All courses previews match the Figma states', async () => {
   await loadPage('?preview=library&status=completed&type=optional');
   assert.ok(document.querySelector('.no-results'));
   assert.match(document.querySelector('.results-line').textContent, /^0 coursesReset$/);
+});
+
+// ---------- Copy audit (2026-10-03): say each thing once, plainly ----------
+test('labels never repeat the nav, the section, the button or each other', async () => {
+  const navTitle = () => document.querySelector('.nav-header__title').textContent;
+  // All courses: the heading names the page; cards in a section show only their category
+  const { click } = await loadPage('?preview=library');
+  assert.equal(navTitle(), '');
+  const kickers = all('.course-card__body > .u-label-x-small').map(k => k.textContent);
+  assert.ok(kickers.includes('Safety') && kickers.includes('Driving'));
+  assert.ok(!kickers.some(k => /^(Required|Optional)/.test(k)), 'the section already says Required or Optional');
+  // filtered results have no sections, so the card says its type
+  await loadPage('?preview=library&status=in-progress&type=required');
+  assert.match(document.querySelector('.course-card').textContent, /^Required · Safety/);
+  // quick check: one name, one position
+  await loadPage('?preview=baseline');
+  assert.equal(navTitle(), 'Quick check');
+  assert.match(document.querySelector('.progress__label').textContent, /^Question 1 of 5$/);
+  assert.doesNotMatch(text(), /Knowledge check/);
+  // final result: the score once, in Before / Now; no vague "learning record"
+  await loadPage('?preview=final-result');
+  assert.equal(navTitle(), 'Final check');
+  assert.equal(document.querySelector('.check-result__score'), null);
+  assert.doesNotMatch(text(), /learning record|You answered 5 of 5/);
+  // course details: a plain points line
+  await loadPage('?preview=overview');
+  assert.match(text(), /95 points from this coursePart of your total on Your progress/);
+  assert.doesNotMatch(text(), /Shared across courses|Your learning record/);
+  // matching and sorting: one title, one set of instructions
+  await loadPage('?preview=activity&lesson=6&step=2');
+  assert.equal(all('h1').length, 1);
 });
