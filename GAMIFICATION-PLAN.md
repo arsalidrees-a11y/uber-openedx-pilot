@@ -73,8 +73,9 @@ Three per curriculum, earned in order. Only curriculum courses count.
 |---|---|---|
 | Halfway | Half the curriculum's lessons are finished | — |
 | Complete | Every curriculum course and its final check are finished | Review the missed topics and retake, no limit |
-| Retained | The 30-day check is passed; it opens 30 days after Complete | Review the missed topics and retake, no limit |
+| 30-day check | The 30-day check is passed; it opens 30 days after Complete | Review the missed topics and retake, no limit |
 
+- The third badge was called **Retained** until 2026-10-05. Drivers wouldn't know what that means, so it now carries the name they already see on home and on the check itself: **30-day check**. The code key stays `retained`.
 - Earning moment: a calm, one-time celebration screen when the driver returns home. Never inside a lesson; no confetti, timers or countdowns.
 - Shown on the Badges tab with the date earned. Never taken away. Recognition only.
 - The home stat chip counts the current curriculum's badges only ("1/3").
@@ -84,7 +85,7 @@ Three per curriculum, earned in order. Only curriculum courses count.
 ### How badges look (decided 2026-10-05)
 
 The three shapes never change: flag = Halfway, medal = Complete, trophy =
-Retained, so drivers learn them once. What changes per curriculum is its
+30-day check, so drivers learn them once. What changes per curriculum is its
 **seal**: the art of its main course on that course's tint (the book on blue
 for Sexual misconduct education, the map-shield on teal for Regional safety
 training). Every badge of that curriculum wears it, so a second Halfway looks
@@ -130,7 +131,7 @@ driver holds one or two of the old curriculum's three badges.
 2. Badges not yet earned in the old curriculum close quietly. They are never
    shown as missed, locked or expired: the driver didn't fail anything, Uber
    changed the curriculum.
-3. The new curriculum starts its own three badges: Halfway, Complete, Retained.
+3. The new curriculum starts its own three badges: Halfway, Complete, 30-day check.
 4. Finished lessons count toward the new curriculum's badges when the same
    course, with unchanged content, is in it. If that already reaches half, the
    new Halfway is earned at once and celebrated once on the way home.
@@ -138,7 +139,7 @@ driver holds one or two of the old curriculum's three badges.
    earned badges stay, and Complete now needs the added course.
 6. If the old curriculum is replaced after Complete but before its 30-day
    check, that check doesn't open. Its courses count toward the new
-   curriculum's Retained if they carried over. (To confirm, below.)
+   curriculum's 30-day check badge if they carried over. (To confirm, below.)
 
 **What the driver sees**
 
@@ -155,7 +156,7 @@ driver holds one or two of the old curriculum's three badges.
 |---|---|---|
 | Halfway | Earned 26 Oct → Earlier badges | Earned 12 Nov, from the 7 carried-over lessons (7 of 11) |
 | Complete | Earned 4 Nov → Earlier badges | Locked: needs Regional safety training and its final check |
-| Retained | Not earned → closes, not shown | Locked: opens 30 days after the new Complete |
+| 30-day check | Not earned → closes, not shown | Locked: opens 30 days after the new Complete |
 
 **Stored as** (for the build)
 
@@ -208,7 +209,7 @@ Added 2026-10-05, not yet in the doc:
 
 6. A 30-day check left open when its curriculum is replaced: proposed that it
    doesn't open, and that carried-over courses count toward the new
-   curriculum's Retained instead.
+   curriculum's 30-day check badge instead.
 7. Whether earlier badges may name the courses they were for ("Sexual
    misconduct education"), since curricula themselves have no names.
 8. Whether a driver can be sent back to an earlier curriculum, and if so
@@ -236,6 +237,7 @@ Not yet in the doc; labelled the way the doc labels them.
 | Lesson progress is stored per course, so it carries over without copying | Assumption |
 | Each curriculum's badges carry the seal of its main course; the Badges tab groups badges by curriculum | Proposed |
 | A curriculum's main course is the first required course in Flow's order | To confirm |
+| The third badge is shown to drivers as "30-day check", not "Retained" | Proposed |
 
 ## Changes to earlier guidance
 
