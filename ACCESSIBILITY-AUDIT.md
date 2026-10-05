@@ -23,7 +23,7 @@ CLAUDE.md, is stricter on targets: 44 px.
 | | Points |
 |---|---|
 | Pass | 21 |
-| Fix in the designs (9 fixes, listed next) | 4 |
+| Fix in the designs (8 open fixes, listed next; 1 accepted) | 4 |
 | Decide or do (process) | 4 |
 | For the developers (handoff) | 11 |
 | Doesn't apply | 1 |
@@ -32,7 +32,7 @@ CLAUDE.md, is stricter on targets: 44 px.
 
 | # | Issue | Where | Measured | Fix |
 |---|---|---|---|---|
-| 1 | "Correct" and "Not quite" titles in green and red on their light tints | Single choice, Numeric (feedback panel) | 4.34:1 and 4.47:1; need 4.5 | Make the title black (Content/Primary). The coloured icon and tinted panel still carry the meaning |
+| 1 | ~~"Correct" and "Not quite" titles in green and red on their light tints~~ **Accepted as is** (Arsal, 2026-10-05): within 0.16 of 4.5:1 and visually balanced | Single choice, Numeric (feedback panel) | 4.34:1 and 4.47:1; need 4.5 | None. The coloured icon and tinted panel carry the meaning too |
 | 2 | Step numbers "01 02 03" in blue on light blue | Course introduction | 4.15:1 | Use Blue700 (#175BCC), about 5.9:1, or black |
 | 3 | Chevrons on tappable cards in disabled grey #A6A6A6 | Points card on Course details, support rows on Lesson recap, Next lesson card on Lesson results | 2.19–2.43:1; need 3 | Use Content/Secondary (#5E5E5E) |
 | 4 | The other answer options turn disabled grey once a question is answered, though drivers may re-read them | Single choice · correct and · not quite | 2.43:1 (text), 2.19:1 (letters) | Keep them readable in Content/Secondary; show "not chosen" with the outline, not by fading the text |
@@ -97,7 +97,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 | Point | Status | Evidence |
 |---|---|---|
 | Meaning not carried by colour alone | Pass | Right and wrong show an icon and a word; earned and locked badges have a caption; streak weeks differ by shape (check, dashed outline, "Now" label); "You" is labelled on the leaderboard |
-| Text contrast | **Fix 1, 2, 4** | 1,031 layers measured; 13 fail, all listed above |
+| Text contrast | **Fix 2, 4** | 1,031 layers measured; 13 under 4.5:1. The feedback titles (4.34, 4.47) are accepted as is |
 | High-contrast theme considered | **Do** | Out of pilot scope; respect iOS "Increase Contrast" if the Uber app passes it to the webview |
 
 ### Media
