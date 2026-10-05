@@ -22,8 +22,8 @@ CLAUDE.md, is stricter on targets: 44 px.
 
 | | Points |
 |---|---|
-| Pass | 21 |
-| Fix in the designs (6 open fixes, listed next; 2 fixed, 1 accepted) | 4 |
+| Pass | 23 |
+| Fix in the designs (4 open fixes, listed next; 4 fixed, 1 accepted) | 2 |
 | Decide or do (process) | 4 |
 | For the developers (handoff) | 11 |
 | Doesn't apply | 1 |
@@ -39,8 +39,8 @@ CLAUDE.md, is stricter on targets: 44 px.
 | 5 | Points icon (yellow lightning) on the grey stat chip; it's the only cue that "95" means points | Every Learning home state | 1.47:1; need 3 | A darker amber icon from the Uber palette, or a black icon. Also give each chip a spoken label ("95 points") |
 | 6 | Filter chips and home stat chips are 32 px tall | All courses, Learning home | Passes AA (24 px), fails our 44 px rule | Keep the look; extend the tap area to 44 px in code (padding or a pseudo-element), and note it on the components |
 | 7 | 12 px text carries real information | Tile captions ("2 of 7 lessons"), kickers ("Lesson 3 of 7", "Required · Safety"), dates ("Earned 26 October 2026"), unit labels, week history, video time | 193 layers at 12 px | Raise anything informative to 14 px (Label/Small or Paragraph/Small). Day letters and month labels can stay 12 |
-| 8 | Dropdown has no visible label; the placeholder does the work | Dropdown step | — | Add a label ("Missing phrase"), or have the sentence with the blank label it in code |
-| 9 | Video has captions but no transcript | Video, Video · couldn't load | — | Add a "Read the transcript" link under the video; check whether the video needs audio description |
+| 8 | ~~Dropdown has no visible label; the placeholder does the work~~ **Fixed 2026-10-05** | Dropdown step | — | The select now shows its label, "Your answer", as on Numeric; the placeholder stays as the prompt |
+| 9 | ~~Video has captions but no transcript~~ **Fixed 2026-10-05** | Video, Video · couldn't load | — | "Read the transcript" replaces the "CC on" chip under the video. Subtitles show inline, inside the player (Open edX Video XBlock), switched with the player's own CC button. Still to check: does the video need audio description? |
 
 Disabled buttons ("Continue" and "Check answer" before an answer) are #A6A6A6 on
 #F3F3F3 (2.19:1). WCAG exempts inactive controls, so they're not on the list,
@@ -72,7 +72,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 | Clear page title | Pass | Navigation titles ("Your progress", "Lesson 1 of 7") or a page heading on every screen. Learning home's title ("Learning") should exist in code even though the screen shows the Uber logo |
 | Headings show the structure | Pass | Section titles (Required, This week, By course) over their content |
 | Visual order matches reading order | Pass | Badge seals and overlays are decoration on top of the content they belong to |
-| Inputs and controls labelled | **Fix 8** | Numeric ("Your answer") and Reflection ("Your response") pass; Dropdown doesn't |
+| Inputs and controls labelled | Pass | Numeric ("Your answer"), Reflection ("Your response") and Dropdown ("Your answer", Fix 8) |
 | Action-oriented button labels | Pass | Verbs throughout: "Start", "Check answer", "Try again", "See all courses", "Start 30-day check" |
 | Status text kept out of the tab order | **Dev** | |
 | Links vs buttons used correctly | **Dev** | Prototype uses 37 `<button>`s and no clickable divs |
@@ -106,7 +106,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 |---|---|---|
 | No text inside bitmap images | Pass | All art is vector Brand.uber illustration; the "Q&A" letters in one scene are decorative |
 | Transcripts for audio | N/A | No audio-only content |
-| Captions and transcripts for video | **Fix 9** | Captions toggle ("CC on") present; no transcript |
+| Captions and transcripts for video | Pass | Subtitles inline in the player, switched with its CC button; "Read the transcript" under the video, also on the couldn't-load state (Fix 9) |
 | Icons at least 3:1 and labelled | **Fix 5** (3 fixed) · **Dev** | Chevrons and the points icon fail. Icon-only buttons (close, back, CC, full screen, sort arrows) need spoken names |
 | Alt text on meaningful images | **Dev** | |
 
@@ -138,3 +138,4 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 8. **The sticky footer** must not cover a focused field or button (WCAG 2.4.11).
 9. **Status text** ("Saved", "Correct") is announced (a live region) but not focusable.
 10. **Large text:** test at the largest iOS text size and at 200% zoom. Run Axe and VoiceOver on staging.
+11. **Video:** subtitles come from the Video XBlock's own transcript and show inside the player. "Read the transcript" opens that same transcript as text, and still works when the video can't load.
