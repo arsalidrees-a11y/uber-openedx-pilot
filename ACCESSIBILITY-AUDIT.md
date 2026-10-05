@@ -23,7 +23,7 @@ CLAUDE.md, is stricter on targets: 44 px.
 | | Points |
 |---|---|
 | Pass | 21 |
-| Fix in the designs (8 open fixes, listed next; 1 accepted) | 4 |
+| Fix in the designs (6 open fixes, listed next; 2 fixed, 1 accepted) | 4 |
 | Decide or do (process) | 4 |
 | For the developers (handoff) | 11 |
 | Doesn't apply | 1 |
@@ -34,8 +34,8 @@ CLAUDE.md, is stricter on targets: 44 px.
 |---|---|---|---|---|
 | 1 | ~~"Correct" and "Not quite" titles in green and red on their light tints~~ **Accepted as is** (Arsal, 2026-10-05): within 0.16 of 4.5:1 and visually balanced | Single choice, Numeric (feedback panel) | 4.34:1 and 4.47:1; need 4.5 | None. The coloured icon and tinted panel carry the meaning too |
 | 2 | Step numbers "01 02 03" in blue on light blue | Course introduction | 4.15:1 | Use Blue700 (#175BCC), about 5.9:1, or black |
-| 3 | Chevrons on tappable cards in disabled grey #A6A6A6 | Points card on Course details, support rows on Lesson recap, Next lesson card on Lesson results | 2.19–2.43:1; need 3 | Use Content/Secondary (#5E5E5E) |
-| 4 | The other answer options turn disabled grey once a question is answered, though drivers may re-read them | Single choice · correct and · not quite | 2.43:1 (text), 2.19:1 (letters) | Keep them readable in Content/Secondary; show "not chosen" with the outline, not by fading the text |
+| 3 | ~~Chevrons on tappable cards in disabled grey #A6A6A6~~ **Fixed 2026-10-05** | Milestone (points card, Next lesson card) and Resource row (Support rows) | Was 2.19–2.43:1 | Library chevrons now Content/Secondary (#4B4B4B, about 8.8:1); reaches screens on publish |
+| 4 | ~~Options not picked fade to disabled grey; after a wrong answer the right one fades too~~ **Fixed 2026-10-05** | Single choice · correct and · not quite | Was 2.43:1 (text), 2.19:1 (letters) | Disabled answer option now uses Content/Secondary text and letter. After a wrong answer the right option shows as Correct (no retry, as agreed) |
 | 5 | Points icon (yellow lightning) on the grey stat chip; it's the only cue that "95" means points | Every Learning home state | 1.47:1; need 3 | A darker amber icon from the Uber palette, or a black icon. Also give each chip a spoken label ("95 points") |
 | 6 | Filter chips and home stat chips are 32 px tall | All courses, Learning home | Passes AA (24 px), fails our 44 px rule | Keep the look; extend the tap area to 44 px in code (padding or a pseudo-element), and note it on the components |
 | 7 | 12 px text carries real information | Tile captions ("2 of 7 lessons"), kickers ("Lesson 3 of 7", "Required · Safety"), dates ("Earned 26 October 2026"), unit labels, week history, video time | 193 layers at 12 px | Raise anything informative to 14 px (Label/Small or Paragraph/Small). Day letters and month labels can stay 12 |
@@ -97,7 +97,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 | Point | Status | Evidence |
 |---|---|---|
 | Meaning not carried by colour alone | Pass | Right and wrong show an icon and a word; earned and locked badges have a caption; streak weeks differ by shape (check, dashed outline, "Now" label); "You" is labelled on the leaderboard |
-| Text contrast | **Fix 2, 4** | 1,031 layers measured; 13 under 4.5:1. The feedback titles (4.34, 4.47) are accepted as is |
+| Text contrast | **Fix 2** (4 fixed) | 1,031 layers measured; 13 under 4.5:1. The feedback titles (4.34, 4.47) are accepted as is |
 | High-contrast theme considered | **Do** | Out of pilot scope; respect iOS "Increase Contrast" if the Uber app passes it to the webview |
 
 ### Media
@@ -107,7 +107,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 | No text inside bitmap images | Pass | All art is vector Brand.uber illustration; the "Q&A" letters in one scene are decorative |
 | Transcripts for audio | N/A | No audio-only content |
 | Captions and transcripts for video | **Fix 9** | Captions toggle ("CC on") present; no transcript |
-| Icons at least 3:1 and labelled | **Fix 3, 5** · **Dev** | Chevrons and the points icon fail. Icon-only buttons (close, back, CC, full screen, sort arrows) need spoken names |
+| Icons at least 3:1 and labelled | **Fix 5** (3 fixed) · **Dev** | Chevrons and the points icon fail. Icon-only buttons (close, back, CC, full screen, sort arrows) need spoken names |
 | Alt text on meaningful images | **Dev** | |
 
 ### Functionality

@@ -39,7 +39,7 @@ are all other courses, open to every driver.
 2. Base: 10 points per step in the lesson.
 3. Accuracy bonus: 5 points for each question answered correctly on the first try. The bonus is folded into the total, not listed separately.
 4. Before a lesson, show its length only ("4 steps · 3 min"), never points.
-5. Mistakes: show right or wrong with a short explanation, then continue. No retry inside the lesson and no requeue of wrong answers. A wrong first answer earns no bonus; points already earned are never taken away.
+5. Mistakes: show right or wrong with a short explanation, then continue. No retry inside the lesson and no requeue of wrong answers. A wrong first answer earns no bonus; points already earned are never taken away. After a wrong answer, the right option is marked correct, so the driver sees it in place (2026-10-05).
 6. Repeating a lesson earns nothing. Final checks and the 30-day check earn no points; they count toward badges.
 7. Every course earns points, including optional courses, sensitive topics and Warning courses.
 8. The total never resets.
