@@ -126,7 +126,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 
 1. **Spoken names for icon-only buttons:** close, back, CC, full screen, sort up and down, the sheet's grabber, and the ⓘ in the Your progress header, named for the tab it opens ("How points work", "How your streak works", "How badges work", "How the leaderboard works").
 2. **Alt text:**
-   - Course art, badge art and seals say what they are ("Halfway badge, earned").
+   - Course art, badge art and seals say what they are ("Halfway badge, earned"). A locked badge is spoken as locked ("30-day check badge, locked"); its lock replaces the caption, so the lock itself is decorative.
    - Scenes and the decorative art tiles are empty (`alt=""`).
 3. **Stat chips** read as one control: "95 points", "2-week streak", "0 of 3 badges".
 4. **Bottom sheets** (rules, filters):

@@ -94,11 +94,17 @@ new rather than "got that already".
 - **Badges tab:** one card per curriculum, a collection rather than a list.
   Each set has a divider above it, then the seal, "Now" or "Earlier", the
   curriculum's courses, and its badges as slots, 114 px wide so rows line up. The caption on each slot is the date earned or where it
-  stands. The next badge shows what's left ("4 to go") or "Up next"; later
-  ones name the badge they follow ("After Halfway", "After Complete"), so no
-  two captions repeat. Once Complete is earned, the 30-day check shows when
-  it opens ("Opens 4 Dec"), then "Open now". Earlier curricula show only the
-  badges actually earned.
+  stands. Only one badge at a time has a status: the next one shows what's
+  left ("4 to go"), "Up next", or once Complete is earned, when the 30-day
+  check opens ("Opens 4 Dec", then "Open now"). Badges after it show a lock
+  instead of a caption, the same lock as an upcoming lesson on the course
+  path, so no two captions repeat (Strava's Trophy Case and Crypto.com's
+  Rewards+ work the same way). Earlier curricula show only the badges
+  actually earned.
+- **When drivers learn about the 30-day check:** its name; the "How badges
+  work" sheet ("opens 30 days after Complete"); the Complete celebration
+  ("Your 30-day check opens on 4 December"), the moment the 30 days start;
+  the slot's "Opens 4 Dec"; then home once it's open.
 - **Hero:** "1 of 3 for your required courses", plus "· 3 in all" only
   once there are earlier curricula.
 - **Badge-earned screen:** the seal sits on the badge's disc.
