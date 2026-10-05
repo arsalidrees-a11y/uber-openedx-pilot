@@ -130,7 +130,7 @@ curricula that change a few times a year, and read like Uber Pro's tiers.
 
 ### A new curriculum before the old one is finished
 
-*Added 2026-10-05; not yet in the doc.* Flow can send a new curriculum while the
+*Added 2026-10-05; in the doc the same day.* Flow can send a new curriculum while the
 driver holds one or two of the old curriculum's three badges.
 
 **Rules**
@@ -214,7 +214,7 @@ Each point event needs a stable learner, course, lesson, step count, first-try c
 4. Whether Flow can say when it sends a new curriculum rather than adding a course to the current one.
 5. Renewal: if a curriculum expires (for example yearly), renewal works like a new curriculum.
 
-Added 2026-10-05, not yet in the doc:
+Added 2026-10-05, in the doc as questions 6–9:
 
 6. A 30-day check left open when its curriculum is replaced: proposed that it
    doesn't open, and that carried-over courses count toward the new
@@ -233,7 +233,7 @@ list.
 
 ## Assumptions and decisions added 2026-10-05
 
-Not yet in the doc; labelled the way the doc labels them.
+In the doc's Assumptions tab since 2026-10-05 (Badges and Technical tables), labelled the way the doc labels them.
 
 | Rule | Label |
 |---|---|
