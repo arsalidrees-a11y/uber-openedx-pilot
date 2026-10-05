@@ -124,7 +124,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 
 ## Developer handoff
 
-1. **Spoken names for icon-only buttons:** close, back, CC, full screen, sort up and down, the sheet's grabber.
+1. **Spoken names for icon-only buttons:** close, back, CC, full screen, sort up and down, the sheet's grabber, and the ⓘ in the Your progress header, named for the tab it opens ("How points work", "How your streak works", "How badges work", "How the leaderboard works").
 2. **Alt text:**
    - Course art, badge art and seals say what they are ("Halfway badge, earned").
    - Scenes and the decorative art tiles are empty (`alt=""`).
