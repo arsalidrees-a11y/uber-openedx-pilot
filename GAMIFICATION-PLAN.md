@@ -26,10 +26,10 @@ are all other courses, open to every driver.
 
 | Surface | Shows | Does not show |
 |---|---|---|
-| Learning home | Stat chips (lifetime points, week streak, badges), the Continue card, the Required carousel, This week, the All courses row | A score per course, points before a lesson |
+| Learning home | Stat chips (lifetime points, week streak, badges for the current curriculum), the Continue card, the Required carousel, This week, the Explore courses card | A score per course, points before a lesson |
 | Your progress | One full-page sheet with tabs Points, Streak, Badges, Leaderboard, replacing the old Learning progress page; each home chip opens its tab. The Points tab shows lifetime points next to this month's | A second dashboard |
 | Course | Lessons complete, next lesson, lesson length ("4 steps · 3 min") | Course streak, course rank, a parallel balance |
-| Course tile and Continue card | A placeholder thumbnail until artwork is supplied | — |
+| Course tile and Continue card | Flat Brand.uber course art, until Uber supplies course images | — |
 | Lesson | Step position (the bar counts steps), feedback | Points, streak, rank, badges |
 | Lesson results | "+45 points" and "100% correct", the next lesson | Praise labels, timers, speed |
 
@@ -77,21 +77,72 @@ Three per curriculum, earned in order. Only curriculum courses count.
 
 - Earning moment: a calm, one-time celebration screen when the driver returns home. Never inside a lesson; no confetti, timers or countdowns.
 - Shown on the Badges tab with the date earned. Never taken away. Recognition only.
-- After all three, home shows the curriculum done and suggests optional courses.
+- The home stat chip counts the current curriculum's badges only ("1/3").
+- Badges earned in an earlier curriculum stay on the Badges tab under **Earlier badges** (see below).
+- After all three, home shows the curriculum done. The Explore courses card, on every home state, leads to optional courses.
 
 ## When the curriculum changes
 
 | Metric | New curriculum assigned | Course added to the current one |
 |---|---|---|
-| Badges | Three new badges; earlier ones stay | No change |
+| Badges | Three new badges. Earned ones stay, under Earlier badges; unearned ones close | No change. Complete now needs the added course |
 | Finished courses | Count toward the new curriculum if their content is unchanged | — |
 | Week streak | Continues from where it paused | Continues from where it paused |
 | Points, leaderboard | No change (the leaderboard resets monthly anyway) | No change |
 | Driver sees | A one-time notice on home, and the new courses under Required | The new course under Required |
 
+### A new curriculum before the old one is finished
+
+*Added 2026-10-05; not yet in the doc.* Flow can send a new curriculum while the
+driver holds one or two of the old curriculum's three badges.
+
+**Rules**
+
+1. Badges already earned in the old curriculum are kept, with their date. They
+   move to **Earlier badges** on the Badges tab.
+2. Badges not yet earned in the old curriculum close quietly. They are never
+   shown as missed, locked or expired: the driver didn't fail anything, Uber
+   changed the curriculum.
+3. The new curriculum starts its own three badges: Halfway, Complete, Retained.
+4. Finished lessons count toward the new curriculum's badges when the same
+   course, with unchanged content, is in it. If that already reaches half, the
+   new Halfway is earned at once and celebrated once on the way home.
+5. If Flow only adds a course to the current curriculum, nothing resets:
+   earned badges stay, and Complete now needs the added course.
+6. If the old curriculum is replaced after Complete but before its 30-day
+   check, that check doesn't open. Its courses count toward the new
+   curriculum's Retained if they carried over. (To confirm, below.)
+
+**What the driver sees**
+
+- **Home:** the one-time "New required courses" notice ("Your points, streak
+  and earlier badges stay"). The badges chip counts the new curriculum only.
+- **Badges tab:** the current curriculum's three badges first, then **Earlier
+  badges**, which lists only badges actually earned, each with its date and the
+  courses it covered: "Earned 26 October 2026 · Sexual misconduct education".
+  Curricula have no names, so earlier badges are labelled by course.
+
+**Example** (Figma, 02 · Hi-fi, "Your progress · Badges · earlier badges"):
+
+| | Old curriculum: Sexual misconduct education | New curriculum: + Regional safety training |
+|---|---|---|
+| Halfway | Earned 26 Oct → Earlier badges | Earned 12 Nov, from the 7 carried-over lessons (7 of 11) |
+| Complete | Earned 4 Nov → Earlier badges | Locked: needs Regional safety training and its final check |
+| Retained | Not earned → closes, not shown | Locked: opens 30 days after the new Complete |
+
+**Stored as** (for the build)
+
+- **Curriculum:** one record per Flow assignment: id, driver, courses, status
+  (active, replaced or expired), assigned and replaced dates.
+- **Badge award:** driver, curriculum id, badge, date earned. Never deleted.
+- **Lesson progress:** per driver per course, independent of curricula, so it
+  carries over on its own.
+- Badge progress is worked out live from the active curriculum. A replaced
+  curriculum stops being worked out; its awards stay.
+
 ## Road safety
 
-The doc makes no exception for road safety: like every course, it earns points and learning days once it has content, and counts toward badges if it is in the driver's curriculum. Until then its page says only that it is available soon, and it doesn't appear on the Points tab. (The earlier "adds no points" exception and its open question were dropped from the doc on 2026-10-03.)
+The doc makes no exception for road safety: like every course, Road safety fundamentals earns points and learning days, and counts toward badges if it is in the driver's curriculum. (The earlier "adds no points" exception and its open question were dropped from the doc on 2026-10-03.) Every course in the catalogue is a real course with lessons; nothing is shown as "coming soon" (decided 2026-10-03).
 
 ## Octalysis mapping and guardrails
 
@@ -112,8 +163,9 @@ The server-authoritative learner record exposes:
 - total points, with per-lesson awards (base and bonus) and per-course totals;
 - learning days, the current streak, the longest streak, and the state of each of the last eight weeks;
 - leaderboard group id (start month), this month's points and rank, and the visible rows (top 3, neighbours), with pseudonymous names;
-- per-curriculum lesson progress and badge awards with timestamps;
-- per-course lesson completion.
+- each curriculum assigned through Flow (id, courses, status, assigned and replaced dates), with badge progress for the active one;
+- badge awards with curriculum id and timestamp, kept when their curriculum is replaced;
+- per-course lesson completion, independent of curricula.
 
 Each point event needs a stable learner, course, lesson, step count, first-try correct count, first-award flag, experiment variant and timestamp. The service must be idempotent so replayed events cannot award points twice.
 
@@ -124,6 +176,35 @@ Each point event needs a stable learner, course, lesson, step count, first-try c
 3. Repeated courses: one course in more than one curriculum, or assigned again later. If so, it earns points once and counts toward each curriculum's badges. Edly suggests a course re-run for a course that must be repeated.
 4. Whether Flow can say when it sends a new curriculum rather than adding a course to the current one.
 5. Renewal: if a curriculum expires (for example yearly), renewal works like a new curriculum.
+
+Added 2026-10-05, not yet in the doc:
+
+6. A 30-day check left open when its curriculum is replaced: proposed that it
+   doesn't open, and that carried-over courses count toward the new
+   curriculum's Retained instead.
+7. Whether earlier badges may name the courses they were for ("Sexual
+   misconduct education"), since curricula themselves have no names.
+8. Whether a driver can be sent back to an earlier curriculum, and if so
+   whether its earned badges return to the top of the Badges tab.
+
+Questions 2 and 4 decide the rules above: with two curricula at a time,
+nothing closes and each keeps its own three badges; if Flow can't tell a new
+curriculum from an added course, the platform must infer it from the course
+list.
+
+## Assumptions and decisions added 2026-10-05
+
+Not yet in the doc; labelled the way the doc labels them.
+
+| Rule | Label |
+|---|---|
+| Earned badges from a replaced curriculum stay, under Earlier badges, with date and courses | Proposed |
+| Unearned badges of a replaced curriculum close without being shown as missed or locked | Proposed |
+| The home badges chip counts the current curriculum only | Proposed |
+| Carried-over lessons can earn the new curriculum's Halfway at once, with the usual one-time celebration | Proposed |
+| A 30-day check doesn't open after its curriculum is replaced | To confirm |
+| Each Flow assignment has a stable id, and replacing one is distinguishable from adding a course | Assumption |
+| Lesson progress is stored per course, so it carries over without copying | Assumption |
 
 ## Changes to earlier guidance
 
@@ -137,6 +218,7 @@ Each point event needs a stable learner, course, lesson, step count, first-try c
 - Progress can be tracked per curriculum, as assigned by Flow.
 - A check can unlock automatically 30 days after Complete.
 - A change to a course's content can be detected, so finished courses carry over to a new curriculum only if unchanged.
+- Each curriculum Flow sends has a stable id, and a replaced curriculum stays queryable so its badge awards can be listed (added 2026-10-05).
 
 ## Experiment measures
 
