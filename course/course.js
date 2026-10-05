@@ -298,7 +298,7 @@ const carousel = (courses) => `<div class="carousel">${courses.map(courseTile).j
 function thisWeek() {
   const h = habitSummary(record(), nowIso()), n = h.weekStreak;
   let title, body;
-  if (allRequiredDone()) { title = 'Streak paused'; body = 'Nothing required is left, so your streak is safe. Optional courses still count as learning days.'; }
+  if (allRequiredDone()) { title = 'Streak paused'; body = 'Nothing required is left, so your streak is safe.'; }
   else if (h.met) { title = 'Goal met this week'; body = `Your streak grows to ${n + 1} weeks when the week ends.`; }
   else if (h.learningDays) { title = `${h.learningDays} of ${h.goal} learning days`; body = n ? 'One more day this week keeps your streak going.' : 'One more day this week starts your week streak.'; }
   else { title = `0 of ${h.goal} learning days`; body = n ? `Learn on ${h.goal} days this week to keep your streak going.` : `Learn on ${h.goal} days this week to start a week streak.`; }
@@ -597,7 +597,7 @@ function progressView() {
     panel = `${statTiles(statTile(learningPoints(), 'total points'), statTile(pointsThisMonth(record(), nowIso()), 'points this month'))}<section class="group"><h2 class="u-heading-x-small">By course</h2>${rows}</section><p class="u-paragraph-small c-secondary">Finish a lesson for the first time to earn 10 points for each step, plus 5 for each question you get right on the first try. Repeats and checks add nothing, and points are never taken away.</p>`;
   } else if (progressTab === 'streak') {
     const h = habitSummary(record(), nowIso()), weeks = (n) => `${n} ${n === 1 ? 'week' : 'weeks'}`;
-    panel = `${statTiles(statTile(weeks(h.weekStreak), 'current streak'), statTile(weeks(h.longestStreak), 'longest streak'))}${thisWeek()}<p class="u-label-large c-primary">Last 8 weeks</p>${weekHistory()}<p class="u-paragraph-small c-secondary">Learn on 2 days a week, Monday to Sunday, to keep your streak. Optional courses count too. One missed week in any eight is forgiven (the outlined week); a second one starts your streak again. If nothing required is left, your streak pauses.</p>`;
+    panel = `${statTiles(statTile(weeks(h.weekStreak), 'current streak'), statTile(weeks(h.longestStreak), 'longest streak'))}${thisWeek()}<p class="u-label-large c-primary">Last 8 weeks</p>${weekHistory()}<p class="u-paragraph-small c-secondary">Learn on 2 days a week, Monday to Sunday, to keep your streak. Only required courses count; optional courses earn points. One missed week in any eight is forgiven (the outlined week); a second one starts your streak again. If nothing required is left, your streak pauses.</p>`;
   } else if (progressTab === 'badges') {
     const badges = badgeStates();
     panel = `<p class="lead u-paragraph-medium">Three badges for your required courses, earned in order. They’re never taken away.</p><div>${badges.map(b => badgeRow(b)).join('')}</div>${retentionDue() ? '<button class="btn btn--primary u-label-large" data-action="retention-intro">Take your 30-day check</button>' : ''}`;

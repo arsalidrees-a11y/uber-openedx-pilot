@@ -4,7 +4,8 @@
 //
 // Points: a lesson pays once, when it is first finished: 10 per step plus 5
 // for each question answered correctly on the first try. Checks pay nothing.
-// Week streak: weeks with at least 2 learning days (Monday to Sunday). One
+// Week streak: weeks with at least 2 learning days (Monday to Sunday). Only
+// required courses make a learning day; optional courses earn points only. One
 // missed week in any eight is forgiven; a second resets the streak. The streak
 // pauses while nothing in the curriculum is left.
 // Badges: three per curriculum, in order: Halfway, Complete, Retained.
@@ -54,7 +55,8 @@ export function createLearningRecord(now = new Date().toISOString(), timeZone = 
   };
 }
 
-// A learning day is a day the driver completes any part of a lesson.
+// A learning day is a day the driver completes any part of a lesson in a
+// required course (habitSummary filters out the rest).
 export function recordStep(record, { courseId, stepId, completedAt = new Date().toISOString() }) {
   const key = `${courseId}:${stepId}`;
   if (record.steps.some(step => step.key === key)) return false;
@@ -126,6 +128,7 @@ export function habitSummary(record, now = new Date().toISOString()) {
   }
   const daysByWeek = new Map();
   for (const step of record.steps) {
+    if (!record.courses[step.courseId]?.eligible) continue; // optional courses earn points, not learning days
     const week = weekKey(step.completedAt, timeZone);
     if (!daysByWeek.has(week)) daysByWeek.set(week, new Set());
     daysByWeek.get(week).add(dateInZone(step.completedAt, timeZone));

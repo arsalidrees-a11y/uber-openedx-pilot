@@ -43,6 +43,17 @@ test('a streak week needs two learning days; one missed week in eight is forgive
   assert.equal(habitSummary(record, '2026-10-13T12:00:00Z').weekStreak, 0, 'a second missed week resets');
 });
 
+test('only required courses make a learning day; optional courses earn points only', () => {
+  const record = createLearningRecord(monday, 'UTC');
+  recordStep(record, { courseId: 'sexual-misconduct', stepId: '0.0', completedAt: monday });
+  recordStep(record, { courseId: 'course-2', stepId: '0.0', completedAt: tuesday });
+  recordLesson(record, { courseId: 'course-2', lessonId: 0, steps: 4, completedAt: tuesday });
+  const habit = habitSummary(record, tuesday);
+  assert.equal(habit.learningDays, 1, 'the optional course on Tuesday is not a learning day');
+  assert.equal(habit.met, false);
+  assert.equal(pointsTotal(record), 40, 'it still pays points');
+});
+
 test('this week counts once it ends, and the streak pauses when nothing required is left', () => {
   const record = createLearningRecord(monday, 'UTC');
   recordStep(record, { courseId: 'sexual-misconduct', stepId: '0.0', completedAt: monday });

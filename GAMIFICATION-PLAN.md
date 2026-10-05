@@ -19,7 +19,7 @@ are all other courses, open to every driver.
 |---|---|---|---|---|
 | Points | Points | Finishing a lesson, plus a bonus for first-try correct answers | Never | Yes |
 | Leaderboard | Rank in a start-month group of about 30 | Points earned this month | 1st of every month | Yes |
-| Week streak | Weeks | Learning on 2 days in a Monday–Sunday week | A second missed week in any eight | Yes |
+| Week streak | Weeks | Learning on 2 days in a Monday–Sunday week | A second missed week in any eight | No |
 | Badges | 3 per curriculum | Curriculum milestones | Never | No |
 
 ## Where each one shows
@@ -59,10 +59,10 @@ This replaces the four anonymous position bands (updated 2026-10-02 to the month
 
 ## Week streak
 
-- A learning day is a day the driver completes any part of a lesson. A week is Monday to Sunday in the driver's local time zone; a streak week has at least 2 learning days.
+- A learning day is a day the driver completes any part of a lesson in a required course. A week is Monday to Sunday in the driver's local time zone; a streak week has at least 2 learning days.
 - One missed week in any eight is forgiven; a second resets the streak to 0. Meeting the goal in 7 of 8 weeks keeps the streak; a second miss in the same eight weeks breaks it.
 - The streak pauses while nothing in the curriculum is left, and continues when new courses are added.
-- Optional courses count as learning days.
+- Optional courses don't count as learning days; they earn points only (changed 2026-10-05, Arsal). The streak is the habit of working through Flow's required set; optional learning is rewarded with points and leaderboard rank.
 - The Streak tab shows the last eight weeks (met, forgiven, missed, paused, this week), because the forgiveness window is eight weeks. No flames.
 
 ## Badges
@@ -179,7 +179,7 @@ driver holds one or two of the old curriculum's three badges.
 
 ## Road safety
 
-The doc makes no exception for road safety: like every course, Road safety fundamentals earns points and learning days, and counts toward badges if it is in the driver's curriculum. (The earlier "adds no points" exception and its open question were dropped from the doc on 2026-10-03.) Every course in the catalogue is a real course with lessons; nothing is shown as "coming soon" (decided 2026-10-03).
+The doc makes no exception for road safety: like every course, Road safety fundamentals earns points, and counts toward learning days and badges if it is in the driver's curriculum. (The earlier "adds no points" exception and its open question were dropped from the doc on 2026-10-03.) Every course in the catalogue is a real course with lessons; nothing is shown as "coming soon" (decided 2026-10-03).
 
 ## Octalysis mapping and guardrails
 
@@ -247,6 +247,7 @@ Not yet in the doc; labelled the way the doc labels them.
 | Each curriculum's badges carry the seal of its main course; the Badges tab groups badges by curriculum | Proposed |
 | A curriculum's main course is the first required course in Flow's order | To confirm |
 | The third badge is shown to drivers as "30-day check", not "Retained" | Proposed |
+| Optional courses earn points but don't count as learning days for the week streak (the doc says they count) | Proposed |
 
 ## Changes to earlier guidance
 
