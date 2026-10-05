@@ -94,8 +94,11 @@ new rather than "got that already".
 - **Badges tab:** one card per curriculum, a collection rather than a list.
   Each set has a divider above it, then the seal, "Now" or "Earlier", the
   curriculum's courses, and its badges as slots, 114 px wide so rows line up. The caption on each slot is the date earned or where it
-  stands ("4 to go", "Up next", "After that", "Open now"). Earlier curricula
-  show only the badges actually earned.
+  stands. The next badge shows what's left ("4 to go") or "Up next"; later
+  ones name the badge they follow ("After Halfway", "After Complete"), so no
+  two captions repeat. Once Complete is earned, the 30-day check shows when
+  it opens ("Opens 4 Dec"), then "Open now". Earlier curricula show only the
+  badges actually earned.
 - **Hero:** "1 of 3 for your required courses", plus "· 3 in all" only
   once there are earlier curricula.
 - **Badge-earned screen:** the seal sits on the badge's disc.
