@@ -183,7 +183,7 @@ const BADGE_ART = { halfway: 'route_flag', complete: 'badge_checkmark', retained
 const BADGE_COPY = {
   halfway: 'You’ve finished half of your required lessons. Keep going at your own pace.',
   complete: 'You’ve finished every required course and its final check.',
-  retained: 'You passed your 30-day check. What you learned stayed with you.'
+  retained: 'You passed. What you learned stayed with you.'
 };
 function badgeStates() {
   const c = curriculum(), need = Math.ceil(c.lessonsTotal / 2), opens = retentionOpensAt(record());
@@ -239,7 +239,7 @@ function badgeRow(b, art = BADGE_ART[b.key]) {
   const meter = b.state === 'progress' ? bar(Math.round(b.done / b.need * 100), `${b.name} progress`) : '';
   return `<div class="badge-row is-${b.state === 'progress' ? 'in-progress' : b.state}"><span class="badge-row__art">${icon(art)}</span><span class="badge-row__body"><b class="badge-row__name u-label-large">${esc(b.name)}</b><small class="u-paragraph-small c-tertiary">${esc(b.detail)}</small>${meter}</span></div>`;
 }
-// Learning / Badge medal: Halfway, Complete, Retained; earned or locked.
+// Learning / Badge medal: Halfway, Complete, 30-day check; earned or locked.
 function badgeMedal(b, size = 'small') {
   return `<span class="badge-medal badge-medal--${size}${b.state === 'earned' ? ' is-earned' : ''}" aria-hidden="true">${icon(BADGE_ART[b.key])}</span>`;
 }

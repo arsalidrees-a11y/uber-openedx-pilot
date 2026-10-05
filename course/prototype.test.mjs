@@ -152,7 +152,7 @@ test('Streak: current and longest, this week, and the last eight weeks with the 
 
 test('Badges: three curriculum badges in order, Halfway in progress', async () => {
   await loadPage('?preview=progress&tab=badges');
-  assert.deepEqual(all('.badge-row__name').map(n => n.textContent), ['Halfway', 'Complete', 'Retained']);
+  assert.deepEqual(all('.badge-row__name').map(n => n.textContent), ['Halfway', 'Complete', '30-day check']);
   assert.equal(document.querySelector('.badge-shelf'), null, 'each badge is shown once');
   const halfway = document.querySelector('.badge-row');
   assert.ok(halfway.classList.contains('is-in-progress'));
@@ -252,9 +252,9 @@ test('the final check result shows the scores once and doesn’t dwell on what i
   assert.doesNotMatch(text(), /points|badge/i, 'no points or badge talk at the success moment');
 });
 
-test('the 30-day check earns Retained only after a passing result is saved', async () => {
+test('the 30-day check earns its badge only after a passing result is saved', async () => {
   const { click } = await loadPage('?preview=retention');
-  assert.match(text(), /30-day checkStill with you\?Five questions check what stayed with you from your required courses\.Retained/);
+  assert.match(text(), /30-day checkStill with you\?Five questions check what stayed with you from your required courses\.30-day check/);
   click('[data-action="start-retention"]');
   for (const answer of [0, 1, 2, 0, 1]) {
     click(`[data-assessment-choice="${answer}"]`);
@@ -262,9 +262,9 @@ test('the 30-day check earns Retained only after a passing result is saved', asy
   }
   assert.match(text(), /Save result and view badge/);
   click('[data-action="finish-retention"]');
-  assert.equal(document.querySelector('h1').textContent, 'Retained');
+  assert.equal(document.querySelector('h1').textContent, '30-day check');
   click('[data-action="celebrated-badges"]');
-  const retained = all('.badge-row').find(row => /Retained/.test(row.textContent));
+  const retained = all('.badge-row').find(row => row.querySelector('.badge-row__name')?.textContent === '30-day check');
   assert.ok(retained.classList.contains('is-earned'));
 });
 

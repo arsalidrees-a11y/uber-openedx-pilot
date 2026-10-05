@@ -67,7 +67,7 @@ test('this week counts once it ends, and the streak pauses when nothing required
   assert.deepEqual(later.weeks.slice(-3).map(w => w.state), ['paused', 'paused', 'current']);
 });
 
-test('badges belong to the curriculum and are earned in order: Halfway, Complete, Retained', () => {
+test('badges belong to the curriculum and are earned in order: Halfway, Complete, 30-day check', () => {
   const record = createLearningRecord(monday, 'UTC');
   assert.deepEqual(awardBadges(record, { lessonsDone: 5, lessonsTotal: 11, complete: false }, monday), []);
   assert.deepEqual(awardBadges(record, { lessonsDone: 6, lessonsTotal: 11, complete: false }, monday), ['halfway']);

@@ -8,7 +8,8 @@
 // required courses make a learning day; optional courses earn points only. One
 // missed week in any eight is forgiven; a second resets the streak. The streak
 // pauses while nothing in the curriculum is left.
-// Badges: three per curriculum, in order: Halfway, Complete, Retained.
+// Badges: three per curriculum, in order: Halfway, Complete, 30-day check
+// (key `retained`; shown as "Retained" until 2026-10-05).
 // Leaderboard: points earned this month, within a group of about 30 drivers who
 // started learning the same month; it resets on the 1st. Lifetime points stay.
 export const POINTS_PER_STEP = 10;
@@ -20,7 +21,7 @@ export const QUESTION_TYPES = new Set(['choice', 'dropdown', 'number', 'drag', '
 export const BADGES = [
   { key: 'halfway', name: 'Halfway' },
   { key: 'complete', name: 'Complete' },
-  { key: 'retained', name: 'Retained' }
+  { key: 'retained', name: '30-day check' }
 ];
 export const RETENTION_DELAY_DAYS = 30;
 
