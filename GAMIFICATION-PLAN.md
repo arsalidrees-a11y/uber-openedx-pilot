@@ -81,6 +81,33 @@ Three per curriculum, earned in order. Only curriculum courses count.
 - Badges earned in an earlier curriculum stay on the Badges tab under **Earlier badges** (see below).
 - After all three, home shows the curriculum done. The Explore courses card, on every home state, leads to optional courses.
 
+### How badges look (decided 2026-10-05)
+
+The three shapes never change: flag = Halfway, medal = Complete, trophy =
+Retained, so drivers learn them once. What changes per curriculum is its
+**seal**: the art of its main course on that course's tint (the book on blue
+for Sexual misconduct education, the map-shield on teal for Regional safety
+training). Every badge of that curriculum wears it, so a second Halfway looks
+new rather than "got that already".
+
+- **Badges tab:** one card per curriculum, a collection rather than a list.
+  The card shows the seal, "Now" or "Earlier", the curriculum's courses, then
+  its badges as slots. The caption on each slot is the date earned or where it
+  stands ("4 to go", "Up next", "After that", "Open now"). Earlier curricula
+  show only the badges actually earned.
+- **Hero:** "1 of 3 for your required courses", plus "· 3 earned in all"
+  only once there are earlier curricula.
+- **Badge-earned screen:** the seal sits on the badge's disc.
+- **Main course:** the first required course in Flow's order (to confirm).
+
+Why: people speed up as a goal gets close and slow down once a badge is
+earned (Anderson et al. 2013; Kusmierczyk and Gomez-Rodriguez 2018), and a
+card that starts partly filled is completed far more often (34% against 19%
+for loyalty cards, Nunes and Drèze 2006). The set card works like that card,
+carried-over lessons pre-fill it, and the seal makes each new set read as a
+new goal. Rejected: levels ("Complete ×2"), which suit frequent habits, not
+curricula that change a few times a year, and read like Uber Pro's tiers.
+
 ## When the curriculum changes
 
 | Metric | New curriculum assigned | Course added to the current one |
@@ -117,10 +144,10 @@ driver holds one or two of the old curriculum's three badges.
 
 - **Home:** the one-time "New required courses" notice ("Your points, streak
   and earlier badges stay"). The badges chip counts the new curriculum only.
-- **Badges tab:** the current curriculum's three badges first, then **Earlier
-  badges**, which lists only badges actually earned, each with its date and the
-  courses it covered: "Earned 26 October 2026 · Sexual misconduct education".
-  Curricula have no names, so earlier badges are labelled by course.
+- **Badges tab:** the current curriculum's card first ("Now"), then a card
+  for each earlier curriculum, showing only badges actually earned, with their
+  dates. Curricula have no names, so each card is labelled by its courses and
+  its seal (see "How badges look").
 
 **Example** (Figma, 02 · Hi-fi, "Your progress · Badges · earlier badges"):
 
@@ -186,6 +213,8 @@ Added 2026-10-05, not yet in the doc:
    misconduct education"), since curricula themselves have no names.
 8. Whether a driver can be sent back to an earlier curriculum, and if so
    whether its earned badges return to the top of the Badges tab.
+9. Which course gives a curriculum its seal when it has several: proposed,
+   the first required course in Flow's order.
 
 Questions 2 and 4 decide the rules above: with two curricula at a time,
 nothing closes and each keeps its own three badges; if Flow can't tell a new
@@ -205,6 +234,8 @@ Not yet in the doc; labelled the way the doc labels them.
 | A 30-day check doesn't open after its curriculum is replaced | To confirm |
 | Each Flow assignment has a stable id, and replacing one is distinguishable from adding a course | Assumption |
 | Lesson progress is stored per course, so it carries over without copying | Assumption |
+| Each curriculum's badges carry the seal of its main course; the Badges tab groups badges by curriculum | Proposed |
+| A curriculum's main course is the first required course in Flow's order | To confirm |
 
 ## Changes to earlier guidance
 
