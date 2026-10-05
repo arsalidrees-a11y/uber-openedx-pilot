@@ -247,7 +247,7 @@ Not yet in the doc; labelled the way the doc labels them.
 | Each curriculum's badges carry the seal of its main course; the Badges tab groups badges by curriculum | Proposed |
 | A curriculum's main course is the first required course in Flow's order | To confirm |
 | The third badge is shown to drivers as "30-day check", not "Retained" | Proposed |
-| Optional courses earn points but don't count as learning days for the week streak (the doc says they count) | Proposed |
+| Optional courses earn points but don't count as learning days for the week streak (in the doc since 2026-10-05) | Proposed |
 
 ## Changes to earlier guidance
 
