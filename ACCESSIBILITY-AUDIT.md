@@ -23,7 +23,7 @@ CLAUDE.md, is stricter on targets: 44 px.
 | | Points |
 |---|---|
 | Pass | 23 |
-| Fix in the designs (4 open fixes, listed next; 4 fixed, 1 accepted) | 2 |
+| Closed without a change (the fix list has 4 fixed, 1 accepted, 4 closed) | 2 |
 | Decide or do (process) | 4 |
 | For the developers (handoff) | 11 |
 | Doesn't apply | 1 |
@@ -33,14 +33,18 @@ CLAUDE.md, is stricter on targets: 44 px.
 | # | Issue | Where | Measured | Fix |
 |---|---|---|---|---|
 | 1 | ~~"Correct" and "Not quite" titles in green and red on their light tints~~ **Accepted as is** (Arsal, 2026-10-05): within 0.16 of 4.5:1 and visually balanced | Single choice, Numeric (feedback panel) | 4.34:1 and 4.47:1; need 4.5 | None. The coloured icon and tinted panel carry the meaning too |
-| 2 | Step numbers "01 02 03" in blue on light blue | Course introduction | 4.15:1 | Use Blue700 (#175BCC), about 5.9:1, or black |
+| 2 | **Closed 2026-10-05, no change** (Arsal). Step numbers "01 02 03" in blue on light blue | Course introduction | 4.15:1 | Use Blue700 (#175BCC), about 5.9:1, or black |
 | 3 | ~~Chevrons on tappable cards in disabled grey #A6A6A6~~ **Fixed 2026-10-05** | Milestone (points card, Next lesson card) and Resource row (Support rows) | Was 2.19–2.43:1 | Library chevrons now Content/Secondary (#4B4B4B, about 8.8:1); reaches screens on publish |
 | 4 | ~~Options not picked fade to disabled grey; after a wrong answer the right one fades too~~ **Fixed 2026-10-05** | Single choice · correct and · not quite | Was 2.43:1 (text), 2.19:1 (letters) | Disabled answer option now uses Content/Secondary text and letter. After a wrong answer the right option shows as Correct (no retry, as agreed) |
-| 5 | Points icon (yellow lightning) on the grey stat chip; it's the only cue that "95" means points | Every Learning home state | 1.47:1; need 3 | A darker amber icon from the Uber palette, or a black icon. Also give each chip a spoken label ("95 points") |
-| 6 | Filter chips and home stat chips are 32 px tall | All courses, Learning home | Passes AA (24 px), fails our 44 px rule | Keep the look; extend the tap area to 44 px in code (padding or a pseudo-element), and note it on the components |
-| 7 | 12 px text carries real information | Tile captions ("2 of 7 lessons"), kickers ("Lesson 3 of 7", "Required · Safety"), dates ("Earned 26 October 2026"), unit labels, week history, video time | 193 layers at 12 px | Raise anything informative to 14 px (Label/Small or Paragraph/Small). Day letters and month labels can stay 12 |
+| 5 | **Closed 2026-10-05, no change** (Arsal). Points icon (yellow lightning) on the grey stat chip; it's the only cue that "95" means points | Every Learning home state | 1.47:1; need 3 | A darker amber icon from the Uber palette, or a black icon. Also give each chip a spoken label ("95 points") |
+| 6 | **Closed 2026-10-05, no change** (Arsal). Filter chips and home stat chips are 32 px tall | All courses, Learning home | Passes AA (24 px), fails our 44 px rule | Keep the look; extend the tap area to 44 px in code (padding or a pseudo-element), and note it on the components |
+| 7 | **Closed 2026-10-05, no change** (Arsal). 12 px text carries real information | Tile captions ("2 of 7 lessons"), kickers ("Lesson 3 of 7", "Required · Safety"), dates ("Earned 26 October 2026"), unit labels, week history, video time | 193 layers at 12 px | Raise anything informative to 14 px (Label/Small or Paragraph/Small). Day letters and month labels can stay 12 |
 | 8 | ~~Dropdown has no visible label; the placeholder does the work~~ **Fixed 2026-10-05** | Dropdown step | — | The select now shows its label, "Your answer", as on Numeric; the placeholder stays as the prompt |
-| 9 | ~~Video has captions but no transcript~~ **Fixed 2026-10-05** | Video, Video · couldn't load | — | "Read the transcript" replaces the "CC on" chip under the video. Subtitles show inline, inside the player (Open edX Video XBlock), switched with the player's own CC button. Still to check: does the video need audio description? |
+| 9 | ~~Video has captions but no transcript~~ **Fixed 2026-10-05** | Video, Video · couldn't load | — | "Read the transcript" replaces the "CC on" chip under the video. Subtitles show inline, inside the player (Open edX Video XBlock), switched with the player's own CC button. Audio description: closed without a decision (Arsal, 2026-10-05) |
+
+Fixes 2, 5, 6 and 7, and the audio description question, were closed on
+2026-10-05 without changing the designs (Arsal). They stay listed as known
+gaps.
 
 Disabled buttons ("Continue" and "Check answer" before an answer) are #A6A6A6 on
 #F3F3F3 (2.19:1). WCAG exempts inactive controls, so they're not on the list,
@@ -84,7 +88,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 
 | Point | Status | Evidence |
 |---|---|---|
-| Body copy at least 16 px | Pass | Lesson body is 16 px (Paragraph/Medium); 14 px is secondary text only. But see **Fix 7** for 12 px |
+| Body copy at least 16 px | Pass | Lesson body is 16 px (Paragraph/Medium); 14 px is secondary text only. 12 px informative text stays (Fix 7, closed) |
 | Comfortable line height | Pass | Text styles: 16/24, 14/20, 18/24, 32/40 |
 | 45–75 characters per line | Pass | About 45–50 on a 358 px column at 16 px; the narrowest a phone allows |
 | Makes sense read aloud in order | Pass | Alt text still needed; see handoff |
@@ -97,7 +101,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 | Point | Status | Evidence |
 |---|---|---|
 | Meaning not carried by colour alone | Pass | Right and wrong show an icon and a word; earned and locked badges have a caption; streak weeks differ by shape (check, dashed outline, "Now" label); "You" is labelled on the leaderboard |
-| Text contrast | **Fix 2** (4 fixed) | 1,031 layers measured; 13 under 4.5:1. The feedback titles (4.34, 4.47) are accepted as is |
+| Text contrast | Closed (Fix 2) · 4 fixed | 1,031 layers measured; 13 under 4.5:1. The feedback titles (4.34, 4.47) are accepted as is |
 | High-contrast theme considered | **Do** | Out of pilot scope; respect iOS "Increase Contrast" if the Uber app passes it to the webview |
 
 ### Media
@@ -107,7 +111,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
 | No text inside bitmap images | Pass | All art is vector Brand.uber illustration; the "Q&A" letters in one scene are decorative |
 | Transcripts for audio | N/A | No audio-only content |
 | Captions and transcripts for video | Pass | Subtitles inline in the player, switched with its CC button; "Read the transcript" under the video, also on the couldn't-load state (Fix 9) |
-| Icons at least 3:1 and labelled | **Fix 5** (3 fixed) · **Dev** | Chevrons and the points icon fail. Icon-only buttons (close, back, CC, full screen, sort arrows) need spoken names |
+| Icons at least 3:1 and labelled | Closed (Fix 5) · 3 fixed · **Dev** | Chevrons fixed; the points icon stays under 3:1 (Fix 5, closed). Icon-only buttons (close, back, CC, full screen, sort arrows) need spoken names |
 | Alt text on meaningful images | **Dev** | |
 
 ### Functionality
@@ -134,7 +138,7 @@ Status: **Pass** · **Fix** (numbered above) · **Do** (process, not a screen) �
    - Return focus to the button that opened the sheet.
 5. **The custom select** follows the ARIA listbox pattern, and the sentence with the blank labels it.
 6. **Matching and sorting** keep their tap and arrow alternatives (WCAG 2.5.7 dragging) and announce moves.
-7. **Tap areas** reach 44 px on the 32 px chips and tags (Fix 6).
+7. **Tap areas** reach 44 px on the 32 px chips and tags. Fix 6 is closed in the designs; the kit's own 44 px rule still applies in code.
 8. **The sticky footer** must not cover a focused field or button (WCAG 2.4.11).
 9. **Status text** ("Saved", "Correct") is announced (a live region) but not focusable.
 10. **Large text:** test at the largest iOS text size and at 200% zoom. Run Axe and VoiceOver on staging.
