@@ -91,12 +91,12 @@ training). Every badge of that curriculum wears it, so a second Halfway looks
 new rather than "got that already".
 
 - **Badges tab:** one card per curriculum, a collection rather than a list.
-  The card shows the seal, "Now" or "Earlier", the curriculum's courses, then
-  its badges as slots. The caption on each slot is the date earned or where it
+  Each set has a divider above it, then the seal, "Now" or "Earlier", the
+  curriculum's courses, and its badges as slots, 114 px wide so rows line up. The caption on each slot is the date earned or where it
   stands ("4 to go", "Up next", "After that", "Open now"). Earlier curricula
   show only the badges actually earned.
-- **Hero:** "1 of 3 for your required courses", plus "· 3 earned in all"
-  only once there are earlier curricula.
+- **Hero:** "1 of 3 for your required courses", plus "· 3 in all" only
+  once there are earlier curricula.
 - **Badge-earned screen:** the seal sits on the badge's disc.
 - **Main course:** the first required course in Flow's order (to confirm).
 
